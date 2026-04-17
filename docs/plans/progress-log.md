@@ -12,3 +12,9 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 
 - Completed Task 1. Initialized this folder as its own Git repo on `main`, confirmed the Vite + React + R3F + Tailwind scaffold, ran `pnpm check` and `pnpm build` successfully, and verified the dev server responds at `http://127.0.0.1:3001`.
 - Tightened `.gitignore` to avoid committing local agent/runtime files (`.claude`, `.openclaw`, `memory`, `DREAMS.md`, and `tsconfig.tsbuildinfo`).
+
+## 2026-04-17
+
+- Synced the plan with Andrew's note that Task 2 is complete and recorded the live Vercel URL (`https://andalftri.vercel.app`) in `IDENTITY.md` and `TOOLS.md`.
+- Completed Task 3 by replacing the starter torus knot with a dedicated `Environment` scene component that renders the dark wireframe void using Drei's infinite `Grid`, fog, and layered lighting.
+- Ran `pnpm check` and `pnpm build` successfully. Build is clean; Vite still reports the existing non-blocking large-chunk warning for the main bundle.

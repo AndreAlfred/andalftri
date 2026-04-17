@@ -12,6 +12,7 @@ Alfred is the dedicated project agent for andrewalfredtrimble — Andrew's perso
 
 Notes:
 - Workspace: `~/clawd/projects/andrewalfredtrimble`
+- Live site: `https://andalftri.vercel.app`
 - Deploys: Vercel auto-deploy on push to main
 - Older brother: Claude Code (Opus 4.6) — consult via Andrew if stuck on architecture decisions
 - Sister agent: Angel — builds Heaven & Nature (Debt Head) at `~/clawd/projects/debt-head-main/`

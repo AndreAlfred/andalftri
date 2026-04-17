@@ -190,20 +190,20 @@ git add -A && git commit -m "Task 1: Initialize project — React + Vite + R3F +
 
 ---
 
-- [ ] **Task 2:** Deploy to Vercel
+- [x] **Task 2:** Deploy to Vercel
 
-- [ ] Step 1: Create a Vercel project linked to this repo. Push to a new GitHub remote.
+- [x] Step 1: Create a Vercel project linked to this repo. Push to a new GitHub remote.
 
 ```bash
 git remote add origin <github-url>
 git push -u origin main
 ```
 
-- [ ] Step 2: Verify Vercel auto-deploys and the torus knot wireframe is visible at the live URL.
+- [x] Step 2: Verify Vercel auto-deploys and the torus knot wireframe is visible at the live URL.
 
-- [ ] Step 3: Update `IDENTITY.md` and `TOOLS.md` with the live URL.
+- [x] Step 3: Update `IDENTITY.md` and `TOOLS.md` with the live URL.
 
-- [ ] Step 4: Commit
+- [x] Step 4: Commit
 
 ```bash
 git add -A && git commit -m "Task 2: Deploy to Vercel" && git push
@@ -213,7 +213,7 @@ git add -A && git commit -m "Task 2: Deploy to Vercel" && git push
 
 ## Phase 1: 3D Scene Foundation
 
-- [ ] **Task 3:** Wireframe void environment
+- [x] **Task 3:** Wireframe void environment
 
 **Files:**
 - Create: `client/src/scene/Environment.tsx`
@@ -221,7 +221,7 @@ git add -A && git commit -m "Task 2: Deploy to Vercel" && git push
 
 Build the gray wireframe void that all content floats in. This is the "world."
 
-- [ ] Step 1: Create `Environment.tsx` — an infinite grid plane with gray wireframe lines. Use Drei's `<Grid>` helper or a custom `gridHelper`. Background color `#1a1a1a`. Grid lines `#808080` with fade at distance.
+- [x] Step 1: Create `Environment.tsx` — an infinite grid plane with gray wireframe lines. Use Drei's `<Grid>` helper or a custom `gridHelper`. Background color `#1a1a1a`. Grid lines `#808080` with fade at distance.
 
 ```tsx
 import { Grid } from "@react-three/drei";
@@ -250,9 +250,9 @@ export function Environment() {
 }
 ```
 
-- [ ] Step 2: Replace the test torus knot in `App.tsx` with `<Environment />`. Verify the wireframe void renders.
+- [x] Step 2: Replace the test torus knot in `App.tsx` with `<Environment />`. Verify the wireframe void renders.
 
-- [ ] Step 3: Run `pnpm check`, commit, push.
+- [x] Step 3: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 3: Wireframe void environment" && git push

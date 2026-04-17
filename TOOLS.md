@@ -18,6 +18,7 @@ pnpm build        # Production build
 
 ## Deployment
 
+- Live site: `https://andalftri.vercel.app`
 - Vercel auto-deploys on push to `main`
 - Rebuild takes ~30 seconds after push
 
