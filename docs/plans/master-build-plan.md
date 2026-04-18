@@ -398,13 +398,13 @@ git add -A && git commit -m "Task 5: Lemniscate idle animation on @ logo" && git
 
 ---
 
-- [ ] **Task 6:** Mouse parallax (scene-wide)
+- [x] **Task 6:** Mouse parallax (scene-wide)
 
 **Files:**
 - Create: `client/src/hooks/useMouseParallax.ts`
 - Modify: `client/src/scene/MenuHub.tsx`
 
-- [ ] Step 1: Create `useMouseParallax.ts` — tracks normalized mouse position and returns a smooth offset vector for the scene.
+- [x] Step 1: Create `useMouseParallax.ts` — tracks normalized mouse position and returns a smooth offset vector for the scene.
 
 ```typescript
 import { useFrame, useThree } from "@react-three/fiber";
@@ -445,11 +445,11 @@ export function useMouseParallax(
 }
 ```
 
-- [ ] Step 2: Wrap the `MenuHub` contents in a `<group ref={groupRef}>` and apply `useMouseParallax` to it.
+- [x] Step 2: Wrap the `MenuHub` contents in a `<group ref={groupRef}>` and apply `useMouseParallax` to it.
 
-- [ ] Step 3: Verify — moving the mouse around the screen should subtly shift the entire logo/button cluster. The effect should be smooth and gentle.
+- [x] Step 3: Verify — moving the mouse around the screen should subtly shift the entire logo/button cluster. The effect should be smooth and gentle.
 
-- [ ] Step 4: Run `pnpm check`, commit, push.
+- [x] Step 4: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 6: Scene-wide mouse parallax" && git push

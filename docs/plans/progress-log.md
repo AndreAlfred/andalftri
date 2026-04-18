@@ -21,3 +21,5 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Ran `pnpm check` and `pnpm build` successfully. Build is clean; Vite still reports the existing non-blocking large-chunk warning for the main bundle.
 - Completed Task 5 by adding a reusable `useLemniscate` hook and wiring it into the chrome `@` logo, so the menu centerpiece now drifts with a slow figure-eight idle motion instead of sitting static.
 - Re-ran `pnpm check` and `pnpm build` after the animation work. Both passed cleanly; the only remaining build note is the same non-blocking Vite chunk-size warning.
+- Completed Task 6 by adding a reusable `useMouseParallax` hook and applying it to the top-level `MenuHub` group, so the chrome `@` cluster now drifts gently with cursor movement instead of feeling pinned in place.
+- Re-ran `pnpm check` and `pnpm build` after the parallax work. Both passed cleanly; the only remaining build note is the same non-blocking Vite chunk-size warning.
