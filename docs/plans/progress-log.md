@@ -23,3 +23,9 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Re-ran `pnpm check` and `pnpm build` after the animation work. Both passed cleanly; the only remaining build note is the same non-blocking Vite chunk-size warning.
 - Completed Task 6 by adding a reusable `useMouseParallax` hook and applying it to the top-level `MenuHub` group, so the chrome `@` cluster now drifts gently with cursor movement instead of feeling pinned in place.
 - Re-ran `pnpm check` and `pnpm build` after the parallax work. Both passed cleanly; the only remaining build note is the same non-blocking Vite chunk-size warning.
+
+## 2026-04-18
+
+- Completed Task 7 by adding shared scene page config, a `useProximityTilt` hook based on screen-space cursor distance, and a reusable `MenuButton` component with chrome capsule placeholders, phased lemniscate motion, hover glow, and subtle pulse scaling.
+- Updated `MenuHub` to render all six labeled buttons around the central `@` logo from config data. Clicks currently log the selected route, which sets up the next camera-navigation task cleanly.
+- Ran `pnpm check` and `pnpm build` successfully after the Task 7 work. Build is clean; Vite still reports the existing non-blocking large-chunk warning for the main bundle.

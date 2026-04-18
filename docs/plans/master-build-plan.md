@@ -457,7 +457,7 @@ git add -A && git commit -m "Task 6: Scene-wide mouse parallax" && git push
 
 ---
 
-- [ ] **Task 7:** Menu buttons with proximity tilt and hover effects
+- [x] **Task 7:** Menu buttons with proximity tilt and hover effects
 
 **Files:**
 - Create: `client/src/scene/MenuButton.tsx`
@@ -465,7 +465,7 @@ git add -A && git commit -m "Task 6: Scene-wide mouse parallax" && git push
 - Create: `client/src/data/sceneConfig.ts`
 - Modify: `client/src/scene/MenuHub.tsx`
 
-- [ ] Step 1: Create `sceneConfig.ts` — defines the 3D position for each button relative to the logo, and the camera target for each page.
+- [x] Step 1: Create `sceneConfig.ts` — defines the 3D position for each button relative to the logo, and the camera target for each page.
 
 ```typescript
 export interface PageConfig {
@@ -541,7 +541,7 @@ export const MENU_HUB_CAMERA = {
 };
 ```
 
-- [ ] Step 2: Create `useProximityTilt.ts` — tilts an object toward the cursor based on screen-space distance.
+- [x] Step 2: Create `useProximityTilt.ts` — tilts an object toward the cursor based on screen-space distance.
 
 ```typescript
 import { useFrame, useThree } from "@react-three/fiber";
@@ -578,7 +578,7 @@ export function useProximityTilt(
 
 Note: The proximity tilt implementation needs access to the mouse position. Angel should create a `MouseContext` provider that both the parallax and proximity systems read from, OR use R3F's `useThree().pointer` (which gives NDC coordinates of the last pointer event on the canvas). The `useThree().pointer` approach is simpler. Refine during implementation.
 
-- [ ] Step 3: Create `MenuButton.tsx` — a placeholder button with chrome material, lemniscate animation (with per-button phase offset), proximity tilt, and hover glow.
+- [x] Step 3: Create `MenuButton.tsx` — a placeholder button with chrome material, lemniscate animation (with per-button phase offset), proximity tilt, and hover glow.
 
 ```tsx
 import { useRef, useState } from "react";
@@ -644,11 +644,11 @@ export function MenuButton({ page, index, onClick, modelPath }: MenuButtonProps)
 }
 ```
 
-- [ ] Step 4: Update `MenuHub.tsx` to render all six `MenuButton` components from `PAGES` config.
+- [x] Step 4: Update `MenuHub.tsx` to render all six `MenuButton` components from `PAGES` config.
 
-- [ ] Step 5: Verify — six labeled buttons float around the "@" logo, each lazily rotating with offset timing. Hovering shows glow + scale. Clicking logs to console (no navigation yet).
+- [x] Step 5: Verify — six labeled buttons float around the "@" logo, each lazily rotating with offset timing. Hovering shows glow + scale. Clicking logs to console (no navigation yet).
 
-- [ ] Step 6: Run `pnpm check`, commit, push.
+- [x] Step 6: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 7: Menu buttons with lemniscate, hover glow, proximity tilt" && git push
