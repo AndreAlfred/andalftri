@@ -19,3 +19,5 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 3 by replacing the starter torus knot with a dedicated `Environment` scene component that renders the dark wireframe void using Drei's infinite `Grid`, fog, and layered lighting.
 - Added Task 4's placeholder menu hub: a large chrome `@` logo component with a future-facing `modelPath` prop, mounted at scene center via `MenuHub`, plus a city preset environment map for reflections.
 - Ran `pnpm check` and `pnpm build` successfully. Build is clean; Vite still reports the existing non-blocking large-chunk warning for the main bundle.
+- Completed Task 5 by adding a reusable `useLemniscate` hook and wiring it into the chrome `@` logo, so the menu centerpiece now drifts with a slow figure-eight idle motion instead of sitting static.
+- Re-ran `pnpm check` and `pnpm build` after the animation work. Both passed cleanly; the only remaining build note is the same non-blocking Vite chunk-size warning.

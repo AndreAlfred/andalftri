@@ -343,13 +343,13 @@ git add -A && git commit -m "Task 4: Placeholder @ logo with chrome material" &&
 
 ---
 
-- [ ] **Task 5:** Lemniscate idle animation
+- [x] **Task 5:** Lemniscate idle animation
 
 **Files:**
 - Create: `client/src/hooks/useLemniscate.ts`
 - Modify: `client/src/scene/LogoModel.tsx`
 
-- [ ] Step 1: Create `useLemniscate.ts` — a hook that returns rotation values tracing a figure-eight (lemniscate) path.
+- [x] Step 1: Create `useLemniscate.ts` — a hook that returns rotation values tracing a figure-eight (lemniscate) path.
 
 ```typescript
 import { useFrame } from "@react-three/fiber";
@@ -386,11 +386,11 @@ export function useLemniscate(
 }
 ```
 
-- [ ] Step 2: Apply `useLemniscate` to the `LogoModel` component. The "@" should lazily rotate in a figure-eight pattern.
+- [x] Step 2: Apply `useLemniscate` to the `LogoModel` component. The "@" should lazily rotate in a figure-eight pattern.
 
-- [ ] Step 3: Verify visually — the "@" should smoothly trace the lemniscate. Adjust amplitudes if needed.
+- [x] Step 3: Verify visually — the "@" should smoothly trace the lemniscate. Adjust amplitudes if needed.
 
-- [ ] Step 4: Run `pnpm check`, commit, push.
+- [x] Step 4: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 5: Lemniscate idle animation on @ logo" && git push
