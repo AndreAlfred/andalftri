@@ -17,4 +17,5 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 
 - Synced the plan with Andrew's note that Task 2 is complete and recorded the live Vercel URL (`https://andalftri.vercel.app`) in `IDENTITY.md` and `TOOLS.md`.
 - Completed Task 3 by replacing the starter torus knot with a dedicated `Environment` scene component that renders the dark wireframe void using Drei's infinite `Grid`, fog, and layered lighting.
+- Added Task 4's placeholder menu hub: a large chrome `@` logo component with a future-facing `modelPath` prop, mounted at scene center via `MenuHub`, plus a city preset environment map for reflections.
 - Ran `pnpm check` and `pnpm build` successfully. Build is clean; Vite still reports the existing non-blocking large-chunk warning for the main bundle.

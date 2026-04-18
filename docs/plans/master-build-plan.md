@@ -260,14 +260,14 @@ git add -A && git commit -m "Task 3: Wireframe void environment" && git push
 
 ---
 
-- [ ] **Task 4:** Placeholder "@" logo
+- [x] **Task 4:** Placeholder "@" logo
 
 **Files:**
 - Create: `client/src/scene/LogoModel.tsx`
 - Create: `client/src/scene/MenuHub.tsx`
 - Modify: `client/src/App.tsx`
 
-- [ ] Step 1: Create `LogoModel.tsx` — a placeholder for the "@" logo. Use Drei's `<Text3D>` with a bundled font, or a `<Text>` with large size. The component must accept an optional `modelPath` prop for future GLB swap.
+- [x] Step 1: Create `LogoModel.tsx` — a placeholder for the "@" logo. Use Drei's `<Text3D>` with a bundled font, or a `<Text>` with large size. The component must accept an optional `modelPath` prop for future GLB swap.
 
 ```tsx
 import { Text3D, Center } from "@react-three/drei";
@@ -311,7 +311,7 @@ export function LogoModel({ modelPath }: LogoModelProps) {
 
 Note: Download `helvetiker_regular.typeface.json` from Three.js examples into `client/public/fonts/`. Or use Drei `<Text>` as a simpler alternative if font loading is problematic.
 
-- [ ] Step 2: Create `MenuHub.tsx` — renders the `LogoModel` at the scene center.
+- [x] Step 2: Create `MenuHub.tsx` — renders the `LogoModel` at the scene center.
 
 ```tsx
 import { LogoModel } from "./LogoModel";
@@ -325,9 +325,9 @@ export function MenuHub() {
 }
 ```
 
-- [ ] Step 3: Add `<MenuHub />` to the scene in `App.tsx`. Verify the "@" renders in the wireframe void.
+- [x] Step 3: Add `<MenuHub />` to the scene in `App.tsx`. Verify the "@" renders in the wireframe void.
 
-- [ ] Step 4: Add an environment map for reflections. Use Drei's `<Environment>` with a preset.
+- [x] Step 4: Add an environment map for reflections. Use Drei's `<Environment>` with a preset.
 
 ```tsx
 import { Environment as DreiEnv } from "@react-three/drei";
@@ -335,7 +335,7 @@ import { Environment as DreiEnv } from "@react-three/drei";
 <DreiEnv preset="city" />
 ```
 
-- [ ] Step 5: Run `pnpm check`, commit, push.
+- [x] Step 5: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 4: Placeholder @ logo with chrome material" && git push
