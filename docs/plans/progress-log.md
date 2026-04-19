@@ -41,3 +41,6 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 10 by syncing the camera state to the browser URL with the History API, so button clicks now push deep links, direct visits to page routes fly to the correct scene target, and unknown routes normalize back to `/`.
 - Wired both the panel close action and browser back navigation through the same fade-then-return flow, so the hub and page routes stay in sync without losing the existing panel transition feel.
 - Ran `pnpm check` and `pnpm build` successfully after the routing work. Build is clean; Vite still reports the existing non-blocking large-chunk warning for the main bundle.
+- Completed Task 11 by creating structured content data sources for projects, influences, and page commentary in `client/src/data/`, including placeholder entries for Contact, Reading List, Inspirations, See Canto, and Music.
+- Added small helper lookups (`getProjectById`, `getInfluenceById`, `getCommentaryByPageId`) so the next panel and HUD tasks can wire against stable data APIs instead of hardcoded placeholder copy.
+- Ran `pnpm check` successfully after the data-model work. The repo is clean for Task 12: project panel layout.

@@ -831,14 +831,14 @@ git add -A && git commit -m "Task 10: URL routing synced with camera state" && g
 
 ## Phase 3: Page Content
 
-- [ ] **Task 11:** Data model — projects and influences
+- [x] **Task 11:** Data model — projects and influences
 
 **Files:**
 - Create: `client/src/data/projects.ts`
 - Create: `client/src/data/influences.ts`
 - Create: `client/src/data/commentary.ts`
 
-- [ ] Step 1: Create `projects.ts` with the `Project` interface and initial data for Heaven & Nature, See Canto, and Music.
+- [x] Step 1: Create `projects.ts` with the `Project` interface and initial data for Heaven & Nature, See Canto, and Music.
 
 ```typescript
 export interface Project {
@@ -885,11 +885,11 @@ export const PROJECTS: Project[] = [
 ];
 ```
 
-- [ ] Step 2: Create `influences.ts` with the `Influence` interface and initial data for Contact, Reading List, and Inspirations. Populate with placeholder items.
+- [x] Step 2: Create `influences.ts` with the `Influence` interface and initial data for Contact, Reading List, and Inspirations. Populate with placeholder items.
 
-- [ ] Step 3: Create `commentary.ts` with director's commentary strings per page. Placeholder text for now — Andrew will write the real commentary.
+- [x] Step 3: Create `commentary.ts` with director's commentary strings per page. Placeholder text for now — Andrew will write the real commentary.
 
-- [ ] Step 4: Run `pnpm check`, commit, push.
+- [x] Step 4: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 11: Data model — projects, influences, commentary" && git push
