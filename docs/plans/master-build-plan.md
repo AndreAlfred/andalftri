@@ -740,13 +740,13 @@ git add -A && git commit -m "Task 8: Camera controller with fly-to transitions" 
 
 ---
 
-- [ ] **Task 9:** Content panel system
+- [x] **Task 9:** Content panel system
 
 **Files:**
 - Create: `client/src/panels/ContentPanel.tsx`
 - Modify: `client/src/App.tsx` or `client/src/scene/Scene.tsx`
 
-- [ ] Step 1: Create `ContentPanel.tsx` — a Drei `<Html>` wrapper that renders a styled panel at the camera's target page location. Shows an X close button. Fades in after camera arrives, fades out on close.
+- [x] Step 1: Create `ContentPanel.tsx` — a Drei `<Html>` wrapper that renders a styled panel at the camera's target page location. Shows an X close button. Fades in after camera arrives, fades out on close.
 
 ```tsx
 import { Html } from "@react-three/drei";
@@ -793,13 +793,13 @@ export function ContentPanel({ position, pageId, children, onClose }: ContentPan
 }
 ```
 
-- [ ] Step 2: For each page in `PAGES`, render a `<ContentPanel>` with placeholder content ("Coming soon — [Page Name]").
+- [x] Step 2: For each page in `PAGES`, render a `<ContentPanel>` with placeholder content ("Coming soon — [Page Name]").
 
-- [ ] Step 3: Wire the X button to `returnToHub()`.
+- [x] Step 3: Wire the X button to `returnToHub()`.
 
-- [ ] Step 4: Verify — fly to a page, panel appears, X closes it and camera returns.
+- [x] Step 4: Verify — fly to a page, panel appears, X closes it and camera returns.
 
-- [ ] Step 5: Run `pnpm check`, commit, push.
+- [x] Step 5: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 9: Content panel system with Drei Html overlay" && git push

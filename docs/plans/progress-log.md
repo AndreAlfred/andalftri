@@ -32,3 +32,9 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 8 by adding a shared Zustand camera store, a `CameraController` scene component, and real fly-to / return-to-hub transitions wired into the six menu buttons.
 - Added a temporary top HUD pill in `App.tsx` so the active page label and Back action stay available while testing navigation before the content-panel system lands.
 - Installed `zustand`, re-ran `pnpm check` and `pnpm build`, and both passed cleanly. The only remaining build note is the same non-blocking Vite chunk-size warning.
+
+## 2026-04-19
+
+- Completed Task 9 by adding a reusable `ContentPanel` Drei `<Html>` wrapper, then mounting a placeholder panel for each page at its 3D target location so content now fades in only after the camera arrives.
+- Wired the panel close button and the temporary Back pill through a short fade-out before `returnToHub()`, so the panel exits cleanly before the camera flies back to the menu hub.
+- Ran `pnpm check` successfully after the panel-system work. The app is clean for the next task: URL routing integration.
