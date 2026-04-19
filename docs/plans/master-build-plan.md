@@ -807,21 +807,21 @@ git add -A && git commit -m "Task 9: Content panel system with Drei Html overlay
 
 ---
 
-- [ ] **Task 10:** URL routing integration
+- [x] **Task 10:** URL routing integration
 
 **Files:**
 - Modify: `client/src/App.tsx`
 - Install: `pnpm add wouter` (or use browser history API directly)
 
-- [ ] Step 1: Sync camera state with URL. When a button is clicked, update the URL to `/heaven-and-nature`, etc. When the user navigates directly to a URL, fly the camera to that page.
+- [x] Step 1: Sync camera state with URL. When a button is clicked, update the URL to `/heaven-and-nature`, etc. When the user navigates directly to a URL, fly the camera to that page.
 
-- [ ] Step 2: The hub is `/`. Closing a panel navigates back to `/`.
+- [x] Step 2: The hub is `/`. Closing a panel navigates back to `/`.
 
-- [ ] Step 3: Browser back button should return to hub (close panel, fly camera back).
+- [x] Step 3: Browser back button should return to hub (close panel, fly camera back).
 
-- [ ] Step 4: Verify — direct URL navigation works, back button works, deep links work.
+- [x] Step 4: Verify — direct URL navigation works, back button works, deep links work.
 
-- [ ] Step 5: Run `pnpm check`, commit, push.
+- [x] Step 5: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 10: URL routing synced with camera state" && git push

@@ -1,46 +1,114 @@
 import { Environment as DreiEnvironment } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { PAGES } from "@/data/sceneConfig";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PAGES, type PageConfig } from "@/data/sceneConfig";
 import { useCameraStore } from "@/hooks/useCamera";
 import { ContentPanel } from "@/panels/ContentPanel";
-import { Environment } from "@/scene/Environment";
 import { CameraController } from "@/scene/CameraController";
+import { Environment } from "@/scene/Environment";
 import { MenuHub } from "@/scene/MenuHub";
 
 const PANEL_CLOSE_DELAY_MS = 320;
+const HUB_ROUTE = "/";
+
+function getInitialPathname() {
+  return window.location.pathname || HUB_ROUTE;
+}
+
+function findPageByPath(pathname: string) {
+  return PAGES.find((page) => page.route === pathname) ?? null;
+}
 
 export default function App() {
   const currentPage = useCameraStore((state) => state.currentPage);
   const isTransitioning = useCameraStore((state) => state.isTransitioning);
+  const flyTo = useCameraStore((state) => state.flyTo);
   const returnToHub = useCameraStore((state) => state.returnToHub);
 
+  const [pathname, setPathname] = useState(getInitialPathname);
   const [closingPageId, setClosingPageId] = useState<string | null>(null);
   const closeTimeoutRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    return () => {
-      if (closeTimeoutRef.current) {
-        window.clearTimeout(closeTimeoutRef.current);
-      }
-    };
+  const clearCloseTimeout = useCallback(() => {
+    if (closeTimeoutRef.current) {
+      window.clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
   }, []);
+
+  const navigateTo = useCallback((nextPath: string) => {
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState({}, "", nextPath);
+    }
+
+    setPathname(nextPath);
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setPathname(getInitialPathname());
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      clearCloseTimeout();
+    };
+  }, [clearCloseTimeout]);
+
+  useEffect(() => {
+    const matchingPage = findPageByPath(pathname);
+
+    if (!matchingPage) {
+      if (pathname !== HUB_ROUTE) {
+        window.history.replaceState({}, "", HUB_ROUTE);
+        setPathname(HUB_ROUTE);
+        return;
+      }
+
+      if (currentPage && !closingPageId) {
+        setClosingPageId(currentPage);
+        clearCloseTimeout();
+        closeTimeoutRef.current = window.setTimeout(() => {
+          returnToHub();
+          setClosingPageId(null);
+          closeTimeoutRef.current = null;
+        }, PANEL_CLOSE_DELAY_MS);
+      }
+
+      return;
+    }
+
+    clearCloseTimeout();
+    if (closingPageId) {
+      setClosingPageId(null);
+    }
+
+    if (currentPage !== matchingPage.id) {
+      flyTo(matchingPage.cameraPosition, matchingPage.cameraLookAt, matchingPage.id);
+    }
+  }, [pathname, currentPage, closingPageId, flyTo, returnToHub, clearCloseTimeout]);
 
   const currentPageLabel = useMemo(
     () => PAGES.find((page) => page.id === currentPage)?.label ?? null,
     [currentPage],
   );
 
-  const handlePanelClose = () => {
-    if (!currentPage || closingPageId) return;
-
-    setClosingPageId(currentPage);
-    closeTimeoutRef.current = window.setTimeout(() => {
-      returnToHub();
+  const handlePageSelect = useCallback(
+    (page: PageConfig) => {
+      clearCloseTimeout();
       setClosingPageId(null);
-      closeTimeoutRef.current = null;
-    }, PANEL_CLOSE_DELAY_MS);
-  };
+      navigateTo(page.route);
+    },
+    [clearCloseTimeout, navigateTo],
+  );
+
+  const handlePanelClose = useCallback(() => {
+    if (!currentPage || closingPageId || pathname === HUB_ROUTE) return;
+
+    navigateTo(HUB_ROUTE);
+  }, [closingPageId, currentPage, navigateTo, pathname]);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-[#1a1a1a]">
@@ -48,7 +116,7 @@ export default function App() {
         <Environment />
         <DreiEnvironment preset="city" />
         <CameraController />
-        <MenuHub />
+        <MenuHub onPageSelect={handlePageSelect} />
         {PAGES.map((page) => (
           <ContentPanel
             key={page.id}
@@ -70,8 +138,8 @@ export default function App() {
               </div>
               <p className="max-w-2xl text-sm leading-7 text-white/72 sm:text-base">
                 Coming soon, {page.label} is getting its dedicated panel treatment next. For now,
-                this placeholder confirms the camera target, panel mounting, fade timing, and
-                return transition are all wired up.
+                this placeholder confirms the camera target, panel mounting, fade timing, and URL
+                sync are all wired up.
               </p>
             </div>
           </ContentPanel>

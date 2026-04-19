@@ -38,3 +38,6 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 9 by adding a reusable `ContentPanel` Drei `<Html>` wrapper, then mounting a placeholder panel for each page at its 3D target location so content now fades in only after the camera arrives.
 - Wired the panel close button and the temporary Back pill through a short fade-out before `returnToHub()`, so the panel exits cleanly before the camera flies back to the menu hub.
 - Ran `pnpm check` successfully after the panel-system work. The app is clean for the next task: URL routing integration.
+- Completed Task 10 by syncing the camera state to the browser URL with the History API, so button clicks now push deep links, direct visits to page routes fly to the correct scene target, and unknown routes normalize back to `/`.
+- Wired both the panel close action and browser back navigation through the same fade-then-return flow, so the hub and page routes stay in sync without losing the existing panel transition feel.
+- Ran `pnpm check` and `pnpm build` successfully after the routing work. Build is clean; Vite still reports the existing non-blocking large-chunk warning for the main bundle.

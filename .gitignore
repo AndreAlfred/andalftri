@@ -6,5 +6,6 @@ dist/
 .claude/
 .openclaw/
 memory/
+MEMORY.md
 DREAMS.md
 tsconfig.tsbuildinfo
