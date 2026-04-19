@@ -658,14 +658,14 @@ git add -A && git commit -m "Task 7: Menu buttons with lemniscate, hover glow, p
 
 ## Phase 2: Camera Navigation & Content Panels
 
-- [ ] **Task 8:** Camera controller with fly-to transitions
+- [x] **Task 8:** Camera controller with fly-to transitions
 
 **Files:**
 - Create: `client/src/hooks/useCamera.ts`
 - Create: `client/src/scene/CameraController.tsx`
 - Modify: `client/src/App.tsx`
 
-- [ ] Step 1: Create a camera state manager. Track: current page (or "hub"), whether transitioning, and target position/lookAt. Use React state + R3F's `useFrame` for smooth interpolation.
+- [x] Step 1: Create a camera state manager. Track: current page (or "hub"), whether transitioning, and target position/lookAt. Use React state + R3F's `useFrame` for smooth interpolation.
 
 ```typescript
 // useCamera.ts
@@ -694,7 +694,7 @@ export const useCameraStore = create<CameraState>((set) => ({
 
 Note: Install zustand — `pnpm add zustand`.
 
-- [ ] Step 2: Create `CameraController.tsx` — reads from the store, smoothly lerps the camera position and lookAt each frame.
+- [x] Step 2: Create `CameraController.tsx` — reads from the store, smoothly lerps the camera position and lookAt each frame.
 
 ```tsx
 import { useFrame, useThree } from "@react-three/fiber";
@@ -728,11 +728,11 @@ export function CameraController() {
 }
 ```
 
-- [ ] Step 3: Wire button clicks to `flyTo`. Wire a temporary "Back" button (HTML overlay) to `returnToHub`.
+- [x] Step 3: Wire button clicks to `flyTo`. Wire a temporary "Back" button (HTML overlay) to `returnToHub`.
 
-- [ ] Step 4: Verify — clicking a button smoothly flies the camera to a distant position. Clicking "Back" returns to hub. The "@" and buttons are visible from the hub but distant from page positions.
+- [x] Step 4: Verify — clicking a button smoothly flies the camera to a distant position. Clicking "Back" returns to hub. The "@" and buttons are visible from the hub but distant from page positions.
 
-- [ ] Step 5: Run `pnpm check`, commit, push.
+- [x] Step 5: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 8: Camera controller with fly-to transitions" && git push
