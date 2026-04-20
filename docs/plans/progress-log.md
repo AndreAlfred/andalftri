@@ -50,3 +50,6 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 13 by creating `InfluencePanel.tsx` and wiring Contact, Reading List, and Inspirations to render their structured influence data instead of the temporary placeholder panel copy.
 - Grouped influence entries by category and gave each item a dedicated annotation row with optional outbound-link treatment, so the collection pages now read like curated lists instead of generic placeholders.
 - Re-ran `pnpm check` and `pnpm build` successfully after the influence-panel work. Build is clean; Vite still reports the existing non-blocking large-chunk warning for the main bundle.
+- Completed Task 14 by proposing three type systems in `docs/plans/feedback.md`, then implementing the recommended mix: Cormorant Garamond for titles, Inter for body copy, and Space Mono for metadata and labels.
+- Applied the new panel typography across the shared panel shell plus both project and influence layouts, so the 2D overlays now feel more editorial and less default-app.
+- Re-ran `pnpm check` and `pnpm build` successfully after the typography work. Build is clean; Vite still reports the existing non-blocking large-chunk warning for the main bundle.

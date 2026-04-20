@@ -1,4 +1,11 @@
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap");
 @import "tailwindcss";
+
+:root {
+  --font-panel-title: "Cormorant Garamond", Georgia, serif;
+  --font-panel-body: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-panel-meta: "Space Mono", "SFMono-Regular", "Consolas", monospace;
+}
 
 *,
 *::before,
@@ -19,5 +26,40 @@ body,
 body {
   background: #1a1a1a;
   color: white;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-panel-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.panel-shell {
+  font-family: var(--font-panel-body);
+}
+
+.panel-title {
+  font-family: var(--font-panel-title);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 0.96;
+}
+
+.panel-kicker,
+.panel-meta,
+.panel-chip,
+.panel-code {
+  font-family: var(--font-panel-meta);
+  letter-spacing: 0.14em;
+}
+
+.panel-body {
+  font-family: var(--font-panel-body);
+  line-height: 1.85;
 }

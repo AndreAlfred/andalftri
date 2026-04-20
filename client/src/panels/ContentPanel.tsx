@@ -41,11 +41,11 @@ export function ContentPanel({
         transition: "opacity 320ms ease-in-out",
       }}
     >
-      <div className="relative max-h-[80vh] overflow-hidden rounded-[28px] border border-white/18 bg-black/70 text-white shadow-[0_28px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+      <div className="panel-shell relative max-h-[80vh] overflow-hidden rounded-[28px] border border-white/18 bg-black/70 text-white shadow-[0_28px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/8 text-xl text-white/72 transition hover:border-white/25 hover:bg-white/14 hover:text-white"
+          className="panel-meta absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/8 text-lg text-white/72 transition hover:border-white/25 hover:bg-white/14 hover:text-white"
           aria-label="Close panel"
         >
           ×

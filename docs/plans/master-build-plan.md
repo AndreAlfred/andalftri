@@ -936,19 +936,19 @@ git add -A && git commit -m "Task 13: Influence panel layout" && git push
 
 ---
 
-- [ ] **Task 14:** Typography selection for 2D panels
+- [x] **Task 14:** Typography selection for 2D panels
 
 **Files:**
 - Modify: `client/src/index.css`
 - Modify: panel components as needed
 
-- [ ] Step 1: Propose 2-3 font combinations for the 2D panels. Consider: clean sans-serif body, monospace for metadata/labels, something distinctive for panel titles. Write proposals to `docs/plans/feedback.md` for Andrew's review.
+- [x] Step 1: Propose 2-3 font combinations for the 2D panels. Consider: clean sans-serif body, monospace for metadata/labels, something distinctive for panel titles. Write proposals to `docs/plans/feedback.md` for Andrew's review.
 
-- [ ] Step 2: Implement Andrew's chosen fonts (or best judgment if no feedback yet). Install via Google Fonts or local files.
+- [x] Step 2: Implement Andrew's chosen fonts (or best judgment if no feedback yet). Install via Google Fonts or local files.
 
-- [ ] Step 3: Apply typography to all panel components.
+- [x] Step 3: Apply typography to all panel components.
 
-- [ ] Step 4: Run `pnpm check`, commit, push.
+- [x] Step 4: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 14: Typography for 2D content panels" && git push

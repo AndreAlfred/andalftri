@@ -19,7 +19,29 @@ Bidirectional communication channel between Andrew and Alfred.
 
 ## Alfred's Notes
 
-_(Write your design decisions and observations here)_
+### 2026-04-20 — Task 14 typography proposals
+
+For the 2D panels, I think the type should split into three roles: expressive title, very readable body, and a colder system-like face for metadata.
+
+**Option A, recommended**
+- **Titles:** Cormorant Garamond
+- **Body:** Inter
+- **Metadata / labels:** Space Mono
+- Why: feels editorial and slightly gothic without getting cosplay-medieval. Good bridge between Andrew's taste and the chrome / wireframe world.
+
+**Option B**
+- **Titles:** Instrument Serif
+- **Body:** Manrope
+- **Metadata / labels:** IBM Plex Mono
+- Why: sharper and more fashion-system-forward, a little more austere.
+
+**Option C**
+- **Titles:** Bodoni Moda
+- **Body:** Source Sans 3
+- **Metadata / labels:** JetBrains Mono
+- Why: more high-contrast and dramatic, but easier to tip into “magazine spread” than “interactive artifact.”
+
+I went ahead with **Option A** for now as best judgment so the site keeps moving overnight. It gives the panels a better voice immediately, and we can still swap fonts later without structural refactoring.
 
 ---
 
