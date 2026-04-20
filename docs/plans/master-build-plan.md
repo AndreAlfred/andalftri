@@ -958,24 +958,24 @@ git add -A && git commit -m "Task 14: Typography for 2D content panels" && git p
 
 ## Phase 4: HUD System
 
-- [ ] **Task 15:** "@" HUD overlay — director's commentary
+- [x] **Task 15:** "@" HUD overlay — director's commentary
 
 **Files:**
 - Create: `client/src/hud/HudOverlay.tsx`
 - Create: `client/src/hud/Commentary.tsx`
 - Modify: `client/src/App.tsx`
 
-- [ ] Step 1: Create `HudOverlay.tsx` — a full-viewport React overlay (NOT inside R3F Canvas). Renders on top of everything when the "@" is clicked. Dark translucent background, blurs the 3D scene behind it.
+- [x] Step 1: Create `HudOverlay.tsx` — a full-viewport React overlay (NOT inside R3F Canvas). Renders on top of everything when the "@" is clicked. Dark translucent background, blurs the 3D scene behind it.
 
-- [ ] Step 2: Create `Commentary.tsx` — displays the director's commentary text for the current page. Reads from `commentary.ts` based on current page ID.
+- [x] Step 2: Create `Commentary.tsx` — displays the director's commentary text for the current page. Reads from `commentary.ts` based on current page ID.
 
-- [ ] Step 3: Add an "@" button to the UI (floating HTML, always visible when on a page). Clicking it toggles the HUD.
+- [x] Step 3: Add an "@" button to the UI (floating HTML, always visible when on a page). Clicking it toggles the HUD.
 
-- [ ] Step 4: HUD dismisses on: click outside content area, Escape key, or explicit close button.
+- [x] Step 4: HUD dismisses on: click outside content area, Escape key, or explicit close button.
 
-- [ ] Step 5: Verify — navigate to a page, click "@", see the commentary overlay. Dismiss it.
+- [x] Step 5: Verify — navigate to a page, click "@", see the commentary overlay. Dismiss it.
 
-- [ ] Step 6: Run `pnpm check`, commit, push.
+- [x] Step 6: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 15: HUD overlay with director's commentary" && git push

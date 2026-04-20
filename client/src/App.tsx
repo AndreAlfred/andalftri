@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getInfluenceById } from "@/data/influences";
 import { getProjectById } from "@/data/projects";
 import { PAGES, type PageConfig } from "@/data/sceneConfig";
+import { Commentary } from "@/hud/Commentary";
+import { HudOverlay } from "@/hud/HudOverlay";
 import { useCameraStore } from "@/hooks/useCamera";
 import { ContentPanel } from "@/panels/ContentPanel";
 import { InfluencePanel } from "@/panels/InfluencePanel";
@@ -31,6 +33,7 @@ export default function App() {
 
   const [pathname, setPathname] = useState(getInitialPathname);
   const [closingPageId, setClosingPageId] = useState<string | null>(null);
+  const [isHudOpen, setIsHudOpen] = useState(false);
   const closeTimeoutRef = useRef<number | null>(null);
 
   const clearCloseTimeout = useCallback(() => {
@@ -72,6 +75,7 @@ export default function App() {
       }
 
       if (currentPage && !closingPageId) {
+        setIsHudOpen(false);
         setClosingPageId(currentPage);
         clearCloseTimeout();
         closeTimeoutRef.current = window.setTimeout(() => {
@@ -103,6 +107,7 @@ export default function App() {
     (page: PageConfig) => {
       clearCloseTimeout();
       setClosingPageId(null);
+      setIsHudOpen(false);
       navigateTo(page.route);
     },
     [clearCloseTimeout, navigateTo],
@@ -111,6 +116,7 @@ export default function App() {
   const handlePanelClose = useCallback(() => {
     if (!currentPage || closingPageId || pathname === HUB_ROUTE) return;
 
+    setIsHudOpen(false);
     navigateTo(HUB_ROUTE);
   }, [closingPageId, currentPage, navigateTo, pathname]);
 
@@ -143,20 +149,34 @@ export default function App() {
       </Canvas>
 
       {currentPage ? (
-        <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center px-4 pt-5">
-          <div className="pointer-events-auto flex items-center gap-3 rounded-full border border-white/20 bg-black/55 px-4 py-2 text-sm text-white shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur-md">
-            <span className="text-white/70">Viewing</span>
-            <span className="font-medium text-white">{currentPageLabel}</span>
-            <button
-              type="button"
-              onClick={handlePanelClose}
-              disabled={isTransitioning || Boolean(closingPageId)}
-              className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.22em] text-white transition hover:bg-white/18 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Back
-            </button>
+        <>
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center px-4 pt-5">
+            <div className="pointer-events-auto flex items-center gap-3 rounded-full border border-white/20 bg-black/55 px-4 py-2 text-sm text-white shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur-md">
+              <button
+                type="button"
+                onClick={() => setIsHudOpen((open) => !open)}
+                className="panel-title flex h-9 w-9 items-center justify-center rounded-full border border-[#89f1ff]/28 bg-[#89f1ff]/10 text-lg text-white transition hover:border-[#89f1ff]/45 hover:bg-[#89f1ff]/16"
+                aria-label={isHudOpen ? "Close commentary HUD" : "Open commentary HUD"}
+              >
+                @
+              </button>
+              <span className="text-white/70">Viewing</span>
+              <span className="font-medium text-white">{currentPageLabel}</span>
+              <button
+                type="button"
+                onClick={handlePanelClose}
+                disabled={isTransitioning || Boolean(closingPageId)}
+                className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.22em] text-white transition hover:bg-white/18 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Back
+              </button>
+            </div>
           </div>
-        </div>
+
+          <HudOverlay open={isHudOpen} title={currentPageLabel ?? undefined} onClose={() => setIsHudOpen(false)}>
+            <Commentary pageId={currentPage} />
+          </HudOverlay>
+        </>
       ) : null}
     </div>
   );

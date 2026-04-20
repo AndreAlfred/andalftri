@@ -53,3 +53,6 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 14 by proposing three type systems in `docs/plans/feedback.md`, then implementing the recommended mix: Cormorant Garamond for titles, Inter for body copy, and Space Mono for metadata and labels.
 - Applied the new panel typography across the shared panel shell plus both project and influence layouts, so the 2D overlays now feel more editorial and less default-app.
 - Re-ran `pnpm check` and `pnpm build` successfully after the typography work. Build is clean; Vite still reports the existing non-blocking large-chunk warning for the main bundle.
+- Completed Task 15 by adding a dedicated HUD overlay and commentary view outside the R3F canvas, so each page now has a proper director's-commentary layer instead of relying only on the content panel.
+- Added a floating `@` control to the page-state HUD pill and wired the overlay to close via click-outside, Escape, or the explicit close button, which gives the meta-layer the right “DVD extras” behavior.
+- Re-ran `pnpm check` and `pnpm build` successfully after the HUD work. Build is clean; Vite still reports the existing non-blocking large-chunk warning for the main bundle.
