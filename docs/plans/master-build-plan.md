@@ -917,18 +917,18 @@ git add -A && git commit -m "Task 12: Project panel layout" && git push
 
 ---
 
-- [ ] **Task 13:** Influence panel layout
+- [x] **Task 13:** Influence panel layout
 
 **Files:**
 - Create: `client/src/panels/InfluencePanel.tsx`
 
-- [ ] Step 1: Create `InfluencePanel.tsx` — renders an `Influence` inside a `ContentPanel`. Shows title, intro, and a list of items with names, links, and annotations.
+- [x] Step 1: Create `InfluencePanel.tsx` — renders an `Influence` inside a `ContentPanel`. Shows title, intro, and a list of items with names, links, and annotations.
 
-- [ ] Step 2: Wire the three influence pages to render `InfluencePanel` with their data.
+- [x] Step 2: Wire the three influence pages to render `InfluencePanel` with their data.
 
-- [ ] Step 3: Verify — fly to "Reading List", see the curated list rendered in the panel.
+- [x] Step 3: Verify — fly to "Reading List", see the curated list rendered in the panel.
 
-- [ ] Step 4: Run `pnpm check`, commit, push.
+- [x] Step 4: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 13: Influence panel layout" && git push

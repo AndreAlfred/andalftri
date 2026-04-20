@@ -47,3 +47,6 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 12 by creating a dedicated `ProjectPanel` component and wiring all three oeuvre routes to render structured project content instead of the temporary placeholder copy.
 - Added project-specific status badges, tech stack tags, outbound link rows, and a stable media placeholder block so the project pages feel intentional now and can accept screenshots later without reshaping the layout.
 - Re-ran `pnpm check` and `pnpm build` successfully after the panel work. Build is clean; Vite still reports the existing non-blocking large-chunk warning for the main bundle.
+- Completed Task 13 by creating `InfluencePanel.tsx` and wiring Contact, Reading List, and Inspirations to render their structured influence data instead of the temporary placeholder panel copy.
+- Grouped influence entries by category and gave each item a dedicated annotation row with optional outbound-link treatment, so the collection pages now read like curated lists instead of generic placeholders.
+- Re-ran `pnpm check` and `pnpm build` successfully after the influence-panel work. Build is clean; Vite still reports the existing non-blocking large-chunk warning for the main bundle.
