@@ -1,9 +1,11 @@
 import { Environment as DreiEnvironment } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getProjectById } from "@/data/projects";
 import { PAGES, type PageConfig } from "@/data/sceneConfig";
 import { useCameraStore } from "@/hooks/useCamera";
 import { ContentPanel } from "@/panels/ContentPanel";
+import { ProjectPanel } from "@/panels/ProjectPanel";
 import { CameraController } from "@/scene/CameraController";
 import { Environment } from "@/scene/Environment";
 import { MenuHub } from "@/scene/MenuHub";
@@ -117,33 +119,41 @@ export default function App() {
         <DreiEnvironment preset="city" />
         <CameraController />
         <MenuHub onPageSelect={handlePageSelect} />
-        {PAGES.map((page) => (
-          <ContentPanel
-            key={page.id}
-            position={page.cameraLookAt}
-            pageId={page.id}
-            activePageId={currentPage}
-            isTransitioning={isTransitioning}
-            isClosing={closingPageId === page.id}
-            onClose={handlePanelClose}
-          >
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <p className="text-[0.72rem] uppercase tracking-[0.26em] text-cyan-200/75">
-                  {page.group === "oeuvre" ? "Oeuvre" : "Influences"}
-                </p>
-                <h2 className="text-3xl font-semibold text-white sm:text-4xl">
-                  {page.label}
-                </h2>
-              </div>
-              <p className="max-w-2xl text-sm leading-7 text-white/72 sm:text-base">
-                Coming soon, {page.label} is getting its dedicated panel treatment next. For now,
-                this placeholder confirms the camera target, panel mounting, fade timing, and URL
-                sync are all wired up.
-              </p>
-            </div>
-          </ContentPanel>
-        ))}
+        {PAGES.map((page) => {
+          const project = page.group === "oeuvre" ? getProjectById(page.id) : null;
+
+          return (
+            <ContentPanel
+              key={page.id}
+              position={page.cameraLookAt}
+              pageId={page.id}
+              activePageId={currentPage}
+              isTransitioning={isTransitioning}
+              isClosing={closingPageId === page.id}
+              onClose={handlePanelClose}
+            >
+              {project ? (
+                <ProjectPanel project={project} />
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-[0.72rem] uppercase tracking-[0.26em] text-cyan-200/75">
+                      {page.group === "oeuvre" ? "Oeuvre" : "Influences"}
+                    </p>
+                    <h2 className="text-3xl font-semibold text-white sm:text-4xl">
+                      {page.label}
+                    </h2>
+                  </div>
+                  <p className="max-w-2xl text-sm leading-7 text-white/72 sm:text-base">
+                    Coming soon, {page.label} is getting its dedicated panel treatment next. For
+                    now, this placeholder keeps the camera target, panel mounting, fade timing, and
+                    URL sync in place while the influence layouts land.
+                  </p>
+                </div>
+              )}
+            </ContentPanel>
+          );
+        })}
       </Canvas>
 
       {currentPage ? (

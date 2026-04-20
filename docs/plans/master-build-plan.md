@@ -897,19 +897,19 @@ git add -A && git commit -m "Task 11: Data model — projects, influences, comme
 
 ---
 
-- [ ] **Task 12:** Project panel layout
+- [x] **Task 12:** Project panel layout
 
 **Files:**
 - Create: `client/src/panels/ProjectPanel.tsx`
 - Modify: content panel rendering in App/Scene
 
-- [ ] Step 1: Create `ProjectPanel.tsx` — renders a `Project` inside a `ContentPanel`. Shows title, description, tech stack tags, status badge, and links.
+- [x] Step 1: Create `ProjectPanel.tsx` — renders a `Project` inside a `ContentPanel`. Shows title, description, tech stack tags, status badge, and links.
 
-- [ ] Step 2: Wire the three project pages to render `ProjectPanel` with their data.
+- [x] Step 2: Wire the three project pages to render `ProjectPanel` with their data.
 
-- [ ] Step 3: Verify — fly to "Heaven & Nature", see the project details rendered in the panel.
+- [x] Step 3: Verify — fly to "Heaven & Nature", see the project details rendered in the panel.
 
-- [ ] Step 4: Run `pnpm check`, commit, push.
+- [x] Step 4: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 12: Project panel layout" && git push

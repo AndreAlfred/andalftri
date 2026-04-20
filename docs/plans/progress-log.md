@@ -44,3 +44,6 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 11 by creating structured content data sources for projects, influences, and page commentary in `client/src/data/`, including placeholder entries for Contact, Reading List, Inspirations, See Canto, and Music.
 - Added small helper lookups (`getProjectById`, `getInfluenceById`, `getCommentaryByPageId`) so the next panel and HUD tasks can wire against stable data APIs instead of hardcoded placeholder copy.
 - Ran `pnpm check` successfully after the data-model work. The repo is clean for Task 12: project panel layout.
+- Completed Task 12 by creating a dedicated `ProjectPanel` component and wiring all three oeuvre routes to render structured project content instead of the temporary placeholder copy.
+- Added project-specific status badges, tech stack tags, outbound link rows, and a stable media placeholder block so the project pages feel intentional now and can accept screenshots later without reshaping the layout.
+- Re-ran `pnpm check` and `pnpm build` successfully after the panel work. Build is clean; Vite still reports the existing non-blocking large-chunk warning for the main bundle.
