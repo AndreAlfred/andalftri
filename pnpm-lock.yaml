@@ -14,6 +14,9 @@ importers:
       '@react-three/fiber':
         specifier: ^9.4.0
         version: 9.6.0(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.180.0)
+      detect-gpu:
+        specifier: ^5.0.70
+        version: 5.0.70
       react:
         specifier: ^19.2.0
         version: 19.2.5

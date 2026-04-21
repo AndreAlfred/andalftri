@@ -1057,24 +1057,24 @@ git add -A && git commit -m "Task 18: Gyroscope progressive enhancement for mobi
 
 ---
 
-- [ ] **Task 19:** Static fallback for weak devices
+- [x] **Task 19:** Static fallback for weak devices
 
 **Files:**
 - Create: `client/src/components/StaticFallback.tsx`
 - Create: `client/src/lib/deviceCapability.ts`
 - Modify: `client/src/App.tsx`
 
-- [ ] Step 1: Install `detect-gpu` — `pnpm add detect-gpu`.
+- [x] Step 1: Install `detect-gpu` — `pnpm add detect-gpu`.
 
-- [ ] Step 2: Create `deviceCapability.ts` — uses `detect-gpu` to classify the device. If GPU tier is 0 or 1, flag as "weak."
+- [x] Step 2: Create `deviceCapability.ts` — uses `detect-gpu` to classify the device. If GPU tier is 0 or 1, flag as "weak."
 
-- [ ] Step 3: Create `StaticFallback.tsx` — a 2D version of the menu. Renders a static background image (or CSS-only wireframe) with 2D button links. No Three.js loaded.
+- [x] Step 3: Create `StaticFallback.tsx` — a 2D version of the menu. Renders a static background image (or CSS-only wireframe) with 2D button links. No Three.js loaded.
 
-- [ ] Step 4: In `App.tsx`, check device capability on mount. If weak, render `StaticFallback` instead of `Canvas`.
+- [x] Step 4: In `App.tsx`, check device capability on mount. If weak, render `StaticFallback` instead of `Canvas`.
 
-- [ ] Step 5: Verify — the static fallback renders, links work, no 3D code is loaded.
+- [x] Step 5: Verify — the static fallback renders, links work, no 3D code is loaded.
 
-- [ ] Step 6: Run `pnpm check`, commit, push.
+- [x] Step 6: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 19: Static fallback for weak devices" && git push

@@ -68,3 +68,6 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 18 by adding a reusable `useGyroscope` hook around the DeviceOrientation API, including normalized tilt output plus iOS permission handling for `DeviceOrientationEvent.requestPermission()`.
 - Updated the parallax system to prefer gyroscope tilt when available, while preserving the existing mouse-driven behavior as the clean desktop and unsupported-browser fallback.
 - Re-ran `pnpm check` and `pnpm build` successfully after the mobile-parallax work. Build is still clean aside from the existing non-blocking Vite chunk-size warning.
+- Completed Task 19 by adding `detect-gpu` capability detection plus a `deviceCapability` helper that flags tier 0 and 1 hardware for a lighter experience.
+- Split the app so the Three.js scene now lives in a lazy-loaded `SceneExperience` chunk, while weak devices get a CSS wireframe poster fallback with 2D nav links and the same route-driven content panels.
+- Re-ran `pnpm check` and `pnpm build` successfully after the fallback work. Build now clearly separates the main entry chunk from the heavier scene chunk; the remaining large-chunk warning is confined to `SceneExperience` and is still non-blocking.
