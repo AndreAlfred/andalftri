@@ -1,13 +1,17 @@
 import { useEffect, type MouseEvent, type ReactNode } from "react";
+import { PAGES } from "@/data/sceneConfig";
+import { CyberspaceNav } from "@/hud/CyberspaceNav";
 
 interface HudOverlayProps {
   open: boolean;
+  pageId: string | null;
   title?: string;
   children: ReactNode;
   onClose: () => void;
+  onNavigate: (pageId: string) => void;
 }
 
-export function HudOverlay({ open, title, children, onClose }: HudOverlayProps) {
+export function HudOverlay({ open, pageId, title, children, onClose, onNavigate }: HudOverlayProps) {
   useEffect(() => {
     if (!open) return undefined;
 
@@ -22,6 +26,8 @@ export function HudOverlay({ open, title, children, onClose }: HudOverlayProps) 
   }, [open, onClose]);
 
   if (!open) return null;
+
+  const page = PAGES.find((entry) => entry.id === pageId) ?? null;
 
   const handleBackdropClick = (event: MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
@@ -50,15 +56,19 @@ export function HudOverlay({ open, title, children, onClose }: HudOverlayProps) 
           <div className="min-w-0 pt-10 lg:pt-4">{children}</div>
 
           <aside className="flex flex-col justify-between gap-6 rounded-[24px] border border-white/10 bg-white/[0.03] p-5 lg:p-6">
-            <div className="space-y-4">
-              <p className="panel-kicker text-xs uppercase text-[#89f1ff]/80">HUD</p>
+            <div className="space-y-5">
               <div className="space-y-2">
+                <p className="panel-kicker text-xs uppercase text-[#89f1ff]/80">HUD</p>
                 <h3 className="panel-meta text-sm uppercase text-white/72">Current page</h3>
                 <p className="text-xl text-white">{title ?? "Untitled"}</p>
+                {page ? <p className="panel-meta text-[11px] uppercase text-white/46">Route: {page.route}</p> : null}
               </div>
+
               <p className="panel-body text-sm leading-7 text-white/62">
-                Andrew&apos;s note layer lives here, above the scene like DVD extras. Cyberspace nav comes next.
+                The meta layer stays readable, clipped, and cold, like a Halo menu hovering over the scene.
               </p>
+
+              <CyberspaceNav currentPageId={pageId} onNavigate={onNavigate} />
             </div>
 
             <div className="rounded-[20px] border border-[#89f1ff]/16 bg-black/20 p-4">

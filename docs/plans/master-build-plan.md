@@ -983,13 +983,13 @@ git add -A && git commit -m "Task 15: HUD overlay with director's commentary" &&
 
 ---
 
-- [ ] **Task 16:** Cyberspace nav (Halo-style)
+- [x] **Task 16:** Cyberspace nav (Halo-style)
 
 **Files:**
 - Create: `client/src/hud/CyberspaceNav.tsx`
 - Modify: `client/src/hud/HudOverlay.tsx`
 
-- [ ] Step 1: Create `CyberspaceNav.tsx` — a styled navigation menu inside the HUD. Original Halo CE/2 aesthetic:
+- [x] Step 1: Create `CyberspaceNav.tsx` — a styled navigation menu inside the HUD. Original Halo CE/2 aesthetic:
   - Dark translucent panels (`bg-[rgba(0,20,30,0.85)]`)
   - Angular/clipped geometry (CSS `clip-path` for angular panel shapes)
   - Scan line effect (CSS repeating linear gradient or pseudo-element)
@@ -997,13 +997,13 @@ git add -A && git commit -m "Task 15: HUD overlay with director's commentary" &&
   - Monospace typography
   - Lists all six pages as nav links
 
-- [ ] Step 2: Clicking a nav link: closes the HUD, then flies the camera to that page.
+- [x] Step 2: Clicking a nav link: closes the HUD, then flies the camera to that page.
 
-- [ ] Step 3: Current page is highlighted in the nav.
+- [x] Step 3: Current page is highlighted in the nav.
 
-- [ ] Step 4: Verify — open HUD, see Halo-style nav, click a different page, HUD closes and camera transitions.
+- [x] Step 4: Verify — open HUD, see Halo-style nav, click a different page, HUD closes and camera transitions.
 
-- [ ] Step 5: Run `pnpm check`, commit, push.
+- [x] Step 5: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 16: Cyberspace nav — Halo-style HUD navigation" && git push

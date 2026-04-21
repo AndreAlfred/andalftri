@@ -56,3 +56,6 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 15 by adding a dedicated HUD overlay and commentary view outside the R3F canvas, so each page now has a proper director's-commentary layer instead of relying only on the content panel.
 - Added a floating `@` control to the page-state HUD pill and wired the overlay to close via click-outside, Escape, or the explicit close button, which gives the meta-layer the right “DVD extras” behavior.
 - Re-ran `pnpm check` and `pnpm build` successfully after the HUD work. Build is clean; Vite still reports the existing non-blocking large-chunk warning for the main bundle.
+- Completed Task 16 by adding a dedicated `CyberspaceNav` HUD component with clipped Halo-style panels, scanlines, cyan system accents, and jump links for all six pages.
+- Wired HUD nav links to close the overlay and navigate immediately to the selected page, while keeping the active page visibly highlighted so the meta-layer now feels like a real in-universe navigation system instead of placeholder copy.
+- Ran `pnpm check` successfully after the cyberspace-nav work. The repo is clean for Task 17: scroll-driven mobile interaction.

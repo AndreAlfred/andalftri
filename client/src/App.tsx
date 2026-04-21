@@ -120,6 +120,19 @@ export default function App() {
     navigateTo(HUB_ROUTE);
   }, [closingPageId, currentPage, navigateTo, pathname]);
 
+  const handleHudNavigate = useCallback(
+    (pageId: string) => {
+      const targetPage = PAGES.find((page) => page.id === pageId);
+      if (!targetPage) return;
+
+      setIsHudOpen(false);
+      clearCloseTimeout();
+      setClosingPageId(null);
+      navigateTo(targetPage.route);
+    },
+    [clearCloseTimeout, navigateTo],
+  );
+
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-[#1a1a1a]">
       <Canvas camera={{ position: [0, 0, 8], fov: 60 }}>
@@ -173,7 +186,13 @@ export default function App() {
             </div>
           </div>
 
-          <HudOverlay open={isHudOpen} title={currentPageLabel ?? undefined} onClose={() => setIsHudOpen(false)}>
+          <HudOverlay
+            open={isHudOpen}
+            pageId={currentPage}
+            title={currentPageLabel ?? undefined}
+            onClose={() => setIsHudOpen(false)}
+            onNavigate={handleHudNavigate}
+          >
             <Commentary pageId={currentPage} />
           </HudOverlay>
         </>
