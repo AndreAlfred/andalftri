@@ -1037,19 +1037,19 @@ git add -A && git commit -m "Task 17: Scroll-driven interaction for mobile" && g
 
 ---
 
-- [ ] **Task 18:** Gyroscope progressive enhancement
+- [x] **Task 18:** Gyroscope progressive enhancement
 
 **Files:**
 - Create: `client/src/hooks/useGyroscope.ts`
 - Modify: `client/src/hooks/useMouseParallax.ts` or `client/src/scene/MenuHub.tsx`
 
-- [ ] Step 1: Create `useGyroscope.ts` — wraps the DeviceOrientation API. Returns normalized tilt values (alpha, beta, gamma mapped to -1..1 range). Returns null if not supported. Handles permission request on iOS 13+ (`DeviceOrientationEvent.requestPermission()`).
+- [x] Step 1: Create `useGyroscope.ts` — wraps the DeviceOrientation API. Returns normalized tilt values (alpha, beta, gamma mapped to -1..1 range). Returns null if not supported. Handles permission request on iOS 13+ (`DeviceOrientationEvent.requestPermission()`).
 
-- [ ] Step 2: In the parallax system, prefer gyroscope values over mouse when available. On desktop (no gyro), mouse drives parallax. On mobile with gyro, device tilt drives parallax.
+- [x] Step 2: In the parallax system, prefer gyroscope values over mouse when available. On desktop (no gyro), mouse drives parallax. On mobile with gyro, device tilt drives parallax.
 
-- [ ] Step 3: Verify on a real phone if possible, or confirm the fallback works cleanly in desktop browsers (gyro returns null, mouse takes over).
+- [x] Step 3: Verify on a real phone if possible, or confirm the fallback works cleanly in desktop browsers (gyro returns null, mouse takes over).
 
-- [ ] Step 4: Run `pnpm check`, commit, push.
+- [x] Step 4: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 18: Gyroscope progressive enhancement for mobile parallax" && git push

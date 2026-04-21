@@ -65,3 +65,6 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 17 by adding a dedicated `useScrollInteraction` hook that captures wheel and touch gestures at the menu hub, turns light scroll into brief lemniscate speed/phase nudges, and converts sustained scroll into directional camera tilt.
 - Wired the hub and camera to that shared scroll state so mobile and desktop scrolling can preview vertical navigation, then commit to the nearest page after a short pause once the sustained-scroll threshold is crossed.
 - Kept panel scrolling intact by only intercepting scroll while the user is at the hub, then ran `pnpm check` and `pnpm build` successfully. Build is still clean aside from the existing non-blocking Vite chunk-size warning.
+- Completed Task 18 by adding a reusable `useGyroscope` hook around the DeviceOrientation API, including normalized tilt output plus iOS permission handling for `DeviceOrientationEvent.requestPermission()`.
+- Updated the parallax system to prefer gyroscope tilt when available, while preserving the existing mouse-driven behavior as the clean desktop and unsupported-browser fallback.
+- Re-ran `pnpm check` and `pnpm build` successfully after the mobile-parallax work. Build is still clean aside from the existing non-blocking Vite chunk-size warning.
