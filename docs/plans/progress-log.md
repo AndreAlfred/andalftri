@@ -59,3 +59,9 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 16 by adding a dedicated `CyberspaceNav` HUD component with clipped Halo-style panels, scanlines, cyan system accents, and jump links for all six pages.
 - Wired HUD nav links to close the overlay and navigate immediately to the selected page, while keeping the active page visibly highlighted so the meta-layer now feels like a real in-universe navigation system instead of placeholder copy.
 - Ran `pnpm check` successfully after the cyberspace-nav work. The repo is clean for Task 17: scroll-driven mobile interaction.
+
+## 2026-04-21
+
+- Completed Task 17 by adding a dedicated `useScrollInteraction` hook that captures wheel and touch gestures at the menu hub, turns light scroll into brief lemniscate speed/phase nudges, and converts sustained scroll into directional camera tilt.
+- Wired the hub and camera to that shared scroll state so mobile and desktop scrolling can preview vertical navigation, then commit to the nearest page after a short pause once the sustained-scroll threshold is crossed.
+- Kept panel scrolling intact by only intercepting scroll while the user is at the hub, then ran `pnpm check` and `pnpm build` successfully. Build is still clean aside from the existing non-blocking Vite chunk-size warning.

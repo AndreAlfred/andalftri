@@ -1013,23 +1013,23 @@ git add -A && git commit -m "Task 16: Cyberspace nav — Halo-style HUD navigati
 
 ## Phase 5: Mobile Experience
 
-- [ ] **Task 17:** Scroll-driven interaction for mobile
+- [x] **Task 17:** Scroll-driven interaction for mobile
 
 **Files:**
 - Create: `client/src/hooks/useScrollInteraction.ts`
 - Modify: `client/src/scene/MenuHub.tsx`, `client/src/scene/CameraController.tsx`
 
-- [ ] Step 1: Create `useScrollInteraction.ts` — captures scroll/wheel events on mobile (and desktop). Light scroll nudges the lemniscate speed/phase. Heavy sustained scroll tilts the camera up or down to reveal pages in that direction.
+- [x] Step 1: Create `useScrollInteraction.ts` — captures scroll/wheel events on mobile (and desktop). Light scroll nudges the lemniscate speed/phase. Heavy sustained scroll tilts the camera up or down to reveal pages in that direction.
 
-- [ ] Step 2: Define thresholds: < 100px accumulated scroll = lemniscate nudge. > 300px accumulated in one direction = camera tilt toward a page. Map scroll direction to page positions (pages above hub = scroll up, pages below = scroll down).
+- [x] Step 2: Define thresholds: < 100px accumulated scroll = lemniscate nudge. > 300px accumulated in one direction = camera tilt toward a page. Map scroll direction to page positions (pages above hub = scroll up, pages below = scroll down).
 
-- [ ] Step 3: When scroll commits to a page (threshold crossed + pause), fly camera to nearest page in that direction.
+- [x] Step 3: When scroll commits to a page (threshold crossed + pause), fly camera to nearest page in that direction.
 
-- [ ] Step 4: On mobile, prevent default page scroll. When a content panel is open, allow normal scroll within the panel.
+- [x] Step 4: On mobile, prevent default page scroll. When a content panel is open, allow normal scroll within the panel.
 
-- [ ] Step 5: Verify on mobile viewport (Chrome DevTools device mode) — scroll drives scene interaction.
+- [x] Step 5: Verify on mobile viewport (Chrome DevTools device mode) — scroll drives scene interaction.
 
-- [ ] Step 6: Run `pnpm check`, commit, push.
+- [x] Step 6: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 17: Scroll-driven interaction for mobile" && git push

@@ -1,6 +1,7 @@
 import { useFrame } from "@react-three/fiber";
 import type { RefObject } from "react";
 import * as THREE from "three";
+import { useScrollInteractionStore } from "@/hooks/useScrollInteraction";
 
 interface LemniscateOptions {
   yAmplitude?: number;
@@ -26,7 +27,8 @@ export function useLemniscate(
   useFrame(({ clock }) => {
     if (!ref.current) return;
 
-    const t = clock.getElapsedTime() * speed + phaseOffset;
+    const { phaseNudge, speedBoost } = useScrollInteractionStore.getState();
+    const t = clock.getElapsedTime() * (speed + speedBoost) + phaseOffset + phaseNudge;
     ref.current.rotation.y = yAmp * Math.sin(t);
     ref.current.rotation.x = xAmp * Math.sin(t * 2);
   });

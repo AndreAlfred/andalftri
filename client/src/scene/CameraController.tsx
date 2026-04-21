@@ -2,20 +2,36 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
 import { useCameraStore } from "@/hooks/useCamera";
+import { useScrollInteractionStore } from "@/hooks/useScrollInteraction";
 
 const positionTarget = new THREE.Vector3();
 const lookAtTarget = new THREE.Vector3();
+const basePositionTarget = new THREE.Vector3();
+const baseLookAtTarget = new THREE.Vector3();
 
 export function CameraController() {
   const { camera } = useThree();
   const currentLookAt = useRef(new THREE.Vector3(0, 0, 0));
 
   useFrame(() => {
-    const { targetPosition, targetLookAt, isTransitioning, finishTransition } =
-      useCameraStore.getState();
+    const {
+      targetPosition,
+      targetLookAt,
+      currentPage,
+      isTransitioning,
+      finishTransition,
+    } = useCameraStore.getState();
+    const { cameraTilt } = useScrollInteractionStore.getState();
 
-    positionTarget.set(...targetPosition);
-    lookAtTarget.set(...targetLookAt);
+    basePositionTarget.set(...targetPosition);
+    baseLookAtTarget.set(...targetLookAt);
+    positionTarget.copy(basePositionTarget);
+    lookAtTarget.copy(baseLookAtTarget);
+
+    if (!currentPage) {
+      positionTarget.y += cameraTilt * 1.4;
+      lookAtTarget.y += cameraTilt * 4.2;
+    }
 
     camera.position.lerp(positionTarget, 0.065);
     currentLookAt.current.lerp(lookAtTarget, 0.075);
@@ -23,8 +39,8 @@ export function CameraController() {
 
     if (!isTransitioning) return;
 
-    const positionDistance = camera.position.distanceTo(positionTarget);
-    const lookAtDistance = currentLookAt.current.distanceTo(lookAtTarget);
+    const positionDistance = camera.position.distanceTo(basePositionTarget);
+    const lookAtDistance = currentLookAt.current.distanceTo(baseLookAtTarget);
 
     if (positionDistance < 0.05 && lookAtDistance < 0.05) {
       camera.position.copy(positionTarget);
