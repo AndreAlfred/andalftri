@@ -71,3 +71,6 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 19 by adding `detect-gpu` capability detection plus a `deviceCapability` helper that flags tier 0 and 1 hardware for a lighter experience.
 - Split the app so the Three.js scene now lives in a lazy-loaded `SceneExperience` chunk, while weak devices get a CSS wireframe poster fallback with 2D nav links and the same route-driven content panels.
 - Re-ran `pnpm check` and `pnpm build` successfully after the fallback work. Build now clearly separates the main entry chunk from the heavier scene chunk; the remaining large-chunk warning is confined to `SceneExperience` and is still non-blocking.
+- Completed Task 20 by creating a dedicated `LoadingScreen` component driven by Drei's `useProgress`, with a retro progress bar, animated `@`, and wireframe-chrome styling that fits the rest of the site instead of a generic loader.
+- Updated `App.tsx` so capable devices now keep the scene hidden behind the loading overlay until the scene bundle and initial assets settle, then fade smoothly into the 3D world.
+- Ran `pnpm check` and `pnpm build` successfully after the loading-screen work. Build remains clean; Vite still reports the existing non-blocking large-chunk warning for the main app and `SceneExperience` bundles.

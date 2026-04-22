@@ -1084,19 +1084,19 @@ git add -A && git commit -m "Task 19: Static fallback for weak devices" && git p
 
 ## Phase 6: Polish
 
-- [ ] **Task 20:** Loading screen
+- [x] **Task 20:** Loading screen
 
 **Files:**
 - Create: `client/src/components/LoadingScreen.tsx`
 - Modify: `client/src/App.tsx`
 
-- [ ] Step 1: Create `LoadingScreen.tsx` — displays while 3D assets load. Use Drei's `useProgress` hook to track loading percentage. Design should match the site aesthetic (wireframe, retro progress bar, "@" symbol animation).
+- [x] Step 1: Create `LoadingScreen.tsx` — displays while 3D assets load. Use Drei's `useProgress` hook to track loading percentage. Design should match the site aesthetic (wireframe, retro progress bar, "@" symbol animation).
 
-- [ ] Step 2: Show loading screen until assets are loaded, then fade/transition into the 3D scene.
+- [x] Step 2: Show loading screen until assets are loaded, then fade/transition into the 3D scene.
 
-- [ ] Step 3: Verify — on first load (clear cache), loading screen appears, then scene reveals.
+- [x] Step 3: Verify — on first load (clear cache), loading screen appears, then scene reveals.
 
-- [ ] Step 4: Run `pnpm check`, commit, push.
+- [x] Step 4: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 20: Loading screen" && git push

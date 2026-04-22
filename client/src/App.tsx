@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useState } from "react";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { StaticFallback } from "@/components/StaticFallback";
 import { getDeviceCapability, type DeviceCapability } from "@/lib/deviceCapability";
 
@@ -6,6 +7,7 @@ const SceneExperience = lazy(() => import("@/components/SceneExperience"));
 
 export default function App() {
   const [capability, setCapability] = useState<DeviceCapability | null>(null);
+  const [sceneReady, setSceneReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,17 +55,13 @@ export default function App() {
   }
 
   return (
-    <Suspense
-      fallback={
-        <div className="flex h-screen w-screen items-center justify-center bg-[#0d1014] text-white">
-          <div className="rounded-[24px] border border-white/10 bg-black/30 px-6 py-5 text-center shadow-[0_20px_70px_rgba(0,0,0,0.3)] backdrop-blur-md">
-            <p className="panel-meta text-[0.68rem] uppercase text-cyan-200/72">Loading scene</p>
-            <p className="panel-body mt-3 text-sm text-white/72">Bringing the wireframe world online.</p>
-          </div>
-        </div>
-      }
-    >
-      <SceneExperience />
-    </Suspense>
+    <div className="relative h-screen w-screen overflow-hidden bg-[#0d1014]">
+      <div className={`h-full w-full transition-opacity duration-700 ${sceneReady ? "opacity-100" : "opacity-0"}`}>
+        <Suspense fallback={null}>
+          <SceneExperience />
+        </Suspense>
+      </div>
+      <LoadingScreen onReady={() => setSceneReady(true)} />
+    </div>
   );
 }
