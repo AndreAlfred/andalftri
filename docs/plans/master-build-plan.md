@@ -1126,19 +1126,19 @@ git add -A && git commit -m "Task 21: Asset swap system — placeholder to GLB h
 
 ---
 
-- [ ] **Task 22:** Menu button fade during transitions
+- [x] **Task 22:** Menu button fade during transitions
 
 **Files:**
 - Modify: `client/src/scene/MenuButton.tsx`
 - Modify: `client/src/scene/MenuHub.tsx`
 
-- [ ] Step 1: When the camera starts flying to a page, fade the buttons and logo (reduce opacity, scale down slightly). When returning to hub, fade them back in.
+- [x] Step 1: When the camera starts flying to a page, fade the buttons and logo (reduce opacity, scale down slightly). When returning to hub, fade them back in.
 
-- [ ] Step 2: Use the `isTransitioning` and `currentPage` state from the camera store to drive the fade.
+- [x] Step 2: Use the `isTransitioning` and `currentPage` state from the camera store to drive the fade.
 
-- [ ] Step 3: Verify — click a button, buttons gracefully recede. Return to hub, they come back.
+- [x] Step 3: Verify — click a button, buttons gracefully recede. Return to hub, they come back.
 
-- [ ] Step 4: Run `pnpm check`, commit, push.
+- [x] Step 4: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 22: Menu button fade during camera transitions" && git push

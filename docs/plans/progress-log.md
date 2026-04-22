@@ -65,6 +65,9 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 21 by teaching both `LogoModel` and `MenuButton` to hot-swap from their existing placeholder geometry to a GLB loaded with Drei `useGLTF` whenever a `modelPath` prop is present.
 - Added a tiny sample GLB at `client/public/models/task-21-sample-box.glb` plus a `/?asset-demo=1` sanity-check path, so the asset swap can be previewed without disturbing the normal default scene.
 - Documented the Blender-asset handoff in `TOOLS.md`, then ran `pnpm check` and `pnpm build` successfully. Build is still clean aside from the existing non-blocking Vite chunk-size warning.
+- Completed Task 22 by animating the entire menu hub to recede during page travel, with the chrome `@` and all menu buttons fading and scaling down when leaving the hub, then easing back in on the return flight.
+- Wired the transition state through `currentPage` / `isTransitioning` so hub interactions disable cleanly while the camera is in motion, then restored normal hover/click behavior once the camera settles back home.
+- Re-ran `pnpm check` and `pnpm build` successfully after the transition-polish work. Build is still clean aside from the existing non-blocking Vite chunk-size warning.
 
 ## 2026-04-21
 

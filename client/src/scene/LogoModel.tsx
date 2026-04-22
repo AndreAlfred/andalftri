@@ -5,6 +5,7 @@ import { useLemniscate } from "@/hooks/useLemniscate";
 
 interface LogoModelProps {
   modelPath?: string;
+  opacity?: number;
 }
 
 function LoadedLogoAsset({ modelPath }: { modelPath: string }) {
@@ -28,7 +29,7 @@ function LoadedLogoAsset({ modelPath }: { modelPath: string }) {
   );
 }
 
-export function LogoModel({ modelPath }: LogoModelProps) {
+export function LogoModel({ modelPath, opacity = 1 }: LogoModelProps) {
   const groupRef = useRef<THREE.Group>(null);
 
   useLemniscate(groupRef, {
@@ -58,6 +59,8 @@ export function LogoModel({ modelPath }: LogoModelProps) {
             clearcoat={1}
             clearcoatRoughness={0.05}
             envMapIntensity={1.6}
+            transparent
+            opacity={opacity}
           />
         </Text>
       )}

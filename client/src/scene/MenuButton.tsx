@@ -11,6 +11,8 @@ interface MenuButtonProps {
   index: number;
   onClick: (page: PageConfig) => void;
   modelPath?: string;
+  opacity?: number;
+  disabled?: boolean;
 }
 
 function LoadedButtonAsset({ modelPath }: { modelPath: string }) {
@@ -37,6 +39,8 @@ export function MenuButton({
   index,
   onClick,
   modelPath,
+  opacity = 1,
+  disabled = false,
 }: MenuButtonProps) {
   const groupRef = useRef<THREE.Group>(null);
   const tiltRef = useRef<THREE.Group>(null);
@@ -64,8 +68,10 @@ export function MenuButton({
   useFrame(({ clock }) => {
     if (!visualRef.current) return;
 
-    const targetScale = hovered ? baseScale * 1.1 : baseScale;
-    const pulse = hovered ? 1 + Math.sin(clock.getElapsedTime() * 5 + index) * 0.03 : 1;
+    const targetScale = hovered && !disabled ? baseScale * 1.1 : baseScale;
+    const pulse = hovered && !disabled
+      ? 1 + Math.sin(clock.getElapsedTime() * 5 + index) * 0.03
+      : 1;
     const nextScale = targetScale * pulse;
 
     visualRef.current.scale.x = THREE.MathUtils.lerp(
@@ -85,7 +91,14 @@ export function MenuButton({
     );
   });
 
+  useEffect(() => {
+    if (!disabled) return;
+    setHovered(false);
+    document.body.style.cursor = "default";
+  }, [disabled]);
+
   const handlePointerEnter = () => {
+    if (disabled) return;
     setHovered(true);
     document.body.style.cursor = "pointer";
   };
@@ -100,7 +113,10 @@ export function MenuButton({
       <group ref={tiltRef}>
         <group
           ref={visualRef}
-          onClick={() => onClick(page)}
+          onClick={() => {
+            if (disabled) return;
+            onClick(page);
+          }}
           onPointerEnter={handlePointerEnter}
           onPointerLeave={handlePointerLeave}
         >
@@ -110,14 +126,16 @@ export function MenuButton({
             <mesh castShadow receiveShadow>
               <capsuleGeometry args={[0.34, 0.92, 10, 18]} />
               <meshPhysicalMaterial
-                color={hovered ? "#eef4ff" : "#d1d4df"}
+                color={hovered && !disabled ? "#eef4ff" : "#d1d4df"}
                 metalness={0.98}
-                roughness={hovered ? 0.04 : 0.08}
+                roughness={hovered && !disabled ? 0.04 : 0.08}
                 clearcoat={1}
                 clearcoatRoughness={0.04}
                 envMapIntensity={1.9}
-                emissive={hovered ? "#405d7f" : "#000000"}
-                emissiveIntensity={hovered ? 0.5 : 0}
+                emissive={hovered && !disabled ? "#405d7f" : "#000000"}
+                emissiveIntensity={hovered && !disabled ? 0.5 : 0}
+                transparent
+                opacity={opacity}
               />
             </mesh>
           )}
@@ -125,11 +143,12 @@ export function MenuButton({
         <Text
           position={[0, -0.88, 0]}
           fontSize={0.18}
-          color={hovered ? "#ffffff" : "#d7dee9"}
+          color={hovered && !disabled ? "#ffffff" : "#d7dee9"}
           anchorX="center"
           anchorY="top"
           maxWidth={2.5}
           textAlign="center"
+          fillOpacity={opacity}
         >
           {page.label}
         </Text>
