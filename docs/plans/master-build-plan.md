@@ -1104,21 +1104,21 @@ git add -A && git commit -m "Task 20: Loading screen" && git push
 
 ---
 
-- [ ] **Task 21:** Asset swap system for Blender models
+- [x] **Task 21:** Asset swap system for Blender models
 
 **Files:**
 - Modify: `client/src/scene/LogoModel.tsx`
 - Modify: `client/src/scene/MenuButton.tsx`
 
-- [ ] Step 1: Refactor `LogoModel.tsx` — when `modelPath` is provided, load the GLB via Drei's `useGLTF` and render it. When not provided, render the placeholder text mesh. The switch should be a single prop change.
+- [x] Step 1: Refactor `LogoModel.tsx` — when `modelPath` is provided, load the GLB via Drei's `useGLTF` and render it. When not provided, render the placeholder text mesh. The switch should be a single prop change.
 
-- [ ] Step 2: Same for `MenuButton.tsx` — accept a `modelPath` prop that swaps the capsule geometry for a loaded GLB.
+- [x] Step 2: Same for `MenuButton.tsx` — accept a `modelPath` prop that swaps the capsule geometry for a loaded GLB.
 
-- [ ] Step 3: Test with a sample GLB (download any free model) to verify the swap works.
+- [x] Step 3: Test with a sample GLB (download any free model) to verify the swap works.
 
-- [ ] Step 4: Document in `TOOLS.md`: "To swap a placeholder for a Blender asset, add the GLB to `client/public/models/` and set the `modelPath` prop to `/models/filename.glb`."
+- [x] Step 4: Document in `TOOLS.md`: "To swap a placeholder for a Blender asset, add the GLB to `client/public/models/` and set the `modelPath` prop to `/models/filename.glb`."
 
-- [ ] Step 5: Run `pnpm check`, commit, push.
+- [x] Step 5: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 21: Asset swap system — placeholder to GLB hot-swap" && git push

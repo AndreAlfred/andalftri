@@ -20,6 +20,9 @@ export function MenuHub({ onPageSelect }: MenuHubProps) {
   const idleRotationRef = useRef(0);
   const currentPage = useCameraStore((state) => state.currentPage);
   const isTransitioning = useCameraStore((state) => state.isTransitioning);
+  const assetSwapDemoEnabled =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("asset-demo") === "1";
 
   useMouseParallax(groupRef, {
     intensity: 0.4,
@@ -46,13 +49,16 @@ export function MenuHub({ onPageSelect }: MenuHubProps) {
 
   return (
     <group ref={groupRef}>
-      <LogoModel />
+      <LogoModel
+        modelPath={assetSwapDemoEnabled ? "/models/task-21-sample-box.glb" : undefined}
+      />
       {PAGES.map((page, index) => (
         <MenuButton
           key={page.id}
           page={page}
           index={index}
           onClick={onPageSelect}
+          modelPath={assetSwapDemoEnabled && index === 0 ? "/models/task-21-sample-box.glb" : undefined}
         />
       ))}
     </group>

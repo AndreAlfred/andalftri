@@ -22,6 +22,11 @@ pnpm build        # Production build
 - Vercel auto-deploys on push to `main`
 - Rebuild takes ~30 seconds after push
 
+## 3D asset swap
+
+- To swap a placeholder for a Blender asset, add the GLB to `client/public/models/` and set the `modelPath` prop to `/models/filename.glb`.
+- For a quick sanity check of the swap path, visit `/?asset-demo=1` to load the sample GLB used for Task 21.
+
 ---
 
 Add whatever helps you do your job. This is your cheat sheet.

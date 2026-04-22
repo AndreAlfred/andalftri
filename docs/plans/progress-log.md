@@ -60,6 +60,12 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Wired HUD nav links to close the overlay and navigate immediately to the selected page, while keeping the active page visibly highlighted so the meta-layer now feels like a real in-universe navigation system instead of placeholder copy.
 - Ran `pnpm check` successfully after the cyberspace-nav work. The repo is clean for Task 17: scroll-driven mobile interaction.
 
+## 2026-04-22
+
+- Completed Task 21 by teaching both `LogoModel` and `MenuButton` to hot-swap from their existing placeholder geometry to a GLB loaded with Drei `useGLTF` whenever a `modelPath` prop is present.
+- Added a tiny sample GLB at `client/public/models/task-21-sample-box.glb` plus a `/?asset-demo=1` sanity-check path, so the asset swap can be previewed without disturbing the normal default scene.
+- Documented the Blender-asset handoff in `TOOLS.md`, then ran `pnpm check` and `pnpm build` successfully. Build is still clean aside from the existing non-blocking Vite chunk-size warning.
+
 ## 2026-04-21
 
 - Completed Task 17 by adding a dedicated `useScrollInteraction` hook that captures wheel and touch gestures at the menu hub, turns light scroll into brief lemniscate speed/phase nudges, and converts sustained scroll into directional camera tilt.
