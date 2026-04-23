@@ -68,6 +68,9 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 22 by animating the entire menu hub to recede during page travel, with the chrome `@` and all menu buttons fading and scaling down when leaving the hub, then easing back in on the return flight.
 - Wired the transition state through `currentPage` / `isTransitioning` so hub interactions disable cleanly while the camera is in motion, then restored normal hover/click behavior once the camera settles back home.
 - Re-ran `pnpm check` and `pnpm build` successfully after the transition-polish work. Build is still clean aside from the existing non-blocking Vite chunk-size warning.
+- Completed Task 23 by memoizing static scene and panel components, sharing the capsule button geometry, and moving GLB cloning/material updates into memoized paths so the hover and fade systems stop recreating work unnecessarily.
+- Trimmed per-frame scene overhead by replacing the menu hub's full-scene material traversal with a lightweight visibility state handoff, while keeping `<Html>` panels mounted only when active or mid-close.
+- Added vendor chunk splitting plus a capped canvas DPR (`[1, 1.5]`) so initial scene loading is more incremental now; `pnpm check` and `pnpm build` both pass, though Vite still reports a non-blocking large `three` vendor chunk.
 
 ## 2026-04-21
 

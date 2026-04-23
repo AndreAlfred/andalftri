@@ -1,5 +1,5 @@
 import { Html } from "@react-three/drei";
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 
 interface ContentPanelProps {
   position: [number, number, number];
@@ -11,7 +11,7 @@ interface ContentPanelProps {
   onClose: () => void;
 }
 
-export function ContentPanel({
+export const ContentPanel = memo(function ContentPanel({
   position,
   pageId,
   activePageId,
@@ -56,4 +56,4 @@ export function ContentPanel({
       </div>
     </Html>
   );
-}
+});

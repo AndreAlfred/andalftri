@@ -1,5 +1,5 @@
 import { useFrame } from "@react-three/fiber";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import * as THREE from "three";
 import { PAGES, type PageConfig } from "@/data/sceneConfig";
 import { useCameraStore } from "@/hooks/useCamera";
@@ -20,6 +20,7 @@ export function MenuHub({ onPageSelect }: MenuHubProps) {
   const visualRef = useRef<THREE.Group>(null);
   const idleRotationRef = useRef(0);
   const hubVisibilityRef = useRef(1);
+  const [hubVisibility, setHubVisibility] = useState(1);
   const currentPage = useCameraStore((state) => state.currentPage);
   const isTransitioning = useCameraStore((state) => state.isTransitioning);
   const assetSwapDemoEnabled =
@@ -59,20 +60,11 @@ export function MenuHub({ onPageSelect }: MenuHubProps) {
     const scale = THREE.MathUtils.lerp(0.82, 1, hubVisibilityRef.current);
     visualRef.current.scale.setScalar(scale);
 
-    visualRef.current.traverse((child) => {
-      if (!(child instanceof THREE.Mesh)) return;
-
-      const materials = Array.isArray(child.material)
-        ? child.material
-        : child.material
-          ? [child.material]
-          : [];
-
-      materials.forEach((material) => {
-        material.transparent = true;
-        material.opacity = hubVisibilityRef.current;
-      });
-    });
+    setHubVisibility((current) =>
+      Math.abs(current - hubVisibilityRef.current) > 0.01
+        ? hubVisibilityRef.current
+        : current,
+    );
   });
 
   return (
@@ -80,7 +72,7 @@ export function MenuHub({ onPageSelect }: MenuHubProps) {
       <group ref={visualRef}>
         <LogoModel
           modelPath={assetSwapDemoEnabled ? "/models/task-21-sample-box.glb" : undefined}
-          opacity={hubVisibilityRef.current}
+          opacity={hubVisibility}
         />
         {PAGES.map((page, index) => (
           <MenuButton
@@ -89,7 +81,7 @@ export function MenuHub({ onPageSelect }: MenuHubProps) {
             index={index}
             onClick={onPageSelect}
             disabled={!canInteract}
-            opacity={hubVisibilityRef.current}
+            opacity={hubVisibility}
             modelPath={assetSwapDemoEnabled && index === 0 ? "/models/task-21-sample-box.glb" : undefined}
           />
         ))}

@@ -1,5 +1,5 @@
 import { Center, Clone, Text, useGLTF } from "@react-three/drei";
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useLemniscate } from "@/hooks/useLemniscate";
 
@@ -8,28 +8,63 @@ interface LogoModelProps {
   opacity?: number;
 }
 
-function LoadedLogoAsset({ modelPath }: { modelPath: string }) {
+const LoadedLogoAsset = memo(function LoadedLogoAsset({
+  modelPath,
+  opacity,
+}: {
+  modelPath: string;
+  opacity: number;
+}) {
   const { scene } = useGLTF(modelPath);
+  const clonedScene = useMemo(() => {
+    const clone = scene.clone(true);
 
-  useEffect(() => {
-    scene.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
+    clone.traverse((child) => {
+      if (!(child instanceof THREE.Mesh)) return;
+
+      child.castShadow = true;
+      child.receiveShadow = true;
+
+      if (Array.isArray(child.material)) {
+        child.material = child.material.map((material) => material.clone());
+      } else if (child.material) {
+        child.material = child.material.clone();
       }
     });
+
+    return clone;
   }, [scene]);
+
+  useEffect(() => {
+    clonedScene.traverse((child) => {
+      if (!(child instanceof THREE.Mesh)) return;
+
+      const materials = Array.isArray(child.material)
+        ? child.material
+        : child.material
+          ? [child.material]
+          : [];
+
+      materials.forEach((material) => {
+        material.transparent = true;
+        material.opacity = opacity;
+      });
+    });
+  }, [clonedScene, opacity]);
 
   return (
     <Center>
       <group scale={2.35}>
-        <Clone object={scene} />
+        <Clone object={clonedScene} />
       </group>
     </Center>
   );
-}
+});
 
-export function LogoModel({ modelPath, opacity = 1 }: LogoModelProps) {
+export const LogoModel = memo(function LogoModel({
+  modelPath,
+  opacity = 1,
+}: LogoModelProps) {
   const groupRef = useRef<THREE.Group>(null);
 
   useLemniscate(groupRef, {
@@ -41,7 +76,7 @@ export function LogoModel({ modelPath, opacity = 1 }: LogoModelProps) {
   return (
     <group ref={groupRef}>
       {modelPath ? (
-        <LoadedLogoAsset modelPath={modelPath} />
+        <LoadedLogoAsset modelPath={modelPath} opacity={opacity} />
       ) : (
         <Text
           position={[0, 0, 0]}
@@ -66,4 +101,4 @@ export function LogoModel({ modelPath, opacity = 1 }: LogoModelProps) {
       )}
     </group>
   );
-}
+});

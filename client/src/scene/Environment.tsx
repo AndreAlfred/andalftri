@@ -1,6 +1,7 @@
 import { Grid } from "@react-three/drei";
+import { memo } from "react";
 
-export function Environment() {
+export const Environment = memo(function Environment() {
   return (
     <>
       <color attach="background" args={["#1a1a1a"]} />
@@ -21,4 +22,4 @@ export function Environment() {
       <pointLight position={[-5, 5, -5]} intensity={0.3} />
     </>
   );
-}
+});

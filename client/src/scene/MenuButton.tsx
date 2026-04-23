@@ -1,6 +1,6 @@
 import { Clone, Text, useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import type { PageConfig } from "@/data/sceneConfig";
 import { useLemniscate } from "@/hooks/useLemniscate";
@@ -15,26 +15,60 @@ interface MenuButtonProps {
   disabled?: boolean;
 }
 
-function LoadedButtonAsset({ modelPath }: { modelPath: string }) {
-  const { scene } = useGLTF(modelPath);
+const BUTTON_GEOMETRY = new THREE.CapsuleGeometry(0.34, 0.92, 10, 18);
 
-  useEffect(() => {
-    scene.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
+const LoadedButtonAsset = memo(function LoadedButtonAsset({
+  modelPath,
+  opacity,
+}: {
+  modelPath: string;
+  opacity: number;
+}) {
+  const { scene } = useGLTF(modelPath);
+  const clonedScene = useMemo(() => {
+    const clone = scene.clone(true);
+
+    clone.traverse((child) => {
+      if (!(child instanceof THREE.Mesh)) return;
+
+      child.castShadow = true;
+      child.receiveShadow = true;
+
+      if (Array.isArray(child.material)) {
+        child.material = child.material.map((material) => material.clone());
+      } else if (child.material) {
+        child.material = child.material.clone();
       }
     });
+
+    return clone;
   }, [scene]);
+
+  useEffect(() => {
+    clonedScene.traverse((child) => {
+      if (!(child instanceof THREE.Mesh)) return;
+
+      const materials = Array.isArray(child.material)
+        ? child.material
+        : child.material
+          ? [child.material]
+          : [];
+
+      materials.forEach((material) => {
+        material.transparent = true;
+        material.opacity = opacity;
+      });
+    });
+  }, [clonedScene, opacity]);
 
   return (
     <group scale={0.9}>
-      <Clone object={scene} />
+      <Clone object={clonedScene} />
     </group>
   );
-}
+});
 
-export function MenuButton({
+export const MenuButton = memo(function MenuButton({
   page,
   index,
   onClick,
@@ -121,10 +155,10 @@ export function MenuButton({
           onPointerLeave={handlePointerLeave}
         >
           {modelPath ? (
-            <LoadedButtonAsset modelPath={modelPath} />
+            <LoadedButtonAsset modelPath={modelPath} opacity={opacity} />
           ) : (
             <mesh castShadow receiveShadow>
-              <capsuleGeometry args={[0.34, 0.92, 10, 18]} />
+              <primitive object={BUTTON_GEOMETRY} attach="geometry" />
               <meshPhysicalMaterial
                 color={hovered && !disabled ? "#eef4ff" : "#d1d4df"}
                 metalness={0.98}
@@ -155,4 +189,4 @@ export function MenuButton({
       </group>
     </group>
   );
-}
+});

@@ -103,6 +103,16 @@ export default function SceneExperience() {
     [currentPage],
   );
 
+  const pagePanels = useMemo(
+    () =>
+      PAGES.map((page) => ({
+        page,
+        project: page.group === "oeuvre" ? getProjectById(page.id) : null,
+        influence: page.group === "influences" ? getInfluenceById(page.id) : null,
+      })),
+    [],
+  );
+
   const handlePageSelect = useCallback(
     (page: PageConfig) => {
       clearCloseTimeout();
@@ -135,30 +145,29 @@ export default function SceneExperience() {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-[#1a1a1a]">
-      <Canvas camera={{ position: [0, 0, 8], fov: 60 }}>
+      <Canvas
+        camera={{ position: [0, 0, 8], fov: 60 }}
+        dpr={[1, 1.5]}
+        gl={{ antialias: true, powerPreference: "high-performance" }}
+      >
         <Environment />
         <DreiEnvironment preset="city" />
         <CameraController />
         <MenuHub onPageSelect={handlePageSelect} />
-        {PAGES.map((page) => {
-          const project = page.group === "oeuvre" ? getProjectById(page.id) : null;
-          const influence = page.group === "influences" ? getInfluenceById(page.id) : null;
-
-          return (
-            <ContentPanel
-              key={page.id}
-              position={page.cameraLookAt}
-              pageId={page.id}
-              activePageId={currentPage}
-              isTransitioning={isTransitioning}
-              isClosing={closingPageId === page.id}
-              onClose={handlePanelClose}
-            >
-              {project ? <ProjectPanel project={project} /> : null}
-              {influence ? <InfluencePanel influence={influence} /> : null}
-            </ContentPanel>
-          );
-        })}
+        {pagePanels.map(({ page, project, influence }) => (
+          <ContentPanel
+            key={page.id}
+            position={page.cameraLookAt}
+            pageId={page.id}
+            activePageId={currentPage}
+            isTransitioning={isTransitioning}
+            isClosing={closingPageId === page.id}
+            onClose={handlePanelClose}
+          >
+            {project ? <ProjectPanel project={project} /> : null}
+            {influence ? <InfluencePanel influence={influence} /> : null}
+          </ContentPanel>
+        ))}
       </Canvas>
 
       {currentPage ? (

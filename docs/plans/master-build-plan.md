@@ -1146,22 +1146,22 @@ git add -A && git commit -m "Task 22: Menu button fade during camera transitions
 
 ---
 
-- [ ] **Task 23:** Performance optimization
+- [x] **Task 23:** Performance optimization
 
 **Files:**
 - Various scene files
 
-- [ ] Step 1: Audit the R3F scene for performance. Check:
+- [x] Step 1: Audit the R3F scene for performance. Check:
   - Are materials shared (not recreated per component)?
   - Are geometries instanced where possible?
   - Is `useFrame` doing minimal work?
   - Are `<Html>` components only rendered when visible?
 
-- [ ] Step 2: Add `React.memo` to static scene components. Use `useMemo` for geometries and materials.
+- [x] Step 2: Add `React.memo` to static scene components. Use `useMemo` for geometries and materials.
 
-- [ ] Step 3: Test performance — target 60fps on mid-range hardware, 30fps minimum on low-end.
+- [x] Step 3: Test performance — target 60fps on mid-range hardware, 30fps minimum on low-end.
 
-- [ ] Step 4: Run `pnpm check`, commit, push.
+- [x] Step 4: Run `pnpm check`, commit, push.
 
 ```bash
 git add -A && git commit -m "Task 23: Performance optimization" && git push
