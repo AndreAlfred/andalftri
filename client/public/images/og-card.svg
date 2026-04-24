@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Andrew Alfred Trimble portfolio social card</title>
+  <desc id="desc">Dark wireframe field with a chrome at symbol and portfolio title.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#05080d" />
+      <stop offset="100%" stop-color="#111822" />
+    </linearGradient>
+    <linearGradient id="chrome" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f7fbff" />
+      <stop offset="20%" stop-color="#a8b7ca" />
+      <stop offset="45%" stop-color="#edf5ff" />
+      <stop offset="75%" stop-color="#899cb2" />
+      <stop offset="100%" stop-color="#dbe7f5" />
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <g stroke="#73808d" stroke-opacity="0.2" stroke-width="1.5">
+    <path d="M0 110H1200" />
+    <path d="M0 210H1200" />
+    <path d="M0 310H1200" />
+    <path d="M0 410H1200" />
+    <path d="M0 510H1200" />
+    <path d="M120 0V630" />
+    <path d="M320 0V630" />
+    <path d="M520 0V630" />
+    <path d="M720 0V630" />
+    <path d="M920 0V630" />
+    <path d="M1120 0V630" />
+  </g>
+  <g filter="url(#glow)">
+    <text
+      x="250"
+      y="350"
+      text-anchor="middle"
+      font-size="260"
+      font-family="Georgia, 'Times New Roman', serif"
+      fill="url(#chrome)"
+    >@</text>
+  </g>
+  <text
+    x="430"
+    y="245"
+    font-size="42"
+    font-family="'Space Mono', 'SFMono-Regular', Consolas, monospace"
+    letter-spacing="6"
+    fill="#8bcfe6"
+  >ANDREW ALFRED TRIMBLE</text>
+  <text
+    x="430"
+    y="335"
+    font-size="84"
+    font-family="'Cormorant Garamond', Georgia, serif"
+    fill="#f5f7fb"
+  >Interactive portfolio in a wireframe void</text>
+  <text
+    x="430"
+    y="405"
+    font-size="34"
+    font-family="Inter, Arial, sans-serif"
+    fill="#b9c5d2"
+  >React Three Fiber, chrome skeuomorphism, Halo-inspired HUD, Andrew's projects and taste.</text>
+  <rect x="430" y="455" width="310" height="2" fill="#00e5ff" opacity="0.8" />
+</svg>

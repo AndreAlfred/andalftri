@@ -72,6 +72,12 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Trimmed per-frame scene overhead by replacing the menu hub's full-scene material traversal with a lightweight visibility state handoff, while keeping `<Html>` panels mounted only when active or mid-close.
 - Added vendor chunk splitting plus a capped canvas DPR (`[1, 1.5]`) so initial scene loading is more incremental now; `pnpm check` and `pnpm build` both pass, though Vite still reports a non-blocking large `three` vendor chunk.
 
+## 2026-04-23
+
+- Completed Task 24 by adding production metadata in `index.html`, including a stronger page title, description, canonical URL, favicon, Open Graph tags, and Twitter card tags pointed at the live Vercel site.
+- Added lightweight social/share assets at `client/public/favicon.svg` and `client/public/images/og-card.svg`, and created `vercel.json` rewrite rules so direct deep links resolve back through the SPA entrypoint on Vercel.
+- Ran `pnpm check` and `pnpm build` successfully after the Vercel/meta work. Build is clean; Vite still reports the existing non-blocking large `vendor-three` chunk warning.
+
 ## 2026-04-21
 
 - Completed Task 17 by adding a dedicated `useScrollInteraction` hook that captures wheel and touch gestures at the menu hub, turns light scroll into brief lemniscate speed/phase nudges, and converts sustained scroll into directional camera tilt.

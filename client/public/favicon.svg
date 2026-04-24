@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Andrew Alfred Trimble favicon</title>
+  <desc id="desc">A chrome-like at symbol over a dark wireframe grid.</desc>
+  <defs>
+    <linearGradient id="chrome" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f7fbff" />
+      <stop offset="35%" stop-color="#b7c6d8" />
+      <stop offset="65%" stop-color="#eef5ff" />
+      <stop offset="100%" stop-color="#7d8fa5" />
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#080d14" />
+  <g stroke="#7f8b97" stroke-opacity="0.3" stroke-width="1">
+    <path d="M16 32H112" />
+    <path d="M16 64H112" />
+    <path d="M16 96H112" />
+    <path d="M32 16V112" />
+    <path d="M64 16V112" />
+    <path d="M96 16V112" />
+  </g>
+  <text
+    x="64"
+    y="82"
+    text-anchor="middle"
+    font-size="74"
+    font-family="Georgia, 'Times New Roman', serif"
+    fill="url(#chrome)"
+  >@</text>
+</svg>
