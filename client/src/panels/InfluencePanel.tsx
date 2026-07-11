@@ -63,7 +63,7 @@ export function InfluencePanel({ influence }: InfluencePanelProps) {
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="panel-title text-2xl text-white sm:text-[1.9rem]">{item.name}</h3>
+                          <h3 className="panel-title text-xl text-white sm:text-2xl">{item.name}</h3>
                           {item.url ? (
                             <span className="panel-meta text-xs uppercase text-cyan-100/70">Link</span>
                           ) : null}

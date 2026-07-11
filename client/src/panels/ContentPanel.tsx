@@ -1,5 +1,5 @@
 import { Html } from "@react-three/drei";
-import { memo, type ReactNode } from "react";
+import { memo, useEffect, type ReactNode } from "react";
 
 interface ContentPanelProps {
   position: [number, number, number];
@@ -11,6 +11,13 @@ interface ContentPanelProps {
   onClose: () => void;
 }
 
+// Screen-space (non-transform) Html on purpose: the camera always faces these
+// panels head-on, so 3D transform scaling added nothing — and it made panel
+// size unpredictable (viewport CSS units re-scaled through the 3D transform
+// could fill the screen and bury every escape control) and blurred the text.
+// zIndexRange keeps the panel BELOW the app HUD pill (z-20) and overlays —
+// drei's default is ~16.7 million, which trapped users on page views
+// (2026-07-11, Andrew: "I can't leave, lol").
 export const ContentPanel = memo(function ContentPanel({
   position,
   pageId,
@@ -24,24 +31,31 @@ export const ContentPanel = memo(function ContentPanel({
   const shouldRender = isActivePage || isClosing;
   const isVisible = isActivePage && !isTransitioning && !isClosing;
 
+  useEffect(() => {
+    if (!isVisible) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isVisible, onClose]);
+
   if (!shouldRender) return null;
 
   return (
     <Html
       position={position}
       center
-      distanceFactor={8}
-      transform
-      occlude={false}
+      zIndexRange={[15, 0]}
       style={{
         width: "min(42rem, calc(100vw - 2rem))",
-        maxWidth: "calc(100vw - 2rem)",
         opacity: isVisible ? 1 : 0,
+        transform: isVisible ? "translateY(0)" : "translateY(14px)",
         pointerEvents: isVisible ? "auto" : "none",
-        transition: "opacity 320ms ease-in-out",
+        transition: "opacity 320ms ease-in-out, transform 380ms ease-out",
       }}
     >
-      <div className="panel-shell relative max-h-[80vh] overflow-hidden rounded-[28px] border border-white/18 bg-black/70 text-white shadow-[0_28px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+      <div className="panel-shell relative overflow-hidden rounded-[28px] border border-white/18 bg-black/70 text-white shadow-[0_28px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl">
         <button
           type="button"
           onClick={onClose}
@@ -50,8 +64,11 @@ export const ContentPanel = memo(function ContentPanel({
         >
           ×
         </button>
-        <div className="max-h-[80vh] overflow-y-auto px-6 py-7 pr-16 sm:px-8 sm:py-8 sm:pr-18">
+        <div className="max-h-[72vh] overflow-y-auto px-6 py-7 pr-16 sm:px-8 sm:py-8 sm:pr-18">
           {children}
+          <p className="panel-meta mt-6 border-t border-white/8 pt-4 text-right text-[0.62rem] uppercase tracking-[0.24em] text-white/35">
+            esc / × — back to the hub
+          </p>
         </div>
       </div>
     </Html>

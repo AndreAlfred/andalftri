@@ -51,14 +51,12 @@ export function ProjectPanel({ project }: ProjectPanelProps) {
           <p className="panel-meta text-[0.72rem] uppercase text-white/45">Project notes</p>
           <div className="panel-body mt-4 rounded-[20px] border border-dashed border-white/12 bg-black/20 px-4 py-5 text-sm text-white/68">
             {project.media.screenshots?.length ? (
-              <p>
-                Media slots are ready. Wire screenshots into <code className="panel-code text-white/82">project.media.screenshots</code>
-                when Andrew drops assets into <code className="panel-code text-white/82">client/public/images</code>.
-              </p>
+              <p>Screenshots and process media are being prepared for this space.</p>
             ) : (
               <p>
-                This panel is ready for screenshots, videos, or process media. For now it keeps the
-                composition stable while the content and assets catch up.
+                Screenshots, video, and process notes will land here as this
+                project surfaces. Consider it a darkened gallery wall — the
+                work is on its way.
               </p>
             )}
           </div>

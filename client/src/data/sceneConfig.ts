@@ -15,7 +15,7 @@ export const PAGES: PageConfig[] = [
     route: "/heaven-and-nature",
     group: "oeuvre",
     buttonOffset: [-3.5, 1.8, 0.5],
-    cameraPosition: [-15, 2, 5],
+    cameraPosition: [-15, 2, 8],
     cameraLookAt: [-15, 0, 0],
   },
   {
@@ -24,7 +24,7 @@ export const PAGES: PageConfig[] = [
     route: "/see-canto",
     group: "oeuvre",
     buttonOffset: [3.2, 2.2, -0.3],
-    cameraPosition: [15, 3, 5],
+    cameraPosition: [15, 3, 8],
     cameraLookAt: [15, 0, 0],
   },
   {
@@ -33,7 +33,7 @@ export const PAGES: PageConfig[] = [
     route: "/music",
     group: "oeuvre",
     buttonOffset: [-2, -1.5, 0.8],
-    cameraPosition: [-10, -8, 5],
+    cameraPosition: [-10, -8, 8],
     cameraLookAt: [-10, -8, 0],
   },
   {
@@ -42,7 +42,7 @@ export const PAGES: PageConfig[] = [
     route: "/contact",
     group: "influences",
     buttonOffset: [2.8, -1, -0.5],
-    cameraPosition: [12, -6, 5],
+    cameraPosition: [12, -6, 8],
     cameraLookAt: [12, -6, 0],
   },
   {
@@ -51,7 +51,7 @@ export const PAGES: PageConfig[] = [
     route: "/reading-list",
     group: "influences",
     buttonOffset: [0.5, 3, 0.2],
-    cameraPosition: [3, 15, 5],
+    cameraPosition: [3, 15, 8],
     cameraLookAt: [3, 15, 0],
   },
   {
@@ -60,7 +60,7 @@ export const PAGES: PageConfig[] = [
     route: "/inspirations",
     group: "influences",
     buttonOffset: [-1, -3.2, 0.4],
-    cameraPosition: [-5, -15, 5],
+    cameraPosition: [-5, -15, 8],
     cameraLookAt: [-5, -15, 0],
   },
 ];
