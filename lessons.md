@@ -26,6 +26,20 @@ end; promote permanent rules into `CLAUDE.md`.
   Drei's `<Bvh firstHitOnly>` (three-mesh-bvh) from day one — see
   `MedallionHub.tsx`.
 
+### D. detect-gpu mis-tiers Apple Silicon — Andrew got the potato fallback on a MacBook
+- **What happened:** the live site served `StaticFallback` to Andrew's own Mac.
+  Safari/Apple Silicon reports the WebGL renderer as an obfuscated "Apple GPU"
+  string, which detect-gpu tiers at 1 (below the capable threshold). Separately,
+  `type: "FALLBACK"` (benchmark CDN fetch failed) was also treated as weak,
+  while App.tsx's own catch path treats the same failure as capable.
+- **Fix:** `deviceCapability.ts` — any GPU whose name contains "apple" is
+  capable regardless of tier; FALLBACK type is capable (unknown ≠ weak); only
+  WEBGL_UNSUPPORTED and genuinely low-tier non-Apple GPUs get the fallback.
+- **Lesson:** GPU-tier libraries are benchmark-table lookups, not measurements —
+  always special-case the known obfuscated renderer strings ("Apple GPU",
+  SwiftShader) and decide explicitly what "unknown" should mean. `?force-3d=1`
+  exists as the user-facing escape hatch either way.
+
 ### C. Nightly autonomous loops need an explicit "skip the blocked phase" rule
 - **What happened:** Alfred's loop wrote 16 identical nightly blocker entries
   into `docs/plans/feedback.md` (June 24 → July 9) because the next unchecked
