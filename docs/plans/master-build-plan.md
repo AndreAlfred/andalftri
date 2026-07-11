@@ -1249,3 +1249,8 @@ mapping Andrew has not blessed; section 6 intentionally unassigned).
 ---
 
 **After each task:** `pnpm check` → commit → push → update this file → update progress-log.md
+
+**If a session ends BLOCKED (no task completed):** still commit and push the
+feedback.md blocker entry before stopping (`git add docs/plans && git commit -m "docs: log blocker" && git push`).
+Blocker entries sitting uncommitted for weeks is how Andrew loses visibility
+(it happened June 24 – July 9, 2026 — see lessons.md entry C).

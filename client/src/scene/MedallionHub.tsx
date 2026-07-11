@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { PAGES, type PageConfig } from "@/data/sceneConfig";
 import { useLemniscate } from "@/hooks/useLemniscate";
 import { useProximityTilt } from "@/hooks/useProximityTilt";
+import { ScreenWakeManager } from "./screenWake";
 
 // The seven-section medallion replaces the @ logo + six capsule buttons as the
 // nav hub. Mesh naming contract (see docs/medallion-glb-notes.md):
@@ -29,7 +30,6 @@ const MEDALLION_URL = "/models/medallion.glb";
 const TARGET_RADIUS = 4.4; // world units; buttons used to span ~±3.5
 const SECTION_RE = /^section_0(\d)_(?:screen|bezel)$/;
 
-const HOVER_SCREEN_EMISSIVE = new THREE.Color("#b8f4ff");
 const HOVER_BEZEL_EMISSIVE = new THREE.Color("#67a9ff");
 const LABEL_BASE_POSITION = new THREE.Vector3(0, -4.95, 0.8);
 const LABEL_RAISED_POSITION = new THREE.Vector3(0, -4.72, 1.05);
@@ -106,11 +106,32 @@ export const MedallionHub = memo(function MedallionHub({
     document.body.style.cursor = "default";
   }, [disabled]);
 
+  // CRT wake states (Task 29): each screen gets a canvas emissiveMap; hovering
+  // wakes it (noise flash -> grainy bubble text), unhovering fades it out.
+  const wake = useMemo(() => new ScreenWakeManager(), []);
+  useEffect(() => {
+    for (let sec = 1; sec <= 7; sec += 1) {
+      const screens = (sectionMeshes[sec] ?? []).filter((m) =>
+        m.name.endsWith("_screen"),
+      );
+      const pageId = SECTION_PAGE_MAP[sec];
+      const label = pageId
+        ? (PAGES.find((p) => p.id === pageId)?.label ?? "")
+        : "";
+      wake.attach(sec, screens, label);
+    }
+    return () => wake.dispose();
+  }, [wake, sectionMeshes]);
+
   useLemniscate(groupRef, { yAmplitude: 15, xAmplitude: 4, speed: 0.3 });
   useProximityTilt(tiltRef, { maxTilt: 8, range: 0.85, smoothing: 0.08 });
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     let labelLevel = 0;
+
+    // screens are owned by the wake manager (emissiveMap content + intensity);
+    // this loop only drives the BEZEL hover glow.
+    wake.update(delta, disabled ? null : hoveredSection);
 
     for (let sec = 1; sec <= 7; sec += 1) {
       const target = !disabled && hoveredSection === sec ? 1 : 0;
@@ -120,13 +141,13 @@ export const MedallionHub = memo(function MedallionHub({
       const meshes = sectionMeshes[sec];
       if (!meshes || Math.abs(level - target) < 0.002 && level < 0.002) continue;
       meshes.forEach((mesh) => {
+        if (mesh.name.endsWith("_screen")) return;
         const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
         mats.forEach((material) => {
           if (!("emissive" in material)) return;
           const std = material as THREE.MeshStandardMaterial;
-          const isScreen = mesh.name.endsWith("_screen");
-          std.emissive.copy(isScreen ? HOVER_SCREEN_EMISSIVE : HOVER_BEZEL_EMISSIVE);
-          std.emissiveIntensity = level * (isScreen ? 0.9 : 0.48);
+          std.emissive.copy(HOVER_BEZEL_EMISSIVE);
+          std.emissiveIntensity = level * 0.48;
         });
       });
     }
