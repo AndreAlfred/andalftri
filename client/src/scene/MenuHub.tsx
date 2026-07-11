@@ -10,6 +10,7 @@ import {
 } from "@/hooks/useScrollInteraction";
 import { MenuButton } from "./MenuButton";
 import { LogoModel } from "./LogoModel";
+import { MedallionHub } from "./MedallionHub";
 
 interface MenuHubProps {
   onPageSelect: (page: PageConfig) => void;
@@ -26,6 +27,12 @@ export function MenuHub({ onPageSelect }: MenuHubProps) {
   const assetSwapDemoEnabled =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("asset-demo") === "1";
+  // Preview flag for the Blender medallion hero (docs/medallion-glb-notes.md):
+  // /?medallion=1 swaps the @ logo + capsule buttons for the seven-section
+  // medallion. Becomes the default once Andrew approves the look and mapping.
+  const medallionEnabled =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("medallion") === "1";
   const canInteract = !currentPage && !isTransitioning;
 
   useMouseParallax(groupRef, {
@@ -70,21 +77,31 @@ export function MenuHub({ onPageSelect }: MenuHubProps) {
   return (
     <group ref={groupRef}>
       <group ref={visualRef}>
-        <LogoModel
-          modelPath={assetSwapDemoEnabled ? "/models/task-21-sample-box.glb" : undefined}
-          opacity={hubVisibility}
-        />
-        {PAGES.map((page, index) => (
-          <MenuButton
-            key={page.id}
-            page={page}
-            index={index}
-            onClick={onPageSelect}
+        {medallionEnabled ? (
+          <MedallionHub
+            onPageSelect={onPageSelect}
             disabled={!canInteract}
             opacity={hubVisibility}
-            modelPath={assetSwapDemoEnabled && index === 0 ? "/models/task-21-sample-box.glb" : undefined}
           />
-        ))}
+        ) : (
+          <>
+            <LogoModel
+              modelPath={assetSwapDemoEnabled ? "/models/task-21-sample-box.glb" : undefined}
+              opacity={hubVisibility}
+            />
+            {PAGES.map((page, index) => (
+              <MenuButton
+                key={page.id}
+                page={page}
+                index={index}
+                onClick={onPageSelect}
+                disabled={!canInteract}
+                opacity={hubVisibility}
+                modelPath={assetSwapDemoEnabled && index === 0 ? "/models/task-21-sample-box.glb" : undefined}
+              />
+            ))}
+          </>
+        )}
       </group>
     </group>
   );

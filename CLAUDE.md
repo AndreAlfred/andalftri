@@ -52,8 +52,26 @@ The homepage is an interactive 3D scene, not a traditional web page.
 - `/reading-list` — curated reading
 - `/inspirations` — influences/taste
 
+## The Medallion (hero asset — ARRIVED 2026-07-09)
+The nav hub's real asset landed: `client/public/models/medallion.glb` — a
+seven-section warm-metal medallion whose black-glass screens are the nav targets
+(it replaces the placeholder `@` + capsule buttons once approved).
+- **Integration contract: `docs/medallion-glb-notes.md`** (mesh naming
+  `section_0N_screen`/`_bezel`, orientation, per-section UV convention,
+  emission wiring for the CRT-wake states, placeholder-material caveat).
+- **Current state:** `client/src/scene/MedallionHub.tsx` behind the
+  `/?medallion=1` preview flag; Phase 8 of `docs/plans/master-build-plan.md`
+  is the integration work queue.
+- **The asset is built in Blender at
+  `~/clawd/CLI-Anything/blender/projects/personal-site-medallion/`** — its
+  `CLAUDE.md` (how to work the live-Blender loop), `plan.md` (state/roadmap),
+  and `lessons.md` (wrong-turn log) are the source of truth for geometry and
+  materials. Geometry/material change requests go THERE; re-export is one run
+  of that project's `scripts/export_glb.py`. Never edit the GLB binary here.
+- The medallion is human-directed Blender art (satisfies the Hard Constraints).
+
 ## "Needs Artist" Items (Do Not Build Without Assets)
-Final 3D models for: "@" logo, menu buttons, floating mediums (clouds, bubbles, etc.).
+Still pending final models: floating mediums (clouds, bubbles, etc.).
 Use placeholder geometry until Andrew provides GLB files. The swap should require only changing an import path, not restructuring code.
 
 ## Audio (Future Phase)

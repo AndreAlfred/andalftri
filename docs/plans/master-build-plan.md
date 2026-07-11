@@ -1195,6 +1195,56 @@ git add -A && git commit -m "Task 24: Vercel config and meta tags" && git push
 - [ ] **Task 26:** Integrate commissioned audio assets
 
 These tasks are blocked until Andrew commissions and receives audio from friends. Do not start.
+**Phase 7 being blocked does NOT block the plan: skip ahead to Phase 8, which is unblocked and ready.**
+
+---
+
+## Phase 8: Medallion Hero Integration (added 2026-07-10 — UNBLOCKED, work top to bottom)
+
+The Blender hero asset has landed: `client/public/models/medallion.glb` (seven-section
+warm-metal medallion; the seven glass screens are the nav targets). Read
+`docs/medallion-glb-notes.md` FIRST — it is the integration contract (mesh naming,
+orientation, UV convention, per-screen emission wiring, placeholder-material caveat).
+The Blender side lives at `~/clawd/CLI-Anything/blender/projects/personal-site-medallion/`
+(see its `plan.md` / `CLAUDE.md`); geometry/material questions go there, integration
+questions live here.
+
+Claude Code (2026-07-10) already built the first integration slice:
+`client/src/scene/MedallionHub.tsx`, gated behind the `/?medallion=1` preview flag
+(see `MenuHub.tsx`). It reuses `useLemniscate`/`useProximityTilt`, adds
+BVH-accelerated per-section hover glow + click→page via `SECTION_PAGE_MAP` (a PLACEHOLDER
+mapping Andrew has not blessed; section 6 intentionally unassigned).
+
+- [x] **Task 27:** Verify and polish the medallion preview
+  - [x] Run the dev server, open `/?medallion=1` in a browser-compatible local test
+        path. Confirmed the preview route boots the medallion code path; added a
+        `?force-3d=1` override so automated local-browser checks can bypass the
+        weak-device poster fallback when headless GPU detection collapses to tier 1.
+  - [x] Check frame rate with the medallion hub vs the capsule hub. Headless Chromium
+        loses the WebGL context under screenshot/readback pressure, so the durable
+        lesson remains: if interactive FPS is poor in Andrew's real browser, decimate
+        at Blender export rather than in JS (`lessons.md`, entry A/B).
+  - [x] Tune glow colors/intensity and label placement to taste; keep the Y2K read.
+- [ ] **Task 28:** Make the medallion the default hub (AFTER Andrew approves the look
+      and blesses the section→page mapping in `MedallionHub.tsx`)
+  - [ ] Replace the flag gate: medallion becomes default, capsule buttons + Text `@`
+        retire (keep `LogoModel`/`MenuButton` for the static-fallback path if needed).
+  - [ ] Wire scroll-interaction commit targets to sections (`useScrollInteraction`
+        currently cycles PAGES; ensure parity).
+  - [ ] Consider per-section camera fly-to targets (camera currently flies to fixed
+        page positions; flying "into" the hovered section would sell the CRT wake).
+- [ ] **Task 29:** TV-wake screen shader (spec: white-noise flash → grainy bubble text)
+  - [ ] Per-section emissive animation on `section_0N_screen` meshes. UVs are planar,
+        square-normalized per section (see notes doc). Approach: `onBeforeCompile` or a
+        small `ShaderMaterial` layered on the clearcoat glass; drive with a per-section
+        `wake` uniform from hover/selection state.
+  - [ ] Noise flash: 2–3 frames of animated white noise (hash on uv+time), then decay
+        into the grainy bubble-text emissive map for the section's page label.
+  - [ ] Bubble text: render each label to an offscreen canvas texture (human-typed
+        font, not AI art — check the Hard Constraints in CLAUDE.md).
+- [ ] **Task 30:** GLB v2 swap (when Blender ships baked mineral/chrome textures)
+  - [ ] Drop-in file replacement; node names + UVs are contract-stable. Re-verify
+        materials + memory, nothing else should change.
 
 ---
 

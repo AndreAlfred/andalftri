@@ -8,6 +8,9 @@ const SceneExperience = lazy(() => import("@/components/SceneExperience"));
 export default function App() {
   const [capability, setCapability] = useState<DeviceCapability | null>(null);
   const [sceneReady, setSceneReady] = useState(false);
+  const forceFullScene =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("force-3d") === "1";
 
   useEffect(() => {
     let cancelled = false;
@@ -50,7 +53,7 @@ export default function App() {
     );
   }
 
-  if (capability.isWeak) {
+  if (capability.isWeak && !forceFullScene) {
     return <StaticFallback capability={capability} />;
   }
 

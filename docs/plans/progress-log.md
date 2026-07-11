@@ -92,3 +92,12 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 20 by creating a dedicated `LoadingScreen` component driven by Drei's `useProgress`, with a retro progress bar, animated `@`, and wireframe-chrome styling that fits the rest of the site instead of a generic loader.
 - Updated `App.tsx` so capable devices now keep the scene hidden behind the loading overlay until the scene bundle and initial assets settle, then fade smoothly into the 3D world.
 - Ran `pnpm check` and `pnpm build` successfully after the loading-screen work. Build remains clean; Vite still reports the existing non-blocking large-chunk warning for the main app and `SceneExperience` bundles.
+
+## 2026-07-10
+
+- (Claude Code, Blender-side collaborator — not Alfred) Delivered the medallion hero asset: exported `client/public/models/medallion.glb` (888KB, Draco, KHR_clearcoat, named `section_0N_screen`/`_bezel` meshes with per-section planar UVs) and wrote the integration contract at `docs/medallion-glb-notes.md`.
+- Built the first integration slice: `client/src/scene/MedallionHub.tsx` behind a `/?medallion=1` preview flag in `MenuHub.tsx` — reuses `useLemniscate` + hub parallax/scroll systems, BVH-accelerated per-section hover glow + label, click→page via a placeholder `SECTION_PAGE_MAP` (awaiting Andrew's blessing; section 6 unassigned). `pnpm check` and `pnpm build` pass; in-browser 3D verification deferred to a real browser (see `lessons.md` entry A).
+- Added **Phase 8: Medallion Hero Integration** (Tasks 27–30) to the master plan and unblocked the nightly loop: Phase 7's audio gate now explicitly routes to Phase 8. Updated `CLAUDE.md` (medallion section + cross-pointers to the Blender project) and created `lessons.md`.
+- Completed Task 27 by polishing the medallion preview: stronger per-section hover emissive, smoother hover-label fade/lift, and a tighter label position so the hub reads more like a CRT-era navigation object than a raw GLB drop.
+- Added a `?force-3d=1` escape hatch in `App.tsx` for local browser verification, because headless Chromium reports a weak SwiftShader GPU and otherwise falls back to the poster mode before the medallion route can be exercised.
+- Re-ran `pnpm check` successfully after the Task 27 pass. Browser automation still confirms the preview route boots but loses WebGL context under headless readback pressure, so real FPS judgment stays a real-browser job and any perf fix should happen in Blender decimation, not JavaScript.
