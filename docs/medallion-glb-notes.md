@@ -32,7 +32,17 @@ personal-site-medallion/`, working file `medallion_wellington_v6_animprep_wip.bl
    `mesh.material = mesh.material.clone()`) and animate `emissive` /
    `emissiveMap` / custom shader per section.
 
-## Material caveat (placeholder PBR)
+## Materials: v2 baked (2026-07-11)
+`shield_body` and `medallion_core` now carry BAKED textures from the procedural
+Cycles graphs (the mineral striations are back): baseColor + roughness +
+tangent normal maps, WebP inside the GLB (EXT_texture_webp — three.js loads it
+natively), metallic factor 0.72 (measured from the source graph). Chrome and
+glass remain flat placeholders — their look is reflection-driven and already
+reads correctly. Bake pipeline: Blender project `scripts/bake_body_textures.py`
+(headless: `Blender --background <blend> --python scripts/bake_body_textures.py`)
+then `scripts/export_glb.py`. File grew 888KB -> ~3.1MB.
+
+## Material caveat (placeholder PBR) [HISTORICAL — superseded by v2 above]
 The Blender look is procedural Cycles (mineral body, warm metal) which glTF
 can't carry; this v1 ships flat PBR approximations:
 - `EXPORT_body_warm_metal` (copper-brown, metallic .85, rough .45)
