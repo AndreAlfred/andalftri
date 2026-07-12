@@ -27,12 +27,12 @@ export function MenuHub({ onPageSelect }: MenuHubProps) {
   const assetSwapDemoEnabled =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("asset-demo") === "1";
-  // Preview flag for the Blender medallion hero (docs/medallion-glb-notes.md):
-  // /?medallion=1 swaps the @ logo + capsule buttons for the seven-section
-  // medallion. Becomes the default once Andrew approves the look and mapping.
+  // Task 28 (approved 2026-07-11): the seven-section Blender medallion IS the
+  // hub. /?classic=1 resurrects the placeholder @ + capsule buttons for
+  // comparison/nostalgia; the old /?medallion=1 flag is accepted and ignored.
   const medallionEnabled =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("medallion") === "1";
+    typeof window === "undefined" ||
+    new URLSearchParams(window.location.search).get("classic") !== "1";
   const canInteract = !currentPage && !isTransitioning;
 
   useMouseParallax(groupRef, {

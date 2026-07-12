@@ -13,9 +13,10 @@ import { ScreenWakeManager } from "./screenWake";
 // Section numbering (Andrew's map): 7=left big, 1=top-left, 2=top-mid small,
 // 3=right-top big, 4=right-mid, 5=bottom big, 6=bottom-left.
 //
-// PLACEHOLDER route mapping — Andrew has not blessed this yet. Big sections
-// carry the oeuvre, smaller ones the influences; section 6 is intentionally
-// unassigned (spare / future page).
+// Route mapping accepted-for-now with the Task 28 default flip (Andrew,
+// 2026-07-11). Big sections carry the oeuvre, smaller ones the influences;
+// section 6 is intentionally unassigned (spare / future page). Remap freely —
+// it's just this table.
 const SECTION_PAGE_MAP: Record<number, string | null> = {
   7: "heaven-and-nature",
   3: "see-canto",
@@ -106,8 +107,8 @@ export const MedallionHub = memo(function MedallionHub({
     document.body.style.cursor = "default";
   }, [disabled]);
 
-  // CRT wake states (Task 29): each screen gets a canvas emissiveMap; hovering
-  // wakes it (noise flash -> grainy bubble text), unhovering fades it out.
+  // CRT wake states (Task 29/2026-07-11): canvas emissiveMaps per screen;
+  // boot cascade lights them at load, hover lifts brightness (see screenWake).
   const wake = useMemo(() => new ScreenWakeManager(), []);
   useEffect(() => {
     for (let sec = 1; sec <= 7; sec += 1) {
@@ -120,6 +121,8 @@ export const MedallionHub = memo(function MedallionHub({
         : "";
       wake.attach(sec, screens, label);
     }
+    // boot cascade on load: screens blink on in section order and stay lit
+    wake.bootAll(0.9, 0.13);
     return () => wake.dispose();
   }, [wake, sectionMeshes]);
 
@@ -131,7 +134,7 @@ export const MedallionHub = memo(function MedallionHub({
 
     // screens are owned by the wake manager (emissiveMap content + intensity);
     // this loop only drives the BEZEL hover glow.
-    wake.update(delta, disabled ? null : hoveredSection);
+    wake.update(delta, disabled ? null : hoveredSection, opacity);
 
     for (let sec = 1; sec <= 7; sec += 1) {
       const target = !disabled && hoveredSection === sec ? 1 : 0;

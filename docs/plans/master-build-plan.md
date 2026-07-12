@@ -1225,15 +1225,20 @@ mapping Andrew has not blessed; section 6 intentionally unassigned).
         lesson remains: if interactive FPS is poor in Andrew's real browser, decimate
         at Blender export rather than in JS (`lessons.md`, entry A/B).
   - [x] Tune glow colors/intensity and label placement to taste; keep the Y2K read.
-- [ ] **Task 28:** Make the medallion the default hub (AFTER Andrew approves the look
-      and blesses the section→page mapping in `MedallionHub.tsx`)
+- [x] **Task 28:** Make the medallion the default hub — DONE (Claude Code, 2026-07-11;
+      Andrew approved). Medallion is the default; `/?classic=1` shows the old placeholder hub.
   - [ ] Replace the flag gate: medallion becomes default, capsule buttons + Text `@`
         retire (keep `LogoModel`/`MenuButton` for the static-fallback path if needed).
   - [ ] Wire scroll-interaction commit targets to sections (`useScrollInteraction`
         currently cycles PAGES; ensure parity).
   - [ ] Consider per-section camera fly-to targets (camera currently flies to fixed
         page positions; flying "into" the hovered section would sell the CRT wake).
-- [ ] **Task 29:** TV-wake screen shader (spec: white-noise flash → grainy bubble text)
+- [x] **Task 29:** TV-wake screen shader — DONE + revised 2026-07-11: tube-TV blink-on
+      (flash → hot line → vertical swell → picture), per-section text-safe boxes, and a
+      **boot cascade on page load** — all seven screens blink on staggered and STAY lit
+      (Andrew's call; also solves touch: labels always visible, one tap navigates).
+      Andrew may revisit always-on if he dislikes it — the old hover-only mode is a small
+      revert in `screenWake.ts` (remove bootAll, restore fade-on-unhover).
   - [ ] Per-section emissive animation on `section_0N_screen` meshes. UVs are planar,
         square-normalized per section (see notes doc). Approach: `onBeforeCompile` or a
         small `ShaderMaterial` layered on the clearcoat glass; drive with a per-section
@@ -1245,6 +1250,44 @@ mapping Andrew has not blessed; section 6 intentionally unassigned).
 - [ ] **Task 30:** GLB v2 swap (when Blender ships baked mineral/chrome textures)
   - [ ] Drop-in file replacement; node names + UVs are contract-stable. Re-verify
         materials + memory, nothing else should change.
+
+---
+
+## Phase 9: Helmet HUD & World-Building (Andrew's design direction, 2026-07-11)
+
+**The vision, in Andrew's terms:** the site is seen through a **smart helmet with
+an AR display** — first-person sci-fi space-adventure HUD vibes. Aurora/northern-
+lights glow around the edges of vision; camera defocus on the periphery; a few
+neon cyberpunk LED overlay elements with data/numbers cycling at the edges; his
+full name types across the screen in a **boot sequence** on load. **Every element
+must have a reason to exist and a place to exist in** — nothing appears out of
+nowhere, which means the background/void and each page's world need design work
+too. The HUD is the site's NARRATOR: most text appears as AR overlay describing
+what the visitor is looking at, and the content itself (art, media, the medallion)
+stands on its own without explanation. The existing @/commentary HUD and
+CyberspaceNav should be absorbed into this frame, not duplicated by it.
+
+- [ ] **Task 31:** Helmet frame v1 — boot sequence + edge treatment
+  - [ ] Boot sequence on load: after the loading screen, a typed line ("ANDREW
+        ALFRED TRIMBLE // ...") with cursor, timed WITH the medallion screen
+        boot cascade (they are one power-on event).
+  - [ ] Edge-of-vision treatment: aurora-like glow hugging the viewport edges
+        (CSS/canvas gradient animation — procedural, satisfies the no-AI-art
+        rule) + peripheral defocus/vignette (post-processing DoF is expensive;
+        prototype with CSS backdrop blur masks first).
+  - [ ] Everything diegetic: the frame is ALWAYS the same helmet — the loading
+        screen, boot, HUD pill, and commentary all read as one device.
+- [ ] **Task 32:** HUD ornaments — 2–3 small neon data elements at the vision
+      edges cycling numbers/readouts (procedural: coordinates, section id,
+      "signal strength"). Character over information; keep them quiet.
+- [ ] **Task 33:** World-building per page — design what each page LOOKS like
+      beyond the panel: background treatment, the void, what the camera is
+      actually parked in front of. Needs Andrew's input per page before build.
+- [ ] **Task 34:** HUD-as-narrator migration — page descriptions move from the
+      content panels into AR overlay lines (the helmet describing what you see);
+      panels keep only content that stands alone (media, links, lists).
+- See also `docs/plans/lighting-session.md` — lighting groundwork for the same
+  mood (warm object world vs cool aurora frame accents).
 
 ---
 

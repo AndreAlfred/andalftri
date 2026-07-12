@@ -1,11 +1,13 @@
 import * as THREE from "three";
 
-// CRT wake states for the medallion screens (master plan Task 29).
-// Each section_0N_screen gets a CanvasTexture emissiveMap. Hovering a section
-// "wakes" it with a tube-TV blink-on (Andrew, 2026-07-10):
-//   bright flash -> irregular hot horizontal line at mid-screen growing wide ->
-//   the line swells vertically until the band fills the tube -> picture (grainy
-//   bubble text) fades in. Unhover fades back to dormant black.
+// CRT wake states for the medallion screens (master plan Task 29 + 2026-07-11
+// revision). Each section_0N_screen gets a CanvasTexture emissiveMap. On site
+// load every screen boots in a staggered cascade with a tube-TV blink-on
+// (bright flash -> irregular hot horizontal line at mid-screen growing wide ->
+// the line swells vertically until the band fills the tube -> picture fades
+// in) and then STAYS ON (Andrew 2026-07-11: screens come on at load; also
+// solves touch devices — labels are always visible, one tap navigates).
+// Hover = a brightness lift on that section, not an on/off toggle.
 //
 // TEXT SAFE BOXES: the screens are irregular blobs and the per-section UVs
 // cover the whole plate's bounding square (including skirt hidden under the
@@ -57,6 +59,9 @@ interface SectionWake {
   phase: Phase;
   t: number;
   jitterSeed: number;
+  bootDelay: number | null;
+  hoverLevel: number;
+  redrawAccum: number;
 }
 
 function makeCanvas(): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D } {
@@ -226,23 +231,39 @@ export class ScreenWakeManager {
       phase: "off",
       t: 0,
       jitterSeed: Math.random() * 100,
+      bootDelay: null,
+      hoverLevel: 0,
+      redrawAccum: 0,
     });
   }
 
-  /** Advance all wake state machines. hovered = section under the pointer (or null). */
-  update(delta: number, hovered: number | null) {
+  /** Kick off the staggered boot cascade (sections light in numeric order). */
+  bootAll(initialDelay: number, stagger: number) {
+    let idx = 0;
+    [...this.sections.keys()].sort((a, b) => a - b).forEach((sec) => {
+      const s = this.sections.get(sec);
+      if (s && s.phase === "off" && s.bootDelay === null) {
+        s.bootDelay = initialDelay + idx * stagger;
+        idx += 1;
+      }
+    });
+  }
+
+  /** Advance all wake state machines. hovered lifts that section's brightness;
+   *  globalDim follows hub visibility so screens fade with the receding hub. */
+  update(delta: number, hovered: number | null, globalDim = 1) {
     this.sections.forEach((s, sec) => {
-      const wantAwake = hovered === sec;
-      if (wantAwake && (s.phase === "off" || s.phase === "fade")) {
+      s.hoverLevel = THREE.MathUtils.lerp(
+        s.hoverLevel, hovered === sec ? 1 : 0, 0.14);
+      if (s.phase === "off") {
+        if (s.bootDelay === null) return;
+        s.bootDelay -= delta;
+        if (s.bootDelay > 0) return;
+        s.bootDelay = null;
         s.phase = "blink";
         s.t = 0;
         s.jitterSeed = Math.random() * 100;
-      } else if (!wantAwake && (s.phase === "blink" || s.phase === "text")) {
-        s.phase = "fade";
-        s.t = 0;
       }
-
-      if (s.phase === "off") return;
       s.t += delta;
       const { ctx } = s;
 
@@ -254,12 +275,12 @@ export class ScreenWakeManager {
           const k = s.t / T_FLASH;
           ctx.fillStyle = `rgba(225, 240, 255, ${0.65 + 0.35 * k})`;
           ctx.fillRect(0, 0, SIZE, SIZE);
-          this.apply(s, 1.9);
+          this.apply(s, 1.9 * globalDim);
         } else if (s.t < T_LINE) {
           // 2) irregular horizontal line growing outward at mid-screen
           const p = (s.t - T_FLASH) / (T_LINE - T_FLASH);
           drawBlinkLine(ctx, p, s.jitterSeed, 1);
-          this.apply(s, 1.5);
+          this.apply(s, 1.5 * globalDim);
         } else {
           // 3) the line swells vertically until the band fills the tube
           const p = (s.t - T_LINE) / (T_BAND - T_LINE);
@@ -281,31 +302,36 @@ export class ScreenWakeManager {
           }
           drawBlinkLine(ctx, 1, s.jitterSeed, 0.9 - 0.6 * p);
           drawScanlines(ctx, 0.18);
-          this.apply(s, 1.5 - 0.5 * p);
+          this.apply(s, (1.5 - 0.5 * p) * globalDim);
         }
         if (s.t >= BLINK_SECONDS) {
           s.phase = "text";
           s.t = 0;
         }
       } else if (s.phase === "text") {
-        // 4) picture fades in
-        ctx.fillStyle = "#000";
-        ctx.fillRect(0, 0, SIZE, SIZE);
+        // 4) picture fades in, then stays on (grain/flicker at ~30Hz)
+        s.redrawAccum += delta;
         const fadeIn = Math.min(s.t / TEXT_FADE_IN, 1);
-        // residual band glow decays as the picture arrives
-        if (fadeIn < 1) {
-          const grad = ctx.createLinearGradient(0, 0, 0, SIZE);
-          grad.addColorStop(0, "rgba(150, 205, 255, 0)");
-          grad.addColorStop(0.5, `rgba(190, 225, 255, ${0.35 * (1 - fadeIn)})`);
-          grad.addColorStop(1, "rgba(150, 205, 255, 0)");
-          ctx.fillStyle = grad;
+        if (s.redrawAccum >= 1 / 30 || fadeIn < 1) {
+          s.redrawAccum = 0;
+          ctx.fillStyle = "#000";
           ctx.fillRect(0, 0, SIZE, SIZE);
+          if (fadeIn < 1) {
+            const grad = ctx.createLinearGradient(0, 0, 0, SIZE);
+            grad.addColorStop(0, "rgba(150, 205, 255, 0)");
+            grad.addColorStop(0.5, `rgba(190, 225, 255, ${0.35 * (1 - fadeIn)})`);
+            grad.addColorStop(1, "rgba(150, 205, 255, 0)");
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, SIZE, SIZE);
+          }
+          drawText(s, fadeIn);
+          drawGrain(ctx, 200 + Math.floor(140 * s.hoverLevel));
+          drawScanlines(ctx, 0.22);
+          s.texture.needsUpdate = true;
         }
-        drawText(s, fadeIn);
-        drawGrain(ctx, 260);
-        drawScanlines(ctx, 0.22);
         const flicker = 1 + Math.sin(s.t * 46) * 0.03 + Math.sin(s.t * 7.3) * 0.02;
-        this.apply(s, TEXT_INTENSITY * flicker);
+        this.applyIntensity(
+          s, TEXT_INTENSITY * flicker * (1 + 0.45 * s.hoverLevel) * globalDim);
       } else if (s.phase === "fade") {
         const k = 1 - Math.min(s.t / FADE_SECONDS, 1);
         ctx.fillStyle = "#000";
@@ -313,7 +339,7 @@ export class ScreenWakeManager {
         drawText(s, k);
         drawGrain(ctx, Math.floor(120 * k));
         drawScanlines(ctx, 0.22 * k);
-        this.apply(s, TEXT_INTENSITY * k);
+        this.apply(s, TEXT_INTENSITY * k * globalDim);
         if (s.t >= FADE_SECONDS) {
           s.phase = "off";
           ctx.fillStyle = "#000";
@@ -326,6 +352,10 @@ export class ScreenWakeManager {
 
   private apply(s: SectionWake, intensity: number) {
     s.texture.needsUpdate = true;
+    this.applyIntensity(s, intensity);
+  }
+
+  private applyIntensity(s: SectionWake, intensity: number) {
     s.materials.forEach((m) => {
       m.emissiveIntensity = intensity;
     });
