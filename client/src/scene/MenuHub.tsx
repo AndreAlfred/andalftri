@@ -14,9 +14,10 @@ import { MedallionHub } from "./MedallionHub";
 
 interface MenuHubProps {
   onPageSelect: (page: PageConfig) => void;
+  bootSequenceId: number;
 }
 
-export function MenuHub({ onPageSelect }: MenuHubProps) {
+export function MenuHub({ onPageSelect, bootSequenceId }: MenuHubProps) {
   const groupRef = useRef<THREE.Group>(null);
   const visualRef = useRef<THREE.Group>(null);
   const idleRotationRef = useRef(0);
@@ -80,6 +81,7 @@ export function MenuHub({ onPageSelect }: MenuHubProps) {
         {medallionEnabled ? (
           <MedallionHub
             onPageSelect={onPageSelect}
+            bootSequenceId={bootSequenceId}
             disabled={!canInteract}
             opacity={hubVisibility}
           />

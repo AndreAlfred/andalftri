@@ -8,6 +8,7 @@ const SceneExperience = lazy(() => import("@/components/SceneExperience"));
 export default function App() {
   const [capability, setCapability] = useState<DeviceCapability | null>(null);
   const [sceneReady, setSceneReady] = useState(false);
+  const [bootSequenceId, setBootSequenceId] = useState(0);
   const forceFullScene =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("force-3d") === "1";
@@ -61,10 +62,15 @@ export default function App() {
     <div className="relative h-screen w-screen overflow-hidden bg-[#0d1014]">
       <div className={`h-full w-full transition-opacity duration-700 ${sceneReady ? "opacity-100" : "opacity-0"}`}>
         <Suspense fallback={null}>
-          <SceneExperience />
+          <SceneExperience bootSequenceId={bootSequenceId} />
         </Suspense>
       </div>
-      <LoadingScreen onReady={() => setSceneReady(true)} />
+      <LoadingScreen
+        onReady={() => {
+          setSceneReady(true);
+          setBootSequenceId(Date.now());
+        }}
+      />
     </div>
   );
 }

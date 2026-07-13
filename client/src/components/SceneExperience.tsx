@@ -5,6 +5,7 @@ import { getInfluenceById } from "@/data/influences";
 import { getProjectById } from "@/data/projects";
 import { PAGES, type PageConfig } from "@/data/sceneConfig";
 import { Commentary } from "@/hud/Commentary";
+import { HelmetFrame } from "@/hud/HelmetFrame";
 import { HudOverlay } from "@/hud/HudOverlay";
 import { useCameraStore } from "@/hooks/useCamera";
 import { ContentPanel } from "@/panels/ContentPanel";
@@ -25,7 +26,11 @@ function findPageByPath(pathname: string) {
   return PAGES.find((page) => page.route === pathname) ?? null;
 }
 
-export default function SceneExperience() {
+interface SceneExperienceProps {
+  bootSequenceId: number;
+}
+
+export default function SceneExperience({ bootSequenceId }: SceneExperienceProps) {
   const currentPage = useCameraStore((state) => state.currentPage);
   const isTransitioning = useCameraStore((state) => state.isTransitioning);
   const flyTo = useCameraStore((state) => state.flyTo);
@@ -153,7 +158,7 @@ export default function SceneExperience() {
         <Environment />
         <DreiEnvironment preset="city" />
         <CameraController />
-        <MenuHub onPageSelect={handlePageSelect} />
+        <MenuHub onPageSelect={handlePageSelect} bootSequenceId={bootSequenceId} />
         {pagePanels.map(({ page, project, influence }) => (
           <ContentPanel
             key={page.id}
@@ -170,41 +175,26 @@ export default function SceneExperience() {
         ))}
       </Canvas>
 
-      {currentPage ? (
-        <>
-          <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center px-4 pt-5">
-            <div className="pointer-events-auto flex items-center gap-3 rounded-full border border-white/20 bg-black/55 px-4 py-2 text-sm text-white shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur-md">
-              <button
-                type="button"
-                onClick={() => setIsHudOpen((open) => !open)}
-                className="panel-title flex h-9 w-9 items-center justify-center rounded-full border border-[#89f1ff]/28 bg-[#89f1ff]/10 text-lg text-white transition hover:border-[#89f1ff]/45 hover:bg-[#89f1ff]/16"
-                aria-label={isHudOpen ? "Close commentary HUD" : "Open commentary HUD"}
-              >
-                @
-              </button>
-              <span className="text-white/70">Viewing</span>
-              <span className="font-medium text-white">{currentPageLabel}</span>
-              <button
-                type="button"
-                onClick={handlePanelClose}
-                disabled={isTransitioning || Boolean(closingPageId)}
-                className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.22em] text-white transition hover:bg-white/18 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Back
-              </button>
-            </div>
-          </div>
+      <HelmetFrame
+        bootSequenceId={bootSequenceId}
+        currentPageId={currentPage}
+        isHudOpen={isHudOpen}
+        isTransitioning={isTransitioning}
+        isClosing={Boolean(closingPageId)}
+        onBack={handlePanelClose}
+        onToggleHud={() => setIsHudOpen((open) => !open)}
+      />
 
-          <HudOverlay
-            open={isHudOpen}
-            pageId={currentPage}
-            title={currentPageLabel ?? undefined}
-            onClose={() => setIsHudOpen(false)}
-            onNavigate={handleHudNavigate}
-          >
-            <Commentary pageId={currentPage} />
-          </HudOverlay>
-        </>
+      {currentPage ? (
+        <HudOverlay
+          open={isHudOpen}
+          pageId={currentPage}
+          title={currentPageLabel ?? undefined}
+          onClose={() => setIsHudOpen(false)}
+          onNavigate={handleHudNavigate}
+        >
+          <Commentary pageId={currentPage} />
+        </HudOverlay>
       ) : null}
     </div>
   );

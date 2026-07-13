@@ -1267,15 +1267,15 @@ what the visitor is looking at, and the content itself (art, media, the medallio
 stands on its own without explanation. The existing @/commentary HUD and
 CyberspaceNav should be absorbed into this frame, not duplicated by it.
 
-- [ ] **Task 31:** Helmet frame v1 — boot sequence + edge treatment
-  - [ ] Boot sequence on load: after the loading screen, a typed line ("ANDREW
+- [x] **Task 31:** Helmet frame v1 — boot sequence + edge treatment
+  - [x] Boot sequence on load: after the loading screen, a typed line ("ANDREW
         ALFRED TRIMBLE // ...") with cursor, timed WITH the medallion screen
         boot cascade (they are one power-on event).
-  - [ ] Edge-of-vision treatment: aurora-like glow hugging the viewport edges
+  - [x] Edge-of-vision treatment: aurora-like glow hugging the viewport edges
         (CSS/canvas gradient animation — procedural, satisfies the no-AI-art
         rule) + peripheral defocus/vignette (post-processing DoF is expensive;
         prototype with CSS backdrop blur masks first).
-  - [ ] Everything diegetic: the frame is ALWAYS the same helmet — the loading
+  - [x] Everything diegetic: the frame is ALWAYS the same helmet — the loading
         screen, boot, HUD pill, and commentary all read as one device.
 - [ ] **Task 32:** HUD ornaments — 2–3 small neon data elements at the vision
       edges cycling numbers/readouts (procedural: coordinates, section id,

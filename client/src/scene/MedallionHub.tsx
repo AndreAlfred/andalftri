@@ -3,6 +3,10 @@ import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { PAGES, type PageConfig } from "@/data/sceneConfig";
+import {
+  HELMET_BOOT_SCREEN_DELAY_S,
+  HELMET_BOOT_SCREEN_STAGGER_S,
+} from "@/hud/helmetBoot";
 import { useLemniscate } from "@/hooks/useLemniscate";
 import { useProximityTilt } from "@/hooks/useProximityTilt";
 import { ScreenWakeManager } from "./screenWake";
@@ -37,6 +41,7 @@ const LABEL_RAISED_POSITION = new THREE.Vector3(0, -4.72, 1.05);
 
 interface MedallionHubProps {
   onPageSelect: (page: PageConfig) => void;
+  bootSequenceId: number;
   disabled?: boolean;
   opacity?: number;
 }
@@ -48,6 +53,7 @@ function sectionOf(object: THREE.Object3D): number | null {
 
 export const MedallionHub = memo(function MedallionHub({
   onPageSelect,
+  bootSequenceId,
   disabled = false,
   opacity = 1,
 }: MedallionHubProps) {
@@ -121,10 +127,13 @@ export const MedallionHub = memo(function MedallionHub({
         : "";
       wake.attach(sec, screens, label);
     }
-    // boot cascade on load: screens blink on in section order and stay lit
-    wake.bootAll(0.9, 0.13);
     return () => wake.dispose();
   }, [wake, sectionMeshes]);
+
+  useEffect(() => {
+    if (!bootSequenceId) return;
+    wake.bootAll(HELMET_BOOT_SCREEN_DELAY_S, HELMET_BOOT_SCREEN_STAGGER_S);
+  }, [bootSequenceId, wake]);
 
   useLemniscate(groupRef, { yAmplitude: 15, xAmplitude: 4, speed: 0.3 });
   useProximityTilt(tiltRef, { maxTilt: 8, range: 0.85, smoothing: 0.08 });
