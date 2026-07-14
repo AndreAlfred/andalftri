@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getSectionForPage } from "@/data/hubSections";
 import { PAGES } from "@/data/sceneConfig";
 import { HELMET_BOOT_CHAR_MS, HELMET_BOOT_LINE } from "@/hud/helmetBoot";
 
@@ -12,6 +13,17 @@ interface HelmetFrameProps {
   onToggleHud: () => void;
 }
 
+interface OrnamentState {
+  signal: number;
+  drift: [number, number, number];
+  heading: number;
+  noise: number;
+}
+
+function formatSigned(value: number) {
+  return `${value >= 0 ? "+" : "-"}${Math.abs(value).toFixed(1)}`;
+}
+
 export function HelmetFrame({
   bootSequenceId,
   currentPageId,
@@ -23,6 +35,12 @@ export function HelmetFrame({
 }: HelmetFrameProps) {
   const [visibleChars, setVisibleChars] = useState(0);
   const [bootActive, setBootActive] = useState(false);
+  const [ornaments, setOrnaments] = useState<OrnamentState>({
+    signal: 84,
+    drift: [0, 0, 8],
+    heading: 0,
+    noise: 18,
+  });
 
   useEffect(() => {
     if (!bootSequenceId) return undefined;
@@ -55,6 +73,45 @@ export function HelmetFrame({
     () => PAGES.find((page) => page.id === currentPageId) ?? null,
     [currentPageId],
   );
+  const activeSection = useMemo(() => getSectionForPage(currentPageId), [currentPageId]);
+
+  useEffect(() => {
+    const baseVector = currentPage?.cameraPosition ?? [0, 0, 8];
+    let tick = 0;
+
+    const updateOrnaments = () => {
+      tick += 1;
+      const phase = tick / 7;
+      const transitioningPenalty = isTransitioning ? 11 : 0;
+      const hudPenalty = isHudOpen ? 6 : 0;
+      const noiseLift = bootActive ? 14 : 0;
+      const signalBase = currentPage ? 78 : 91;
+      const signalVariance = Math.sin(phase) * 4 + Math.cos(phase * 0.63) * 2;
+      const signal = Math.max(
+        44,
+        Math.min(99, Math.round(signalBase + signalVariance - transitioningPenalty - hudPenalty)),
+      );
+      const drift: [number, number, number] = [
+        baseVector[0] + Math.sin(phase * 0.7) * 0.36,
+        baseVector[1] + Math.cos(phase * 0.55) * 0.28,
+        baseVector[2] + Math.sin(phase * 0.38) * 0.18,
+      ];
+      const heading = ((Math.atan2(baseVector[0] || 0.0001, baseVector[1] || 0.0001) * 180) / Math.PI + 360) % 360;
+      const headingJitter = (Math.sin(phase * 0.41) + Math.cos(phase * 0.29)) * 1.8;
+      const noise = Math.max(4, Math.round(12 + noiseLift + (100 - signal) * 0.22 + Math.abs(Math.sin(phase * 1.4)) * 7));
+
+      setOrnaments({
+        signal,
+        drift,
+        heading: (heading + headingJitter + 360) % 360,
+        noise,
+      });
+    };
+
+    updateOrnaments();
+    const interval = window.setInterval(updateOrnaments, 160);
+    return () => window.clearInterval(interval);
+  }, [bootActive, currentPage, isHudOpen, isTransitioning]);
 
   const bootLine = HELMET_BOOT_LINE.slice(0, visibleChars);
   const cursorVisible = bootActive || visibleChars < HELMET_BOOT_LINE.length;
@@ -68,6 +125,24 @@ export function HelmetFrame({
       <div className="helmet-edge-glow helmet-edge-glow-bottom absolute inset-x-0 bottom-0 h-40" />
       <div className="helmet-edge-glow helmet-edge-glow-left absolute bottom-0 left-0 top-0 w-32" />
       <div className="helmet-visor-noise absolute inset-0 opacity-45" />
+      <div className="helmet-ornament absolute left-4 top-24 w-[min(11rem,32vw)] sm:left-6 sm:top-28">
+        <p className="helmet-ornament-label">Vector drift</p>
+        <p className="helmet-ornament-value">
+          {formatSigned(ornaments.drift[0])} / {formatSigned(ornaments.drift[1])} / {formatSigned(ornaments.drift[2])}
+        </p>
+      </div>
+      <div className="helmet-ornament absolute right-4 top-28 w-[min(10rem,30vw)] text-right sm:right-6 sm:top-32">
+        <p className="helmet-ornament-label">Section / signal</p>
+        <p className="helmet-ornament-value">
+          {String(activeSection ?? 0).padStart(2, "0")} // {String(ornaments.signal).padStart(2, "0")}%
+        </p>
+      </div>
+      <div className="helmet-ornament absolute bottom-28 left-4 w-[min(12rem,38vw)] sm:bottom-32 sm:left-6">
+        <p className="helmet-ornament-label">Heading / noise</p>
+        <p className="helmet-ornament-value">
+          {ornaments.heading.toFixed(0).padStart(3, "0")} deg // {String(ornaments.noise).padStart(2, "0")} db
+        </p>
+      </div>
 
       <div className="absolute inset-x-0 top-0 flex justify-center px-4 pt-4">
         <div

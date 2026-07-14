@@ -114,3 +114,9 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 31 by adding a persistent `HelmetFrame` overlay with a typed boot line (`ANDREW ALFRED TRIMBLE // HELMET LINK STABLE`), animated aurora edge glow, peripheral blur mask, visor noise, and a diegetic bottom control pill so the site now reads like a single smart-helmet interface instead of separate loader/HUD layers.
 - Unified the power-on timing by moving the medallion screen cascade onto the same post-loading boot event as the visor text; `App.tsx` now emits a shared boot-sequence signal, `MedallionHub.tsx` listens for it, and the old immediate-on-mount screen boot no longer races ahead behind the loading overlay.
 - Restyled the existing loading screen and commentary overlay into the same helmet language (`helmet-panel` / `helmet-chip` / `helmet-action`) so loading, narration, and in-page controls share one visual device. Ran `pnpm check` successfully after the work; next queue item is Task 32.
+
+## 2026-07-13
+
+- Completed Task 32 by adding three quiet helmet ornaments at the viewport edges: vector drift, section/signal, and heading/noise readouts that cycle procedurally and react to page state, visor boot, and transition intensity.
+- Moved the medallion section mapping into shared data (`client/src/data/hubSections.ts`) so the helmet frame and 3D hub now agree on the active section ID instead of carrying separate route maps.
+- Ran `pnpm check` successfully after the HUD pass. Task 32 is complete; the next unchecked task is Task 33, which still needs Andrew's per-page world-building input before implementation.

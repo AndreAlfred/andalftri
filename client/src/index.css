@@ -183,6 +183,38 @@ select {
   pointer-events: none;
 }
 
+.helmet-ornament {
+  border-top: 1px solid rgba(137, 241, 255, 0.16);
+  border-bottom: 1px solid rgba(137, 241, 255, 0.08);
+  background:
+    linear-gradient(90deg, rgba(103, 169, 255, 0.12), transparent 30%, transparent 82%, rgba(158, 246, 255, 0.1)),
+    linear-gradient(180deg, rgba(2, 12, 20, 0.54), rgba(2, 12, 20, 0));
+  padding: 0.45rem 0.7rem 0.5rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 0 22px rgba(82, 196, 255, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0.72;
+}
+
+.helmet-ornament-label {
+  font-family: var(--font-panel-meta);
+  font-size: 0.52rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(178, 251, 255, 0.62);
+}
+
+.helmet-ornament-value {
+  padding-top: 0.28rem;
+  font-family: var(--font-panel-meta);
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(235, 253, 255, 0.74);
+}
+
 @keyframes helmetAuroraPulse {
   0%,
   100% {

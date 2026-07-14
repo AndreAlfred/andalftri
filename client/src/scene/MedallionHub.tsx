@@ -2,6 +2,7 @@ import { Bvh, useGLTF, Text } from "@react-three/drei";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
+import { SECTION_PAGE_MAP } from "@/data/hubSections";
 import { PAGES, type PageConfig } from "@/data/sceneConfig";
 import {
   HELMET_BOOT_SCREEN_DELAY_S,
@@ -21,16 +22,6 @@ import { ScreenWakeManager } from "./screenWake";
 // 2026-07-11). Big sections carry the oeuvre, smaller ones the influences;
 // section 6 is intentionally unassigned (spare / future page). Remap freely —
 // it's just this table.
-const SECTION_PAGE_MAP: Record<number, string | null> = {
-  7: "heaven-and-nature",
-  3: "see-canto",
-  5: "music",
-  1: "reading-list",
-  2: "contact",
-  4: "inspirations",
-  6: null,
-};
-
 const MEDALLION_URL = "/models/medallion.glb";
 const TARGET_RADIUS = 4.4; // world units; buttons used to span ~±3.5
 const SECTION_RE = /^section_0(\d)_(?:screen|bezel)$/;

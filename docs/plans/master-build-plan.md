@@ -1277,7 +1277,7 @@ CyberspaceNav should be absorbed into this frame, not duplicated by it.
         prototype with CSS backdrop blur masks first).
   - [x] Everything diegetic: the frame is ALWAYS the same helmet — the loading
         screen, boot, HUD pill, and commentary all read as one device.
-- [ ] **Task 32:** HUD ornaments — 2–3 small neon data elements at the vision
+- [x] **Task 32:** HUD ornaments — 2–3 small neon data elements at the vision
       edges cycling numbers/readouts (procedural: coordinates, section id,
       "signal strength"). Character over information; keep them quiet.
 - [ ] **Task 33:** World-building per page — design what each page LOOKS like
