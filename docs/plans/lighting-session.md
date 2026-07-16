@@ -1,9 +1,17 @@
 # Lighting Session Plan — "Object Emerges From Darkness"
 
-Status: planning doc, not yet executed. Written 2026-07-12 per Andrew's 2026-07-11
-design intent. Read-only inputs: `client/src/scene/Environment.tsx`,
-`client/src/components/SceneExperience.tsx`, `client/src/scene/MedallionHub.tsx`,
-`docs/medallion-glb-notes.md`.
+Status: superseded in part by Andrew's approved 2026-07-15 design. The studio
+preview is implemented behind `?lighting=studio` and awaits real-browser visual
+signoff. See `docs/superpowers/specs/2026-07-15-medallion-lighting-design.md`.
+
+## 0. Approved 2026-07-15 direction
+
+- Warmth comes from the baked mineral material, not an amber/yellow light.
+- Use a broad neutral-white key with deep contour shadows.
+- Use a controlled procedural reflection environment instead of the city HDRI.
+- Cyan is a weak blue-steel reflection on chrome/glass plus existing screen and
+  hover emission; it is not a direct wash across the copper body.
+- Bloom and dynamic shadows remain deferred until the non-bloom rig passes.
 
 ## 1. Diagnosis
 
