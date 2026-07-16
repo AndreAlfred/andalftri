@@ -25,11 +25,13 @@ test("ACES can be compared without changing studio exposure", () => {
     "aces",
   );
   assert.equal(getLightingPreviewSettings("?tone=unknown").toneMapping, "agx");
+  assert.equal(STUDIO_LIGHTING.renderer.exposure, 0.92);
 });
 
 test("the studio rig is static, neutral-keyed, and reflection-led", () => {
   assert.equal(STUDIO_LIGHTING.environment.resolution, 256);
   assert.equal(STUDIO_LIGHTING.environment.frames, 1);
+  assert.deepEqual(Object.keys(STUDIO_LIGHTING.direct).sort(), ["fill", "key"]);
   assert.equal(STUDIO_LIGHTING.direct.key.color, "#ffffff");
   assert.equal(STUDIO_LIGHTING.direct.fill.color, "#eef2f6");
 
@@ -42,6 +44,8 @@ test("the studio rig is static, neutral-keyed, and reflection-led", () => {
 
   assert.equal(coolCards.length, 1);
   assert.ok(mainCard);
+  assert.equal(coolCards[0].color, "#94d9ee");
+  assert.ok(coolCards[0].intensity <= mainCard.intensity * 0.2);
   assert.ok(coolCards[0].intensity < mainCard.intensity);
 });
 
