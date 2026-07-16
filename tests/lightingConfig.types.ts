@@ -12,18 +12,27 @@ type Equal<Left, Right> =
     : false;
 type Assert<Value extends true> = Value;
 
+type ExpectedPreviewSettings = {
+  mode: "legacy" | "studio";
+  toneMapping: "agx" | "aces";
+  screensDormant: boolean;
+};
 type LightingModeIsExact = Assert<
   Equal<LightingMode, "legacy" | "studio">
 >;
 type StudioToneMappingIsExact = Assert<
   Equal<StudioToneMapping, "agx" | "aces">
 >;
+type PreviewInterfaceIsExact = Assert<
+  Equal<LightingPreviewSettings, ExpectedPreviewSettings>
+>;
 type PreviewReturnIsExact = Assert<
-  Equal<ReturnType<typeof getLightingPreviewSettings>, LightingPreviewSettings>
+  Equal<ReturnType<typeof getLightingPreviewSettings>, ExpectedPreviewSettings>
 >;
 
 export type {
   LightingModeIsExact,
+  PreviewInterfaceIsExact,
   PreviewReturnIsExact,
   StudioToneMappingIsExact,
 };
