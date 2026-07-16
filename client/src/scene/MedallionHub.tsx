@@ -10,6 +10,8 @@ import {
 } from "@/hud/helmetBoot";
 import { useLemniscate } from "@/hooks/useLemniscate";
 import { useProximityTilt } from "@/hooks/useProximityTilt";
+import type { LightingMode } from "./lightingConfig";
+import { getMedallionEnvMapIntensity } from "./medallionMaterialRole";
 import { ScreenWakeManager } from "./screenWake";
 
 // The seven-section medallion replaces the @ logo + six capsule buttons as the
@@ -33,6 +35,8 @@ const LABEL_RAISED_POSITION = new THREE.Vector3(0, -4.72, 1.05);
 interface MedallionHubProps {
   onPageSelect: (page: PageConfig) => void;
   bootSequenceId: number;
+  lightingMode: LightingMode;
+  screensDormant: boolean;
   disabled?: boolean;
   opacity?: number;
 }
@@ -45,6 +49,8 @@ function sectionOf(object: THREE.Object3D): number | null {
 export const MedallionHub = memo(function MedallionHub({
   onPageSelect,
   bootSequenceId,
+  lightingMode,
+  screensDormant,
   disabled = false,
   opacity = 1,
 }: MedallionHubProps) {
@@ -65,9 +71,17 @@ export const MedallionHub = memo(function MedallionHub({
       if (!(child instanceof THREE.Mesh)) return;
       child.castShadow = true;
       child.receiveShadow = true;
+      const cloneMaterial = (material: THREE.Material) => {
+        const cloned = material.clone();
+        if (lightingMode === "studio" && "envMapIntensity" in cloned) {
+          (cloned as THREE.MeshStandardMaterial).envMapIntensity =
+            getMedallionEnvMapIntensity(child.name);
+        }
+        return cloned;
+      };
       child.material = Array.isArray(child.material)
-        ? child.material.map((m) => m.clone())
-        : child.material.clone();
+        ? child.material.map(cloneMaterial)
+        : cloneMaterial(child.material);
       const sec = sectionOf(child);
       if (sec !== null) {
         (bySection[sec] ??= []).push(child);
@@ -85,7 +99,7 @@ export const MedallionHub = memo(function MedallionHub({
         offset: center.multiplyScalar(-1),
       },
     };
-  }, [scene]);
+  }, [scene, lightingMode]);
 
   useEffect(() => {
     clonedScene.traverse((child) => {
@@ -122,9 +136,9 @@ export const MedallionHub = memo(function MedallionHub({
   }, [wake, sectionMeshes]);
 
   useEffect(() => {
-    if (!bootSequenceId) return;
+    if (!bootSequenceId || screensDormant) return;
     wake.bootAll(HELMET_BOOT_SCREEN_DELAY_S, HELMET_BOOT_SCREEN_STAGGER_S);
-  }, [bootSequenceId, wake]);
+  }, [bootSequenceId, screensDormant, wake]);
 
   useLemniscate(groupRef, { yAmplitude: 15, xAmplitude: 4, speed: 0.3 });
   useProximityTilt(tiltRef, { maxTilt: 8, range: 0.85, smoothing: 0.08 });

@@ -1,6 +1,7 @@
 import { Environment as DreiEnvironment } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import * as THREE from "three";
 import { getInfluenceById } from "@/data/influences";
 import { getProjectById } from "@/data/projects";
 import { PAGES, type PageConfig } from "@/data/sceneConfig";
@@ -13,6 +14,10 @@ import { InfluencePanel } from "@/panels/InfluencePanel";
 import { ProjectPanel } from "@/panels/ProjectPanel";
 import { CameraController } from "@/scene/CameraController";
 import { Environment } from "@/scene/Environment";
+import {
+  getLightingPreviewSettings,
+  STUDIO_LIGHTING,
+} from "@/scene/lightingConfig";
 import { MenuHub } from "@/scene/MenuHub";
 
 const PANEL_CLOSE_DELAY_MS = 320;
@@ -35,6 +40,17 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
   const isTransitioning = useCameraStore((state) => state.isTransitioning);
   const flyTo = useCameraStore((state) => state.flyTo);
   const returnToHub = useCameraStore((state) => state.returnToHub);
+
+  const lightingSettings = useMemo(
+    () => getLightingPreviewSettings(window.location.search),
+    [],
+  );
+  const toneMapping =
+    lightingSettings.mode === "studio" && lightingSettings.toneMapping === "agx"
+      ? THREE.AgXToneMapping
+      : THREE.ACESFilmicToneMapping;
+  const toneMappingExposure =
+    lightingSettings.mode === "studio" ? STUDIO_LIGHTING.renderer.exposure : 1;
 
   const [pathname, setPathname] = useState(getInitialPathname);
   const [closingPageId, setClosingPageId] = useState<string | null>(null);
@@ -153,12 +169,24 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
       <Canvas
         camera={{ position: [0, 0, 8], fov: 60 }}
         dpr={[1, 1.5]}
-        gl={{ antialias: true, powerPreference: "high-performance" }}
+        gl={{
+          antialias: true,
+          powerPreference: "high-performance",
+          toneMapping,
+          toneMappingExposure,
+        }}
       >
-        <Environment />
-        <DreiEnvironment preset="city" />
+        <Environment lightingMode={lightingSettings.mode} />
+        {lightingSettings.mode === "legacy" ? (
+          <DreiEnvironment preset="city" />
+        ) : null}
         <CameraController />
-        <MenuHub onPageSelect={handlePageSelect} bootSequenceId={bootSequenceId} />
+        <MenuHub
+          onPageSelect={handlePageSelect}
+          bootSequenceId={bootSequenceId}
+          lightingMode={lightingSettings.mode}
+          screensDormant={lightingSettings.screensDormant}
+        />
         {pagePanels.map(({ page, project, influence }) => (
           <ContentPanel
             key={page.id}
