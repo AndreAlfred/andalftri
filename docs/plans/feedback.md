@@ -6,6 +6,26 @@ Bidirectional communication channel between Andrew and Alfred.
 
 ## Andrew's Notes
 
+### 2026-07-15 — Product hierarchy, publication gate, and medallion destinations
+
+- Defer final website copy until the site is ready to publish and the projects being
+  developed in parallel are mature enough to describe accurately. Do not invent or
+  polish Andrew's project claims, taste, commentary, contact details, or launch status
+  during the construction phase.
+- Use this visual hierarchy as the subtraction rule: **a warm mineral artifact in a
+  dark void, seen through a cool smart-helmet AR display; Y2K appears through CRT
+  behavior and interface motion.** Other references are supporting vocabulary, not
+  equal motifs to stack.
+- Medallion section 6 is reserved for **Cottage**, another early-phase project. The
+  current `null` mapping, route behavior, and unpublished state need a separate design
+  and implementation task; do not create Cottage copy yet.
+- Contact is a dedicated utility destination, not an influence. Its current
+  `group: "influences"` value is a legacy data/rendering classification and should be
+  cleaned up when the navigation/content taxonomy is revised.
+- Autonomous agents may continue bounded mechanical work, but lighting,
+  world-building, and experience-complete visual signoff require Andrew's review in a
+  real browser.
+
 ### 2026-04-07 — Project Kickoff
 
 - This is a personal portfolio site. The site IS the portfolio piece — the frame matters as much as the canvas.
