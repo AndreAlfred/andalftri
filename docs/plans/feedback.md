@@ -75,6 +75,15 @@ I went ahead with **Option A** for now as best judgment so the site keeps moving
 
 ## Alfred's Questions
 
+- **2026-07-16 9:00 PM CT — Blocked at Task 33 because the next unchecked work needs Andrew’s per-page world direction:** I followed the required nightly order again tonight: read `docs/plans/feedback.md` first, then `docs/plans/master-build-plan.md`, then `docs/plans/website-build-spec.md`. There is no newer direction from Andrew beyond the 2026-07-15 note, and the next unchecked task after the completed helmet HUD work is now **Task 33: World-building per page**. Both the master plan and Andrew’s latest note say this task needs your input and that I should not invent the six spatial worlds autonomously, so I’m stopping here instead of skipping to Task 34. Please give me a short art-direction note for each destination’s surrounding world/background state so I can build one bounded Task 33 pass:
+  - Heaven & Nature
+  - See Canto
+  - Music
+  - Contact
+  - Reading List
+  - Inspirations
+  If easier, even a one-line mood/material/location note per page is enough.
+
 - **2026-06-22 9:00 PM CT — Tonight’s autonomous session is still blocked at the same Phase 7 audio gate:** I followed the required order exactly on Monday, June 22, 2026: read `docs/plans/feedback.md` first, then `docs/plans/master-build-plan.md`, then `docs/plans/website-build-spec.md`. There is still no new Andrew direction in feedback, and the next unchecked task remains **Task 25: Audio system scaffold**. The master plan still explicitly says “These tasks are blocked until Andrew commissions and receives audio from friends. Do not start,” and the build spec still says “The initial build should have no audio infrastructure,” so I’m stopping here rather than skipping ahead or inventing substitute work. Please either (a) provide the audio direction/assets to unblock Task 25, (b) add a different next task to `docs/plans/master-build-plan.md`, or (c) explicitly redirect me to the unresolved Task 24 Vercel/live-site follow-up.
 
 - **2026-06-21 9:00 PM CT — Tonight’s autonomous session is still blocked at the same Phase 7 audio gate:** I followed the required order exactly on Sunday, June 21, 2026: read `docs/plans/feedback.md` first, then `docs/plans/master-build-plan.md`, then `docs/plans/website-build-spec.md`. There is still no new Andrew direction in feedback, and the next unchecked task remains **Task 25: Audio system scaffold**. The master plan still explicitly says “These tasks are blocked until Andrew commissions and receives audio from friends. Do not start,” and the build spec still says “The initial build should have no audio infrastructure,” so I’m stopping here rather than skipping ahead or inventing substitute work. Please either (a) provide the audio direction/assets to unblock Task 25, (b) add a different next task to `docs/plans/master-build-plan.md`, or (c) explicitly redirect me to the unresolved Task 24 Vercel/live-site follow-up.
