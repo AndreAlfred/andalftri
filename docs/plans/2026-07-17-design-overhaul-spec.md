@@ -316,6 +316,31 @@ not call any visual workstream complete without Andrew's real-browser approval.
 legacy bucket), Cottage (section 6), world-building (Task 33), audio, copy
 polish (publication-copy gate). Do not touch the GLB or Blender project.
 
+## Addendum (2026-07-17, during execution) — RC-6: unlayered reset kills all Tailwind spacing utilities
+
+Discovered by the Task 3 implementer and independently verified against the built
+CSS: `client/src/index.css:10-16` declares an **unlayered** universal reset
+(`*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box }`).
+Tailwind v4 emits its utilities inside `@layer utilities`, and per the CSS
+cascade-layers spec, unlayered author rules take precedence over **all** layered
+rules regardless of specificity or order. Consequence: every `p-*`, `px-*`,
+`m-*`, `mt-*`, and `space-y-*` utility on the site has never applied — in
+production, since the first commit (2026-04-16). `gap-*` works (it isn't
+margin/padding), which is why layouts held together well enough to hide this.
+
+This is the dominant cause of the "text clipping at rounded corners" symptom
+(RC-2's structural issues are real but secondary): with rendered padding at
+zero, text sits flush against every rounded-corner mask. It also means all
+authored inter-section spacing rhythm is missing site-wide.
+
+**Fix (Task 3.5):** delete the unlayered reset. Tailwind v4's preflight in
+`@layer base` already provides an equivalent reset (`box-sizing: border-box`,
+`margin: 0`, `padding: 0`, `border: 0 solid`), so removal restores the authored
+utilities without losing reset behavior. **This changes the rendered appearance
+of every surface on the site** — it must ship on the branch and get Andrew's
+real-browser review before merging to main. Tasks 4-5 must be implemented on
+top of this fix so aurora/HUD decisions are made against the true rendering.
+
 ## Additional findings logged during the dive (not in Andrew's list)
 
 - `ContentPanel` `zIndexRange={[15,0]}` vs HelmetFrame `z-30`: telemetry
