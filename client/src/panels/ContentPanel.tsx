@@ -49,13 +49,24 @@ export const ContentPanel = memo(function ContentPanel({
       zIndexRange={[15, 0]}
       style={{
         width: "min(42rem, calc(100vw - 2rem))",
-        opacity: isVisible ? 1 : 0,
-        transform: isVisible ? "translateY(0)" : "translateY(14px)",
+        // pointerEvents lives here (not on the inner wrapper) because this is
+        // the element drei centers via translate3d — its box is the same
+        // size/position whether the panel is visible or not, so it's the one
+        // that must stop intercepting clicks while hidden/animating out.
         pointerEvents: isVisible ? "auto" : "none",
-        transition: "opacity 320ms ease-in-out, transform 380ms ease-out",
       }}
     >
-      <div className="panel-shell relative overflow-hidden rounded-[28px] border border-white/18 bg-black/70 text-white shadow-[0_28px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+      {/* Entrance/exit animation lives on this inner wrapper, not on the Html
+          element's own style, so it never clobbers drei's `center` transform
+          (translate3d(-50%,-50%,0)) applied to the Html element itself. */}
+      <div
+        className="panel-shell relative overflow-hidden rounded-[28px] border border-white/18 bg-black/70 text-white shadow-[0_28px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+        style={{
+          opacity: isVisible ? 1 : 0,
+          transform: isVisible ? "translateY(0)" : "translateY(14px)",
+          transition: "opacity 320ms ease-in-out, transform 380ms ease-out",
+        }}
+      >
         <button
           type="button"
           onClick={onClose}
