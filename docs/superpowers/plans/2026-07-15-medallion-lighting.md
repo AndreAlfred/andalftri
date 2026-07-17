@@ -844,33 +844,59 @@ Do not call the lighting complete before Andrew answers.
 
 ### Task 5: Promote the approved studio rig and retain rollback
 
-**Gate:** Execute only after Andrew explicitly approves the live Studio AgX preview. If Andrew prefers ACES or asks for tuning, amend the approved design and this plan before promotion.
+**Gate:** Satisfied on 2026-07-16. Andrew reviewed the live matched-exposure
+Studio AgX and Studio ACES comparison and explicitly selected ACES. This
+supersedes Task 5's provisional AgX assumption while preserving the earlier
+preview steps as historical implementation evidence.
 
 **Files:**
+- Modify: `docs/superpowers/specs/2026-07-15-medallion-lighting-design.md`
+- Modify: `docs/superpowers/plans/2026-07-15-medallion-lighting.md`
 - Modify: `tests/lightingConfig.test.ts`
 - Modify: `client/src/scene/lightingConfig.ts`
+- Modify: `AGENTS.md`
+- Modify: `CLAUDE.md`
 - Modify: `docs/plans/lighting-session.md`
 - Modify: `docs/plans/progress-log.md`
 
 **Interfaces:**
-- Changes the no-query default from `"legacy"` to `"studio"`.
-- Retains `?lighting=legacy` as the rollback path.
-- Retains AgX at exposure `0.92` as the approved default.
+- No query string selects Studio lighting with ACES at exposure `0.92`.
+- Unknown lighting values fall back to Studio.
+- `?lighting=legacy` restores the complete previous city-HDR/direct-light rig,
+  ACES, and exposure `1`.
+- Studio `?tone=agx` retains the matched-exposure AgX comparison.
+- Studio `?tone=aces` remains an accepted explicit ACES value.
+- Unknown tone values fall back to ACES.
+- `?screens=dormant`, `?force-3d=1`, and `?classic=1` retain their existing
+  behavior.
+- No light, exposure, material-intensity, model, texture, screen, route,
+  content-panel, or contact value changes in this promotion.
 
-- [ ] **Step 1: Change the mode tests first**
+- [ ] **Step 1: Change the behavior tests first**
 
-Replace the first test in `tests/lightingConfig.test.ts` with:
+Replace the first two tests in `tests/lightingConfig.test.ts` with:
 
 ```ts
-test("studio lighting is the default after visual approval", () => {
+test("Studio ACES is the default after visual approval", () => {
   assert.deepEqual(getLightingPreviewSettings(""), {
     mode: "studio",
-    toneMapping: "agx",
+    toneMapping: "aces",
     screensDormant: false,
   });
   assert.equal(getLightingPreviewSettings("?lighting=legacy").mode, "legacy");
   assert.equal(getLightingPreviewSettings("?lighting=studio").mode, "studio");
   assert.equal(getLightingPreviewSettings("?lighting=unknown").mode, "studio");
+  assert.equal(
+    getLightingPreviewSettings("?lighting=studio&screens=dormant").screensDormant,
+    true,
+  );
+});
+
+test("AgX remains available as a matched-exposure comparison", () => {
+  assert.equal(getLightingPreviewSettings("?tone=agx").toneMapping, "agx");
+  assert.equal(getLightingPreviewSettings("?tone=aces").toneMapping, "aces");
+  assert.equal(getLightingPreviewSettings("?tone=unknown").toneMapping, "aces");
+  assert.equal(STUDIO_LIGHTING.renderer.exposure, 0.92);
 });
 ```
 
@@ -882,17 +908,31 @@ Run:
 pnpm test
 ```
 
-Expected: the new default/legacy assertions fail; all other tests pass.
+Expected: the changed tests fail because the unchanged parser still defaults to
+legacy + AgX; all four unrelated tests pass.
 
-- [ ] **Step 3: Promote studio and make legacy the explicit override**
+- [ ] **Step 3: Promote Studio ACES with both rollback/comparison paths**
 
-In `getLightingPreviewSettings`, replace the `mode` line with:
+In `getLightingPreviewSettings`, replace only the `mode` and `toneMapping`
+lines with:
 
 ```ts
     mode: params.get("lighting") === "legacy" ? "legacy" : "studio",
+    toneMapping: params.get("tone") === "agx" ? "agx" : "aces",
 ```
 
-- [ ] **Step 4: Run final verification**
+- [ ] **Step 4: Synchronize durable project memory**
+
+Keep `AGENTS.md` and `CLAUDE.md` byte-identical. Record only the current
+lighting state and flags: Studio ACES is the public/default path,
+`?tone=agx` is its matched-exposure comparison, `?lighting=legacy` is the
+temporary complete rollback, and `?screens=dormant` remains a diagnostic.
+
+Mark `docs/plans/lighting-session.md` complete with Studio ACES as the default.
+Add a 2026-07-16 progress bullet recording Andrew's explicit choice and the two
+rollback/comparison paths without claiming any unrelated browser result.
+
+- [ ] **Step 5: Run final verification**
 
 Run:
 
@@ -901,32 +941,23 @@ pnpm test
 pnpm check
 pnpm build
 git diff --check
+cmp -s AGENTS.md CLAUDE.md
 ```
 
-Expected: 6 tests pass; all other commands exit 0; only the existing non-blocking bundle warning remains.
+Expected: 6 tests pass; checks/build pass; instruction twins match; only the
+existing non-blocking `vendor-three` chunk-size warning remains.
 
-- [ ] **Step 5: Mark the lighting session complete in the focused plan and progress log**
-
-Change the `docs/plans/lighting-session.md` status to:
-
-```markdown
-Status: complete after Andrew's real-browser approval. Studio lighting is the
-default; `?lighting=legacy` remains as a temporary rollback comparison.
-```
-
-Append to the existing `2026-07-15` progress entry:
-
-```markdown
-- Andrew approved the live Studio AgX view. Promoted it to the public default
-  and retained `?lighting=legacy` as a temporary rollback path.
-```
-
-- [ ] **Step 6: Commit and push the promotion**
+- [ ] **Step 6: Self-review, report, and commit without publishing**
 
 ```bash
-git add tests/lightingConfig.test.ts client/src/scene/lightingConfig.ts docs/plans/lighting-session.md docs/plans/progress-log.md
-git commit -m "feat: promote approved studio lighting"
-git push
+git diff --check
+git diff --stat c453028
+git diff --name-only c453028
+git add docs/superpowers/specs/2026-07-15-medallion-lighting-design.md docs/superpowers/plans/2026-07-15-medallion-lighting.md tests/lightingConfig.test.ts client/src/scene/lightingConfig.ts AGENTS.md CLAUDE.md docs/plans/lighting-session.md docs/plans/progress-log.md
+git commit -m "feat: promote approved ACES lighting"
 ```
 
-Expected: push to `origin/main` succeeds; Vercel begins the public-default update and normally finishes in roughly 30 seconds.
+Expected: only the eight authorized tracked files differ from `c453028`. Write
+the RED/GREEN evidence, verification output, changed-file review, commit SHA,
+and any concerns to `.superpowers/sdd/aces-default-report.md`. Do not push,
+merge, or deploy.

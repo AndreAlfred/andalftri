@@ -124,5 +124,6 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 ## 2026-07-16
 
 - Implemented Andrew's approved 2026-07-15 medallion-lighting direction: a broad neutral-white key, deep contours, warmth preserved in the baked mineral material, and a restrained blue-steel reflection that connects to the helmet aurora without washing the copper cyan.
-- Added the procedural studio preview behind `?lighting=studio`, with matched-exposure `?tone=aces` comparison and `?screens=dormant` black-glass diagnostic paths. The legacy lighting remains the public/default path while the preview awaits Andrew's real-browser signoff.
+- Added the procedural studio preview behind `?lighting=studio`, with matched-exposure `?tone=aces` comparison and `?screens=dormant` black-glass diagnostic paths. At this preview checkpoint, the legacy lighting remained the public/default path pending Andrew's real-browser signoff.
 - Added dependency-free tests for preview parsing and the GLB material-role contract; `pnpm test`, `pnpm check`, and `pnpm build` pass at this implementation checkpoint.
+- Andrew explicitly selected Studio ACES in the live matched-exposure comparison. Promoted Studio ACES at exposure `0.92` to the no-query default, retained `?lighting=legacy` as the temporary complete rollback, and retained `?tone=agx` as the matched-exposure comparison.

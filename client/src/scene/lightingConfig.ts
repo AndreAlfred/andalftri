@@ -10,8 +10,8 @@ export interface LightingPreviewSettings {
 export function getLightingPreviewSettings(search: string): LightingPreviewSettings {
   const params = new URLSearchParams(search);
   return {
-    mode: params.get("lighting") === "studio" ? "studio" : "legacy",
-    toneMapping: params.get("tone") === "aces" ? "aces" : "agx",
+    mode: params.get("lighting") === "legacy" ? "legacy" : "studio",
+    toneMapping: params.get("tone") === "agx" ? "agx" : "aces",
     screensDormant: params.get("screens") === "dormant",
   };
 }

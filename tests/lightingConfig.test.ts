@@ -5,26 +5,25 @@ import {
   STUDIO_LIGHTING,
 } from "../client/src/scene/lightingConfig.ts";
 
-test("legacy lighting remains the default during preview review", () => {
+test("Studio ACES is the default after visual approval", () => {
   assert.deepEqual(getLightingPreviewSettings(""), {
-    mode: "legacy",
-    toneMapping: "agx",
+    mode: "studio",
+    toneMapping: "aces",
     screensDormant: false,
   });
+  assert.equal(getLightingPreviewSettings("?lighting=legacy").mode, "legacy");
   assert.equal(getLightingPreviewSettings("?lighting=studio").mode, "studio");
-  assert.equal(getLightingPreviewSettings("?lighting=unknown").mode, "legacy");
+  assert.equal(getLightingPreviewSettings("?lighting=unknown").mode, "studio");
   assert.equal(
     getLightingPreviewSettings("?lighting=studio&screens=dormant").screensDormant,
     true,
   );
 });
 
-test("ACES can be compared without changing studio exposure", () => {
-  assert.equal(
-    getLightingPreviewSettings("?lighting=studio&tone=aces").toneMapping,
-    "aces",
-  );
-  assert.equal(getLightingPreviewSettings("?tone=unknown").toneMapping, "agx");
+test("AgX remains available as a matched-exposure comparison", () => {
+  assert.equal(getLightingPreviewSettings("?tone=agx").toneMapping, "agx");
+  assert.equal(getLightingPreviewSettings("?tone=aces").toneMapping, "aces");
+  assert.equal(getLightingPreviewSettings("?tone=unknown").toneMapping, "aces");
   assert.equal(STUDIO_LIGHTING.renderer.exposure, 0.92);
 });
 

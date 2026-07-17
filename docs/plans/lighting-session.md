@@ -1,8 +1,10 @@
 # Lighting Session Plan — "Object Emerges From Darkness"
 
-Status: superseded in part by Andrew's approved 2026-07-15 design. The studio
-preview is implemented behind `?lighting=studio` and awaits real-browser visual
-signoff. See `docs/superpowers/specs/2026-07-15-medallion-lighting-design.md`.
+Status: complete after Andrew's 2026-07-16 real-browser comparison. Studio ACES
+is the public/default path at exposure `0.92`; `?tone=agx` retains the
+matched-exposure comparison, and `?lighting=legacy` restores the complete
+previous rig with ACES at exposure `1`. See
+`docs/superpowers/specs/2026-07-15-medallion-lighting-design.md`.
 
 ## 0. Approved 2026-07-15 direction
 
@@ -119,5 +121,8 @@ Future sessions should use
 `docs/superpowers/specs/2026-07-15-medallion-lighting-design.md` and
 `docs/superpowers/plans/2026-07-15-medallion-lighting.md` as the authoritative
 design and implementation sources. The studio preview is available behind
-`?lighting=studio`; the public/default path remains legacy pending approval. The
-next step is Andrew's real-browser comparison—not further autonomous tuning.
+`?lighting=studio`, but Studio ACES is now also the no-query default. Unknown
+lighting and tone values fall back to Studio and ACES respectively;
+`?tone=agx` remains the matched-exposure comparison, `?lighting=legacy` remains
+the temporary complete rollback, and `?screens=dormant` remains a diagnostic.
+No further autonomous lighting tuning is part of this promotion.

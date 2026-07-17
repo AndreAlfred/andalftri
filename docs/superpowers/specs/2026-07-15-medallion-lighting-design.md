@@ -1,7 +1,7 @@
 # Medallion Lighting Design
 
 **Date:** 2026-07-15  
-**Status:** Approved by Andrew  
+**Status:** Approved by Andrew; Studio ACES selected on 2026-07-16
 **Scope:** The capable-device React Three Fiber scene, centered on the medallion hub  
 **Supersedes:** The warm-amber key and broad cyan-rim proposals in `docs/plans/lighting-session.md`
 
@@ -135,11 +135,18 @@ Remove the always-on `<DreiEnvironment preset="city" />` when studio lighting is
 active. Set tone mapping and exposure explicitly rather than relying on R3F
 defaults.
 
-The first implementation will compare Three.js AgX and ACES in the same real
-browser and viewport. AgX is the proposed default because the goal is to retain
-the copper hue and material variation under bright neutral highlights. Exposure
-starts slightly below neutral. Andrew's visual judgment decides the final pair;
-neither setting is accepted from theory alone.
+The first implementation compared Three.js AgX and ACES in the same real
+browser and viewport. AgX was the proposed default because the goal was to
+retain the copper hue and material variation under bright neutral highlights.
+Exposure started slightly below neutral; neither setting was accepted from
+theory alone.
+
+On 2026-07-16, Andrew reviewed the live matched-exposure comparison and selected
+ACES. Studio ACES at exposure `0.92` is therefore the public/default renderer
+pair. Studio `?tone=agx` remains available for matched-exposure comparison,
+explicit `?tone=aces` remains accepted, and unknown tone values fall back to
+ACES. The complete legacy city-HDR/direct-light rig remains available through
+`?lighting=legacy` with ACES at exposure `1`.
 
 Do not add a post-processing composer in this pass.
 
@@ -180,8 +187,12 @@ WebGL-readback limitation. Use a two-stage rollout:
 
 1. Ship the studio rig behind `?lighting=studio`, while the default remains the
    existing rig. Andrew compares the same live deployment in his real browser.
-2. After visual approval, make studio lighting the default and retain
-   `?lighting=legacy` temporarily as an instant rollback/comparison path.
+2. After Andrew selected ACES in the live comparison on 2026-07-16, make Studio
+   ACES the default and retain `?lighting=legacy` temporarily as an instant
+   rollback path. Retain Studio `?tone=agx` as the matched-exposure comparison.
+
+No query string and unknown lighting values select Studio ACES. Only
+`?lighting=legacy` selects the complete previous rig.
 
 No new network-hosted HDR asset or dependency is introduced. If the procedural
 environment causes a runtime problem, the legacy query path and independent
@@ -230,9 +241,9 @@ Capture the same viewport and camera state for legacy and studio modes:
 8. A `?classic=1` smoke check so the retained placeholder hub does not become
    unreadable under the new global rig.
 
-Compare ACES and AgX at matched exposure before selecting the renderer default.
-Change one variable family at a time: environment, direct rig, material response,
-then exposure/tone mapping.
+ACES and AgX were compared at matched exposure before Andrew selected ACES on
+2026-07-16. For any future tuning, change one variable family at a time:
+environment, direct rig, material response, then exposure/tone mapping.
 
 ## 10. Acceptance Criteria
 

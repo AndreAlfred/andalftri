@@ -34,9 +34,10 @@ to stack indiscriminately. Avoid modern corporate minimalism.
   `section_0N_screen` / `section_0N_bezel` meshes.
 - The smart-helmet HUD, boot sequence, CRT screen cascade, camera navigation, content
   panels, static weak-device fallback, and History API routes are integrated.
-- The public/default path still uses the legacy city HDRI and April direct-light rig.
-  A code-reviewed procedural studio preview is query-gated behind
-  `?lighting=studio` and awaits Andrew's real-browser visual signoff.
+- The public/default path uses the approved procedural Studio rig with ACES at
+  exposure `0.92`. `?tone=agx` retains the matched-exposure comparison, while
+  `?lighting=legacy` restores the complete city-HDR/direct-light rig with ACES at
+  exposure `1`.
 - Pixel-level WebGL judgment requires Andrew's real browser. Automated/in-app capture
   can verify loading, DOM, routes, console, and builds but not final 3D appearance.
 
@@ -90,8 +91,10 @@ pnpm build     # TypeScript project build + production Vite bundle
 
 Pure scene contracts have dependency-free Node tests under `tests/`; visual WebGL
 behavior still requires real-browser review. Use `/?force-3d=1` to bypass the
-weak-device fallback and `/?classic=1` for the legacy hub. Lighting comparisons use
-`?lighting=studio`, with studio-only `?tone=aces` and `?screens=dormant` diagnostics.
+weak-device fallback and `/?classic=1` for the legacy hub. Lighting defaults to
+Studio ACES; use `?tone=agx` for the matched-exposure comparison,
+`?lighting=legacy` for the temporary complete rollback, and `?screens=dormant`
+for the black-glass diagnostic.
 
 ## Required workflow
 
