@@ -1,9 +1,17 @@
 # Lighting Session Plan — "Object Emerges From Darkness"
 
-Status: planning doc, not yet executed. Written 2026-07-12 per Andrew's 2026-07-11
-design intent. Read-only inputs: `client/src/scene/Environment.tsx`,
-`client/src/components/SceneExperience.tsx`, `client/src/scene/MedallionHub.tsx`,
-`docs/medallion-glb-notes.md`.
+Status: superseded in part by Andrew's approved 2026-07-15 design. The studio
+preview is implemented behind `?lighting=studio` and awaits real-browser visual
+signoff. See `docs/superpowers/specs/2026-07-15-medallion-lighting-design.md`.
+
+## 0. Approved 2026-07-15 direction
+
+- Warmth comes from the baked mineral material, not an amber/yellow light.
+- Use a broad neutral-white key with deep contour shadows.
+- Use a controlled procedural reflection environment instead of the city HDRI.
+- Cyan is a weak blue-steel reflection on chrome/glass plus existing screen and
+  hover emission; it is not a direct wash across the copper body.
+- Bloom and dynamic shadows remain deferred until the non-bloom rig passes.
 
 ## 1. Diagnosis
 
@@ -30,7 +38,13 @@ design intent. Read-only inputs: `client/src/scene/Environment.tsx`,
   (cool blue, line 33) — the cool-accent-on-hover language the aurora/AR
   direction wants already exists, just not echoed in ambient light or bloom.
 
-## 2. Proposals
+## 2. Historical proposals (decision record only)
+
+These proposals are retained only to document the 2026-07-12 decision path; they
+are not current instructions. Any amber/yellow direct key, cyan body wash or direct
+rim, selective bloom, or other recommendation that conflicts with section 0 is
+superseded by section 0 and
+`docs/superpowers/specs/2026-07-15-medallion-lighting-design.md`.
 
 **A. Replace `preset="city"`.**
 A1 (~30 min, cheapest): swap to drei's `"night"` preset — darkest, least IBL
@@ -99,43 +113,11 @@ helmet-AR framing direction.
 - If E ships, confirm the weak-device static fallback still renders sanely
   and doesn't silently inherit a bloom-dependent look that never shows.
 
-## 4. Session prompt (paste to a fresh Claude/Alfred session)
+## 4. Current continuation brief
 
-```
-Goal: bring the site's lighting toward the Blender renders' "object emerges
-from darkness" mood — warm mineral body with rich shadow retention, controlled
-chrome hits, dormant black screens that still read reflective — while
-reserving cool cyan/aurora tones for the future smart-helmet AR frame accents,
-NOT the object itself. Two temperature families, deliberately separated: warm
-stays on the medallion, cool stays at the edges/on hover accents.
-
-Files to read first (read-only, verify current line numbers, don't assume):
-- client/src/scene/Environment.tsx (lights, fog, grid)
-- client/src/components/SceneExperience.tsx (Canvas, DreiEnvironment preset)
-- client/src/scene/MedallionHub.tsx (material clone loop, ScreenWakeManager,
-  HOVER_BEZEL_EMISSIVE = #67a9ff — rhyme with this, don't fight it)
-- docs/medallion-glb-notes.md (baked mineral body, chrome placeholder, glass
-  dormant-emission-zero)
-- docs/plans/lighting-session.md (this doc — full proposal set)
-
-Constraints:
-- No AI-generated art assets (root CLAUDE.md hard constraint) — procedural/
-  code lighting and post effects are fine.
-- Do not edit master-build-plan.md, feedback.md, or progress-log.md unless
-  explicitly asked.
-- Respect the weak-device static fallback — gate any postprocessing (bloom),
-  never render it unconditionally.
-- Verification only works in a real browser (/?force-3d=1); the sandboxed
-  preview cannot render WebGL — no "looks right" claims without a screenshot.
-
-Acceptance criteria:
-- Medallion body/chrome read warm and dramatic against a darker void.
-- Cyan/aurora accents appear only at hover/edge/future-frame contexts, never
-  as the dominant light on the object.
-- Dormant screens still read as reflective black glass, not flat/dead.
-- No regression to the weak-device fallback path.
-
-Process: prototype ONE proposal from section 2 first (recommend A1 preset
-swap + B manual rig — cheapest, most reversible), screenshot real-browser
-before/after, get Andrew's eyes on it before rolling out further proposals.
-```
+Future sessions should use
+`docs/superpowers/specs/2026-07-15-medallion-lighting-design.md` and
+`docs/superpowers/plans/2026-07-15-medallion-lighting.md` as the authoritative
+design and implementation sources. The studio preview is available behind
+`?lighting=studio`; the public/default path remains legacy pending approval. The
+next step is Andrew's real-browser comparison—not further autonomous tuning.

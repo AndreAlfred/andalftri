@@ -8,6 +8,7 @@ import {
   useScrollInteraction,
   useScrollInteractionStore,
 } from "@/hooks/useScrollInteraction";
+import type { LightingMode } from "./lightingConfig";
 import { MenuButton } from "./MenuButton";
 import { LogoModel } from "./LogoModel";
 import { MedallionHub } from "./MedallionHub";
@@ -15,9 +16,16 @@ import { MedallionHub } from "./MedallionHub";
 interface MenuHubProps {
   onPageSelect: (page: PageConfig) => void;
   bootSequenceId: number;
+  lightingMode: LightingMode;
+  screensDormant: boolean;
 }
 
-export function MenuHub({ onPageSelect, bootSequenceId }: MenuHubProps) {
+export function MenuHub({
+  onPageSelect,
+  bootSequenceId,
+  lightingMode,
+  screensDormant,
+}: MenuHubProps) {
   const groupRef = useRef<THREE.Group>(null);
   const visualRef = useRef<THREE.Group>(null);
   const idleRotationRef = useRef(0);
@@ -82,6 +90,8 @@ export function MenuHub({ onPageSelect, bootSequenceId }: MenuHubProps) {
           <MedallionHub
             onPageSelect={onPageSelect}
             bootSequenceId={bootSequenceId}
+            lightingMode={lightingMode}
+            screensDormant={screensDormant}
             disabled={!canInteract}
             opacity={hubVisibility}
           />

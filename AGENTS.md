@@ -34,9 +34,9 @@ to stack indiscriminately. Avoid modern corporate minimalism.
   `section_0N_screen` / `section_0N_bezel` meshes.
 - The smart-helmet HUD, boot sequence, CRT screen cascade, camera navigation, content
   panels, static weak-device fallback, and History API routes are integrated.
-- Lighting is still the generic April rig: city HDRI, flat ambient fill, white direct
-  lights, default ACES exposure, and no active shadow map or postprocessing. The
-  approved next design effort is the documented lighting session.
+- The public/default path still uses the legacy city HDRI and April direct-light rig.
+  A code-reviewed procedural studio preview is query-gated behind
+  `?lighting=studio` and awaits Andrew's real-browser visual signoff.
 - Pixel-level WebGL judgment requires Andrew's real browser. Automated/in-app capture
   can verify loading, DOM, routes, console, and builds but not final 3D appearance.
 
@@ -83,13 +83,15 @@ code and dated decisions, then record the reconciliation.
 
 ```bash
 pnpm dev       # Vite development server at http://localhost:3001
+pnpm test      # Dependency-free Node tests for pure scene contracts
 pnpm check     # TypeScript validation
 pnpm build     # TypeScript project build + production Vite bundle
 ```
 
-There is currently no automated test script. Use `/?force-3d=1` to bypass the
-weak-device fallback during real-browser 3D review and `/?classic=1` for the legacy
-hub comparison.
+Pure scene contracts have dependency-free Node tests under `tests/`; visual WebGL
+behavior still requires real-browser review. Use `/?force-3d=1` to bypass the
+weak-device fallback and `/?classic=1` for the legacy hub. Lighting comparisons use
+`?lighting=studio`, with studio-only `?tone=aces` and `?screens=dormant` diagnostics.
 
 ## Required workflow
 
@@ -99,7 +101,7 @@ hub comparison.
    and source-material changes belong in the Blender medallion project.
 3. For visual work, capture a deterministic baseline and compare the same camera/state
    after each isolated change. A build passing is not visual approval.
-4. After any code change, run `pnpm check` and `pnpm build`.
+4. After any code change, run `pnpm test`, `pnpm check`, and `pnpm build`.
 5. Commit and push completed repository work so Vercel updates:
 
 ```bash

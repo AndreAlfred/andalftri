@@ -120,3 +120,9 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Completed Task 32 by adding three quiet helmet ornaments at the viewport edges: vector drift, section/signal, and heading/noise readouts that cycle procedurally and react to page state, visor boot, and transition intensity.
 - Moved the medallion section mapping into shared data (`client/src/data/hubSections.ts`) so the helmet frame and 3D hub now agree on the active section ID instead of carrying separate route maps.
 - Ran `pnpm check` successfully after the HUD pass. Task 32 is complete; the next unchecked task is Task 33, which still needs Andrew's per-page world-building input before implementation.
+
+## 2026-07-16
+
+- Implemented Andrew's approved 2026-07-15 medallion-lighting direction: a broad neutral-white key, deep contours, warmth preserved in the baked mineral material, and a restrained blue-steel reflection that connects to the helmet aurora without washing the copper cyan.
+- Added the procedural studio preview behind `?lighting=studio`, with matched-exposure `?tone=aces` comparison and `?screens=dormant` black-glass diagnostic paths. The legacy lighting remains the public/default path while the preview awaits Andrew's real-browser signoff.
+- Added dependency-free tests for preview parsing and the GLB material-role contract; `pnpm test`, `pnpm check`, and `pnpm build` pass at this implementation checkpoint.
