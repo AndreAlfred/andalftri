@@ -56,34 +56,46 @@ export function HudOverlay({ open, pageId, title, children, onClose, onNavigate 
           X
         </button>
 
-        <div className="relative grid min-h-[min(42rem,calc(100vh-4rem))] grid-cols-1 gap-8 px-6 py-7 sm:px-8 sm:py-8 lg:grid-cols-[minmax(0,0.68fr)_minmax(16rem,0.32fr)] lg:px-10 lg:py-10">
-          <div className="min-w-0 pt-10 lg:pt-4">{children}</div>
+        {/* Padding frame: fixed dead-space buffer between the shell's
+            rounded-[32px] clip region and the scroll viewport. Padding lives
+            here, NOT on the scroll element below, so scrolled content is
+            always inset from the corner curves (RC-2). h- (not min-h-) pins
+            the frame to a fixed height — min(42rem, viewport minus chrome) —
+            so short viewports (100vh < 42rem) cap the frame instead of
+            letting it grow past the screen; flex + min-h-0 on the scroll
+            child lets it shrink and scroll instead of overflowing the cap. */}
+        <div className="relative flex h-[min(42rem,calc(100vh-4rem))] flex-col px-6 py-7 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
+          <div className="scroll-fade-y min-h-0 flex-1 overflow-y-auto">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,0.68fr)_minmax(16rem,0.32fr)]">
+              <div className="min-w-0 pt-10 lg:pt-4">{children}</div>
 
-          <aside className="helmet-chip flex flex-col justify-between gap-6 rounded-[24px] p-5 lg:p-6">
-            <div className="space-y-5">
-              <div className="space-y-2">
-                <p className="panel-kicker text-xs uppercase text-[#89f1ff]/80">Helmet narrator</p>
-                <h3 className="panel-meta text-sm uppercase text-white/72">Current page</h3>
-                <p className="text-xl text-white">{title ?? "Untitled"}</p>
-                {page ? <p className="panel-meta text-[11px] uppercase text-white/46">Route: {page.route}</p> : null}
-              </div>
+              <aside className="helmet-chip flex flex-col justify-between gap-6 rounded-[24px] p-5 lg:p-6">
+                <div className="space-y-5">
+                  <div className="space-y-2">
+                    <p className="panel-kicker text-xs uppercase text-[#89f1ff]/80">Helmet narrator</p>
+                    <h3 className="panel-meta text-sm uppercase text-white/72">Current page</h3>
+                    <p className="text-xl text-white">{title ?? "Untitled"}</p>
+                    {page ? <p className="panel-meta text-[11px] uppercase text-white/46">Route: {page.route}</p> : null}
+                  </div>
 
-              <p className="panel-body text-sm leading-7 text-white/62">
-                The visor is the storyteller now: cold, clipped, and hovering at the edges while the world stays central.
-              </p>
+                  <p className="panel-body text-sm leading-7 text-white/62">
+                    The visor is the storyteller now: cold, clipped, and hovering at the edges while the world stays central.
+                  </p>
 
-              <CyberspaceNav currentPageId={pageId} onNavigate={onNavigate} />
+                  <CyberspaceNav currentPageId={pageId} onNavigate={onNavigate} />
+                </div>
+
+                <div className="rounded-[20px] border border-[#89f1ff]/16 bg-black/20 p-4">
+                  <p className="panel-meta text-[11px] uppercase text-white/54">Exit helmet view</p>
+                  <ul className="panel-body mt-3 space-y-2 text-sm text-white/72">
+                    <li>Click outside</li>
+                    <li>Press Escape</li>
+                    <li>Use the close button</li>
+                  </ul>
+                </div>
+              </aside>
             </div>
-
-            <div className="rounded-[20px] border border-[#89f1ff]/16 bg-black/20 p-4">
-              <p className="panel-meta text-[11px] uppercase text-white/54">Exit helmet view</p>
-              <ul className="panel-body mt-3 space-y-2 text-sm text-white/72">
-                <li>Click outside</li>
-                <li>Press Escape</li>
-                <li>Use the close button</li>
-              </ul>
-            </div>
-          </aside>
+          </div>
         </div>
       </div>
     </div>

@@ -75,11 +75,20 @@ export const ContentPanel = memo(function ContentPanel({
         >
           ×
         </button>
-        <div className="max-h-[72vh] overflow-y-auto px-6 py-7 pr-16 sm:px-8 sm:py-8 sm:pr-18">
-          {children}
-          <p className="panel-meta mt-6 border-t border-white/8 pt-4 text-right text-[0.62rem] uppercase tracking-[0.24em] text-white/35">
-            esc / × — back to the hub
-          </p>
+        {/* Padding frame: fixed dead-space buffer between the shell's
+            rounded-[28px] clip region and the scroll viewport. Padding lives
+            here, NOT on the scroll element below, so scrolled content is
+            always inset from the corner curves and never guillotines against
+            them (RC-2). max-h caps total panel height; flex + min-h-0 on the
+            scroll child lets it shrink and scroll instead of growing the
+            frame past the cap. */}
+        <div className="flex max-h-[72vh] flex-col px-6 py-7 pr-16 sm:px-8 sm:py-8 sm:pr-18">
+          <div className="scroll-fade-y min-h-0 flex-1 overflow-y-auto">
+            {children}
+            <p className="panel-meta mt-6 border-t border-white/8 pt-4 text-right text-[0.62rem] uppercase tracking-[0.24em] text-white/35">
+              esc / × — back to the hub
+            </p>
+          </div>
         </div>
       </div>
     </Html>

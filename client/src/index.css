@@ -68,6 +68,29 @@ select {
   position: relative;
 }
 
+/* Shared corner-safe scroll treatment for ContentPanel and HudOverlay
+   (RC-2, A2/A3): a static top/bottom mask so content entering/leaving the
+   scroll viewport dissolves instead of guillotining at the padding edge.
+   Purely visual (mask-image never blocks pointer/scroll events) — do not
+   replace with an overlay gradient div, which would need pointer-events:none
+   to stay inert and is easy to get wrong. */
+.scroll-fade-y {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    black 0.75rem,
+    black calc(100% - 0.75rem),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    black 0.75rem,
+    black calc(100% - 0.75rem),
+    transparent 100%
+  );
+}
+
 .helmet-panel,
 .helmet-chip,
 .helmet-action {

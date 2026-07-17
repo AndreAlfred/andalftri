@@ -25,7 +25,7 @@ export function CyberspaceNav({ currentPageId, onNavigate }: CyberspaceNavProps)
                   type="button"
                   onClick={() => onNavigate(page.id)}
                   aria-current={isActive ? "page" : undefined}
-                  className={`cyberspace-link group relative flex w-full items-center justify-between gap-3 overflow-hidden px-4 py-3 text-left transition ${
+                  className={`cyberspace-link group relative flex w-full items-center justify-between gap-3 overflow-hidden py-3 pl-4 pr-5 text-left transition ${
                     isActive
                       ? "border-[#00e5ff]/55 bg-[#00e5ff]/16 text-white shadow-[0_0_32px_rgba(0,229,255,0.14)]"
                       : "border-white/10 bg-white/[0.03] text-white/80 hover:border-[#00e5ff]/35 hover:bg-[#00e5ff]/10 hover:text-white"
