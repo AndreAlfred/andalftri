@@ -4,7 +4,7 @@
 **Author:** Claude Code (diagnostic deep-dive), from Andrew's direct feedback
 **Status:** Proposal — approved scope pending Andrew's review. No code has been changed.
 **Audience:** Implementing agent. Every root cause below was verified by reading the
-current code on `main` (commit `c453028`). File:line references are exact.
+current code on `main` (commit `39bb84e`). File:line references are exact.
 
 ---
 
