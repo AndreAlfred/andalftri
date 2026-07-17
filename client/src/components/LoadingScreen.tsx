@@ -1,5 +1,6 @@
 import { useProgress } from "@react-three/drei";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createFireOnceGuard } from "@/hud/bootLifecycle";
 
 interface LoadingScreenProps {
   onReady?: () => void;
@@ -9,6 +10,11 @@ export function LoadingScreen({ onReady }: LoadingScreenProps) {
   const { active, progress, item, loaded, total } = useProgress();
   const [isVisible, setIsVisible] = useState(true);
   const [hasSettled, setHasSettled] = useState(false);
+  // Defense in depth alongside App's useCallback (RC-5): LoadingScreen stays
+  // mounted after fade (it returns null but keeps its hooks), so this guard
+  // ensures onReady cannot fire twice even if the ready effect re-runs later
+  // or a future caller passes an unstable onReady identity.
+  const attemptReady = useRef(createFireOnceGuard());
 
   const displayProgress = useMemo(() => {
     if (!hasSettled && !active && total === 0) {
@@ -36,7 +42,9 @@ export function LoadingScreen({ onReady }: LoadingScreenProps) {
 
     const readyTimer = window.setTimeout(() => {
       setIsVisible(false);
-      onReady?.();
+      if (attemptReady.current()) {
+        onReady?.();
+      }
     }, 420);
 
     return () => window.clearTimeout(readyTimer);

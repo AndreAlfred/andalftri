@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useState } from "react";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { StaticFallback } from "@/components/StaticFallback";
 import { getDeviceCapability, type DeviceCapability } from "@/lib/deviceCapability";
@@ -12,6 +12,14 @@ export default function App() {
   const forceFullScene =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("force-3d") === "1";
+
+  // Stable identity across re-renders (RC-5): LoadingScreen's ready effect
+  // depends on this callback, so an inline arrow here would reschedule the
+  // effect on every App re-render and re-fire the boot sequence forever.
+  const handleSceneReady = useCallback(() => {
+    setSceneReady(true);
+    setBootSequenceId(Date.now());
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,12 +73,7 @@ export default function App() {
           <SceneExperience bootSequenceId={bootSequenceId} />
         </Suspense>
       </div>
-      <LoadingScreen
-        onReady={() => {
-          setSceneReady(true);
-          setBootSequenceId(Date.now());
-        }}
-      />
+      <LoadingScreen onReady={handleSceneReady} />
     </div>
   );
 }

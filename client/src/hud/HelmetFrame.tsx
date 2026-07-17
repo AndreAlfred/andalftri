@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getSectionForPage } from "@/data/hubSections";
 import { PAGES } from "@/data/sceneConfig";
+import { computeBootTimeline } from "@/hud/bootLifecycle";
 import { HELMET_BOOT_CHAR_MS, HELMET_BOOT_LINE } from "@/hud/helmetBoot";
 
 interface HelmetFrameProps {
@@ -45,26 +46,40 @@ export function HelmetFrame({
   useEffect(() => {
     if (!bootSequenceId) return undefined;
 
-    setVisibleChars(0);
+    const reducedMotion =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const timeline = computeBootTimeline(HELMET_BOOT_LINE.length, HELMET_BOOT_CHAR_MS, {
+      reducedMotion,
+    });
+
     setBootActive(true);
 
-    const interval = window.setInterval(() => {
-      setVisibleChars((current) => {
-        if (current >= HELMET_BOOT_LINE.length) {
-          window.clearInterval(interval);
-          return current;
-        }
+    let interval: number | undefined;
 
-        return current + 1;
-      });
-    }, HELMET_BOOT_CHAR_MS);
+    if (reducedMotion) {
+      // No typewriter: show the full line immediately, then hold briefly.
+      setVisibleChars(HELMET_BOOT_LINE.length);
+    } else {
+      setVisibleChars(0);
+      interval = window.setInterval(() => {
+        setVisibleChars((current) => {
+          if (current >= HELMET_BOOT_LINE.length) {
+            window.clearInterval(interval);
+            return current;
+          }
+
+          return current + 1;
+        });
+      }, HELMET_BOOT_CHAR_MS);
+    }
 
     const fadeTimer = window.setTimeout(() => {
       setBootActive(false);
-    }, HELMET_BOOT_LINE.length * HELMET_BOOT_CHAR_MS + 1800);
+    }, timeline.fadeStartMs);
 
     return () => {
-      window.clearInterval(interval);
+      if (interval !== undefined) window.clearInterval(interval);
       window.clearTimeout(fadeTimer);
     };
   }, [bootSequenceId]);
@@ -147,9 +162,7 @@ export function HelmetFrame({
       <div className="absolute inset-x-0 top-0 flex justify-center px-4 pt-4">
         <div
           className={`helmet-chip max-w-[min(92vw,42rem)] px-4 py-2 text-center transition-all duration-700 ${
-            bootActive || visibleChars > 0
-              ? "translate-y-0 opacity-100"
-              : "-translate-y-2 opacity-0"
+            bootActive ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
           }`}
         >
           <p className="panel-meta text-[0.58rem] uppercase tracking-[0.28em] text-[#b2fbff]/72">
