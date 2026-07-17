@@ -20,6 +20,7 @@ export const PROJECTS: Project[] = [
       "Art-driven ethical streetwear brand website. Built alongside an autonomous AI build agent named Angel, with the site itself treated as an aesthetic object instead of a plain storefront. The visual language pulls from dense 2000s personal-web energy: visible borders, texture, ornament, and intentional friction.",
     media: {
       liveUrl: "https://heaven-and-nature.vercel.app",
+      screenshots: ["/images/heaven-and-nature.png"],
     },
     techStack: ["React", "Vite", "Tailwind CSS", "Vercel", "OpenClaw"],
     status: "live",
@@ -29,7 +30,10 @@ export const PROJECTS: Project[] = [
     title: "See Canto",
     description:
       "A classical singing visualization and analysis tool focused on making vocal technique legible. The concept blends performance, pedagogy, and interface design, turning subtle musical behavior into something visible, explorable, and emotionally resonant.",
-    media: {},
+    media: {
+      repoUrl: "https://github.com/AndreAlfred/see-canto",
+      screenshots: ["/images/see-canto.png"],
+    },
     techStack: ["Research", "Audio Analysis", "Visualization", "Creative Coding"],
     status: "concept",
   },

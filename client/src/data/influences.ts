@@ -17,17 +17,36 @@ export const INFLUENCES: Influence[] = [
     id: "contact",
     title: "Contact",
     intro:
-      "The future contact panel will gather the right places to reach Andrew depending on context: professional, collaborative, or conversational. For now, this acts as structured placeholder content so the panel system can be wired cleanly in the next task.",
+      "Places to reach Andrew, depending on context — direct, professional, or public.",
     items: [
       {
         name: "Email",
-        note: "Primary contact address to be added once Andrew confirms the preferred inbox.",
+        url: "mailto:Andrewtrimbleis@gmail.com",
+        note: "Andrewtrimbleis@gmail.com — best for direct or professional contact.",
         category: "Direct",
+      },
+      {
+        name: "LinkedIn",
+        url: "https://www.linkedin.com/in/andrew-trimble-610128345/",
+        note: "Professional profile and work history.",
+        category: "Direct",
+      },
+      {
+        name: "Instagram",
+        url: "https://www.instagram.com/littletrimble/",
+        note: "@littletrimble",
+        category: "Social",
+      },
+      {
+        name: "Substack",
+        url: "https://substack.com/@deprogramming80",
+        note: "@deprogramming80",
+        category: "Social",
       },
       {
         name: "GitHub",
         url: "https://github.com/AndreAlfred",
-        note: "Best current public surface for code and active project links.",
+        note: "Public surface for code and active project links.",
         category: "Public",
       },
       {

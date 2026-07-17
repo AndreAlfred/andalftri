@@ -29,6 +29,14 @@ export function ProjectPanel({ project }: ProjectPanelProps) {
       : null,
   ].filter((link): link is { label: string; href: string } => Boolean(link));
 
+  const preview = project.media.screenshots?.[0] ?? null;
+  const previewHref = project.media.liveUrl ?? project.media.repoUrl ?? null;
+  const previewLabel = project.media.liveUrl
+    ? "Open live site"
+    : project.media.repoUrl
+      ? "Open repository"
+      : "";
+
   return (
     <div className="space-y-6 text-white">
       <header className="space-y-4 border-b border-white/10 pb-5">
@@ -48,18 +56,55 @@ export function ProjectPanel({ project }: ProjectPanelProps) {
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(15rem,0.9fr)]">
         <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-          <p className="panel-meta text-[0.72rem] uppercase text-white/45">Project notes</p>
-          <div className="panel-body mt-4 rounded-[20px] border border-dashed border-white/12 bg-black/20 px-4 py-5 text-sm text-white/68">
-            {project.media.screenshots?.length ? (
-              <p>Screenshots and process media are being prepared for this space.</p>
+          <p className="panel-meta text-[0.72rem] uppercase text-white/45">
+            {preview ? "Preview" : "Project notes"}
+          </p>
+          {preview ? (
+            previewHref ? (
+              <a
+                href={previewHref}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`${project.title}: ${previewLabel.toLowerCase()}`}
+                className="group mt-4 block overflow-hidden rounded-[20px] border border-white/12 bg-black/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition hover:border-cyan-200/40"
+              >
+                <div className="relative aspect-[16/10] overflow-hidden">
+                  <img
+                    src={preview}
+                    alt={`${project.title} interface preview`}
+                    loading="lazy"
+                    className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-[1.02]"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/0 opacity-80 transition group-hover:opacity-95" />
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between px-4 py-3">
+                    <span className="panel-meta text-[0.7rem] uppercase tracking-wide text-white/85">
+                      {previewLabel}
+                    </span>
+                    <span aria-hidden="true" className="panel-meta text-cyan-100/90">
+                      ↗
+                    </span>
+                  </div>
+                </div>
+              </a>
             ) : (
+              <figure className="mt-4 overflow-hidden rounded-[20px] border border-white/12 bg-black/30">
+                <img
+                  src={preview}
+                  alt={`${project.title} interface preview`}
+                  loading="lazy"
+                  className="aspect-[16/10] w-full object-cover object-top"
+                />
+              </figure>
+            )
+          ) : (
+            <div className="panel-body mt-4 rounded-[20px] border border-dashed border-white/12 bg-black/20 px-4 py-5 text-sm text-white/68">
               <p>
                 Screenshots, video, and process notes will land here as this
                 project surfaces. Consider it a darkened gallery wall — the
                 work is on its way.
               </p>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">
