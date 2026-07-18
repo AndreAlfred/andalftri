@@ -21,6 +21,7 @@ export function CyberspaceNav({ currentPageId, onNavigate }: CyberspaceNavProps)
 
             return (
               <li key={page.id}>
+                {/* pl-4/pr-5 clear the .cyberspace-link clip-path notches (index.css) — do not collapse back to px-4 */}
                 <button
                   type="button"
                   onClick={() => onNavigate(page.id)}

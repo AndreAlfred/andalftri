@@ -7,14 +7,6 @@
   --font-panel-meta: "Space Mono", "SFMono-Regular", "Consolas", monospace;
 }
 
-*,
-*::before,
-*::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 html,
 body,
 #root {
@@ -293,6 +285,7 @@ select {
   background: linear-gradient(120deg, rgba(255, 255, 255, 0.1), transparent 24%, transparent 76%, rgba(0, 229, 255, 0.12));
 }
 
+/* Notch depths couple to CyberspaceNav.tsx padding: right pr-5 (20px) must stay >= 0.9rem notch + 4px; left pl-4 (16px) >= 0.75rem notch + 4px. */
 .cyberspace-link {
   clip-path: polygon(0 0, calc(100% - 0.9rem) 0, 100% 50%, calc(100% - 0.9rem) 100%, 0 100%, 0.75rem 50%);
   border: 1px solid rgba(255, 255, 255, 0.1);
