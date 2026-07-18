@@ -183,42 +183,35 @@ select {
 }
 
 /*
- * Legacy glassmorphism block (RC-4) -- still backs `.helmet-panel` /
- * `.helmet-chip` / `.helmet-action` consumers that have not yet been
- * converted to `.hud-frame`. Commit 5b converts the narrator pill,
- * HudOverlay shell, loading card, and helmet-action buttons over to
- * hud-frame and trims this block down to whatever's left in use -- do not
- * delete it here in 5a, or every unconverted consumer loses its styling.
+ * Legacy glassmorphism chip -- superseded by `.hud-frame` everywhere except
+ * the LoadingScreen progress puck (a circular gauge, not a rectangular
+ * chip; kept round on purpose, see LoadingScreen.tsx). `.helmet-panel` was
+ * dropped entirely in commit 5b once its last two consumers (HudOverlay
+ * shell, loading card) converted to hud-frame-lg -- if you need a plain
+ * rounded card again, reintroduce it deliberately rather than reviving this
+ * comment as a hint that it's still here.
  */
-.helmet-panel,
-.helmet-chip,
-.helmet-action {
+.helmet-chip {
   border: 1px solid rgba(137, 241, 255, 0.18);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025)),
     linear-gradient(135deg, rgba(91, 212, 255, 0.12), transparent 30%, transparent 70%, rgba(112, 255, 234, 0.08)),
     rgba(4, 16, 26, 0.68);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 24px 80px rgba(0, 0, 0, 0.42),
-    0 0 0 1px rgba(120, 220, 255, 0.04);
-  backdrop-filter: blur(18px);
-}
-
-.helmet-chip {
-  box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.07),
     0 16px 44px rgba(0, 0, 0, 0.32),
     0 0 34px rgba(88, 222, 255, 0.08);
+  backdrop-filter: blur(18px);
 }
 
+/* helmet-action now always pairs with hud-frame-sm on buttons (D2):
+   hud-frame supplies the chamfered border/fill/ticks, so this rule keeps
+   only the hover lift+glow interaction. Do not add background/box-shadow
+   base declarations here -- `.hud-frame` and `.helmet-action` are both
+   unlayered single-class selectors, so whichever is declared later in this
+   file wins per-property, and duplicating base fill here would fight
+   hud-frame's fill depending on edit order. */
 .helmet-action {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.03)),
-    rgba(7, 18, 28, 0.72);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 12px 30px rgba(0, 0, 0, 0.26);
   transition:
     border-color 180ms ease,
     background-color 180ms ease,
@@ -228,11 +221,10 @@ select {
 }
 
 .helmet-action:hover {
-  border-color: rgba(158, 246, 255, 0.34);
+  border-color: rgba(158, 246, 255, 0.6);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 16px 34px rgba(0, 0, 0, 0.34),
-    0 0 26px rgba(103, 169, 255, 0.14);
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 22px rgba(103, 200, 255, 0.22);
   transform: translateY(-1px);
 }
 

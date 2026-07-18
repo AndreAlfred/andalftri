@@ -182,7 +182,11 @@ export function HelmetFrame({
 
       {currentPage ? (
         <div className="absolute inset-x-0 bottom-0 flex justify-center px-4 pb-5">
-          <div className="helmet-chip pointer-events-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
+          {/* hud-frame-md chamfer 0.75rem -> padding here must stay >= 1rem
+              on every side; px-4 (16px) meets it exactly, py-4/sm:py-5 clear
+              it with margin (py-3 used to leave the bottom-left/top-right
+              cut inside the padding zone). */}
+          <div className="hud-frame hud-frame-md pointer-events-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5 sm:py-5">
             <div className="min-w-0">
               <p className="panel-meta text-[0.58rem] uppercase tracking-[0.28em] text-[#b2fbff]/72">
                 Helmet narrator
@@ -196,19 +200,25 @@ export function HelmetFrame({
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
+              {/* hud-frame-sm chamfer 0.6rem (min clearance 0.85rem): fixed
+                  h-10 w-10 with a single centered glyph, so the flex-centered
+                  "@" sits well clear of the corner cut without an explicit
+                  padding utility. */}
               <button
                 type="button"
                 onClick={onToggleHud}
-                className="helmet-action panel-meta flex h-10 w-10 items-center justify-center rounded-full text-sm uppercase tracking-[0.24em] text-white/80"
+                className="hud-frame hud-frame-sm helmet-action panel-meta flex h-10 w-10 items-center justify-center text-sm uppercase tracking-[0.24em] text-white/80"
                 aria-label={isHudOpen ? "Close helmet narrator" : "Open helmet narrator"}
               >
                 @
               </button>
+              {/* hud-frame-sm chamfer 0.6rem -> padding must stay >= 0.85rem;
+                  px-5/py-4 (20px/16px) clear it (py-2 used to leave it short). */}
               <button
                 type="button"
                 onClick={onBack}
                 disabled={isTransitioning || isClosing}
-                className="helmet-action panel-meta rounded-full px-4 py-2 text-[0.64rem] uppercase tracking-[0.24em] text-white/78 disabled:cursor-not-allowed disabled:opacity-45"
+                className="hud-frame hud-frame-sm helmet-action panel-meta px-5 py-4 text-[0.64rem] uppercase tracking-[0.24em] text-white/78 disabled:cursor-not-allowed disabled:opacity-45"
               >
                 Return
               </button>

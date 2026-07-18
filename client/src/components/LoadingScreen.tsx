@@ -70,7 +70,12 @@ export function LoadingScreen({ onReady }: LoadingScreenProps) {
     >
       <VisorChrome noiseOpacity={0.55} />
 
-      <div className="helmet-panel relative w-full max-w-xl overflow-hidden rounded-[32px] p-7 text-white sm:p-9">
+      {/* hud-frame-lg chamfer 1.25rem -> padding must stay >= 1.5rem on
+          every side; p-7/sm:p-9 (28px/36px) already clear it, so no padding
+          change was needed here, only the shape. clip-path clips descendant
+          painting the same way overflow-hidden did, so the two overlay divs
+          below stay corner-safe without it. */}
+      <div className="hud-frame hud-frame-lg relative w-full max-w-xl p-7 text-white sm:p-9">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(137,241,255,0.15),transparent_34%),radial-gradient(circle_at_bottom,rgba(255,255,255,0.04),transparent_42%)]" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-200/55 to-transparent" />
 
@@ -87,13 +92,19 @@ export function LoadingScreen({ onReady }: LoadingScreenProps) {
               </p>
             </div>
 
+            {/* Kept as a circular gauge, not converted to hud-frame: this is
+                a rotating percentage dial, not a rectangular chip, so the
+                chamfer/bracket language doesn't apply the same way -- flagged
+                for Andrew's review rather than assumed. Still uses the
+                legacy .helmet-chip fill/blur since it's the only remaining
+                consumer (see index.css). */}
             <div className="helmet-chip hidden h-28 w-28 shrink-0 rounded-full sm:grid place-items-center">
               <div className="relative h-20 w-20 rounded-full border border-white/10">
                 <div
                   className="absolute inset-2 rounded-full border border-cyan-200/30"
                   style={{ transform: `rotate(${displayProgress * 3.6}deg)` }}
                 />
-                <div className="panel-meta absolute inset-0 grid place-items-center text-[0.68rem] text-white/64">
+                <div className="panel-meta tabular-nums absolute inset-0 grid place-items-center text-[0.68rem] text-white/64">
                   {displayProgress}%
                 </div>
               </div>
@@ -103,7 +114,7 @@ export function LoadingScreen({ onReady }: LoadingScreenProps) {
           <div className="mt-8 space-y-3">
             <div className="flex items-center justify-between gap-4 text-xs uppercase tracking-[0.24em] text-white/46">
               <span className="panel-meta">Scene transfer</span>
-              <span className="panel-meta text-cyan-200/74">{displayProgress}%</span>
+              <span className="panel-meta tabular-nums text-cyan-200/74">{displayProgress}%</span>
             </div>
             <div className="h-3 overflow-hidden rounded-full border border-white/10 bg-white/[0.04]">
               <div

@@ -7,7 +7,10 @@ interface CyberspaceNavProps {
 
 export function CyberspaceNav({ currentPageId, onNavigate }: CyberspaceNavProps) {
   return (
-    <nav className="cyberspace-panel relative overflow-hidden p-4 text-white">
+    // p-6 (24px) clears .cyberspace-panel's 1.25rem (20px) chamfer + 4px
+    // safety margin (RC-2 padding rule, routed from Task 3.5 review) -- do
+    // not shrink back to p-4 (16px), which sat inside the notch.
+    <nav className="cyberspace-panel relative overflow-hidden p-6 text-white">
       <div className="cyberspace-sheen pointer-events-none absolute inset-0 opacity-70" />
       <div className="relative space-y-4">
         <div className="space-y-1">
