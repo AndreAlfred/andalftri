@@ -7,6 +7,7 @@ import {
   HELMET_BOOT_HOLD_MS,
   HELMET_BOOT_REDUCED_MOTION_HOLD_MS,
 } from "../client/src/hud/bootLifecycle.ts";
+import { HELMET_BOOT_CHAR_MS, HELMET_BOOT_LINE } from "../client/src/hud/helmetBoot.ts";
 
 test("the fire-once guard lets exactly one call through", () => {
   const attempt = createFireOnceGuard();
@@ -27,8 +28,8 @@ test("independent guards do not share fired state", () => {
 });
 
 test("the boot timeline types at the given char interval and orders its windows", () => {
-  const lineLength = 43;
-  const charMs = 42;
+  const lineLength = HELMET_BOOT_LINE.length;
+  const charMs = HELMET_BOOT_CHAR_MS;
   const timeline = computeBootTimeline(lineLength, charMs);
 
   assert.equal(timeline.typeDurationMs, lineLength * charMs);
