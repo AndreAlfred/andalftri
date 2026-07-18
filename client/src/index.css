@@ -168,14 +168,31 @@ select {
  */
 .helmet-aurora {
   pointer-events: none;
-  mask-image: radial-gradient(ellipse at center, transparent 44%, rgba(0, 0, 0, 0.55) 70%, black 100%);
-  -webkit-mask-image: radial-gradient(ellipse at center, transparent 44%, rgba(0, 0, 0, 0.55) 70%, black 100%);
 }
 
 .helmet-aurora-layer {
   pointer-events: none;
   mix-blend-mode: screen;
-  filter: blur(4vmin);
+  /* The ring mask MUST live on each leaf layer, never on the .helmet-aurora
+     wrapper: a masked ancestor forms an isolated compositing group, so the
+     leaves' screen blend would only see transparency inside the group and
+     the result would be alpha-composited over the scene as a flat color
+     wash instead of scene-reactive light (verified: white under the glow
+     tinted cyan with the wrapper masked; stays pure white with the mask
+     here). Mask + filter + blend on the same element adds no isolating
+     ancestor between the blend and its backdrop. Each layer is the same
+     full-viewport box the wrapper was, so the geometry is unchanged. */
+  mask-image: radial-gradient(ellipse at center, transparent 44%, rgba(0, 0, 0, 0.55) 70%, black 100%);
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 44%, rgba(0, 0, 0, 0.55) 70%, black 100%);
+  /* blur(2vmin): fill-rate cost weighed against softness in a harness
+     comparison of 4vmin / 2vmin / none. The percentage-falloff gradients
+     and ring mask already carry the softness, so 4vmin was visually
+     indistinguishable from 2vmin while costing ~4x the kernel work on four
+     full-viewport layers above the WebGL loop; even blur:none was close,
+     but 2vmin is kept as cheap insurance against dark-gradient banding on
+     real 8-bit displays. Final softness call is on Andrew's real-browser
+     checklist. */
+  filter: blur(2vmin);
   animation: helmetAuroraPulse 12s ease-in-out infinite;
 }
 

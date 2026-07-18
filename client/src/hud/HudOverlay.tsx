@@ -46,6 +46,11 @@ export function HudOverlay({ open, pageId, title, children, onClose, onNavigate 
 
       <div className="hud-shell helmet-panel relative w-full max-w-4xl overflow-hidden rounded-[32px] text-white">
         <div className="hud-scanlines pointer-events-none absolute inset-0 opacity-40" />
+        {/* Panel-scoped texture on the modal card (scaled to this shell, like
+            hud-scanlines above) -- intentionally separate from VisorChrome's
+            viewport-scoped backdrop noise. Do not fold into VisorChrome or
+            replace by flipping its noise prop on: that would texture the
+            whole backdrop, not this card. */}
         <div className="helmet-visor-noise pointer-events-none absolute inset-0 opacity-35" />
         <button
           type="button"
