@@ -2,9 +2,9 @@
 
 **Date:** 2026-07-17
 **Author:** Claude Code (diagnostic deep-dive), from Andrew's direct feedback
-**Status:** Executed on branch `design-overhaul` (2026-07-17/18): Workstreams B and A1
-shipped to main; A2-A4, RC-6 fix, C, and D implemented on the branch, two-stage
-reviewed, awaiting Andrew's real-browser visual approval before merge.
+**Status:** Complete. Executed 2026-07-17/18 via subagent-driven development with
+two-stage review per task; all workstreams (B, A1-A4, RC-6, C, D) merged to main
+2026-07-18 after Andrew's visual approval.
 **Audience:** Implementing agent. Every root cause below was verified by reading the
 current code on `main` (commit `39bb84e`). File:line references are exact.
 
