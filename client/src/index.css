@@ -145,43 +145,119 @@ select {
   pointer-events: none;
 }
 
-.helmet-edge-glow {
+/*
+ * Helmet-edge aurora (RC-3 / C2): the glow belongs to the visor PERIPHERY,
+ * never the center. Geometry is entirely viewport-relative (percentage-sized
+ * gradients on full-viewport layers) so there are no fixed px/rem strip
+ * boundaries to crop into a hard rectangular edge at any width from 320px to
+ * 3440px+.
+ *
+ * `.helmet-aurora` is a full-viewport wrapper carrying an elliptical ring
+ * mask (transparent center -> opaque rim); the ellipse's default sizing
+ * fits the wrapper's own aspect ratio, so the ring automatically hugs
+ * whichever edges are closest without any per-breakpoint tuning. Each
+ * `.helmet-aurora-layer-*` is itself a full-viewport (inset-0) layer whose
+ * background gradients use explicit percentage ellipse sizes -- the reach of
+ * each blob scales with element width/height, not a container crop.
+ *
+ * Orientation flips which axis dominates: portrait keeps today's approved
+ * mobile character (top/bottom glow strong, sides thin); landscape inverts
+ * it so the sides read as the dominant aurora and top/bottom recede to a
+ * thin rim, per Andrew's feedback that the old fixed-strip look was
+ * "the opposite of how it should look on desktop."
+ */
+.helmet-aurora {
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse at center, transparent 44%, rgba(0, 0, 0, 0.55) 70%, black 100%);
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 44%, rgba(0, 0, 0, 0.55) 70%, black 100%);
+}
+
+.helmet-aurora-layer {
   pointer-events: none;
   mix-blend-mode: screen;
-  opacity: 0.85;
-  filter: blur(18px);
+  filter: blur(4vmin);
   animation: helmetAuroraPulse 12s ease-in-out infinite;
 }
 
-.helmet-edge-glow-top {
-  background:
-    radial-gradient(circle at 18% 14%, rgba(112, 255, 234, 0.3), transparent 36%),
-    radial-gradient(circle at 52% 0%, rgba(111, 176, 255, 0.24), transparent 34%),
-    radial-gradient(circle at 82% 12%, rgba(164, 255, 232, 0.22), transparent 32%);
-}
-
-.helmet-edge-glow-right {
-  background:
-    radial-gradient(circle at 100% 22%, rgba(96, 188, 255, 0.24), transparent 35%),
-    radial-gradient(circle at 82% 60%, rgba(123, 255, 225, 0.18), transparent 34%),
-    linear-gradient(270deg, rgba(90, 212, 255, 0.14), transparent 54%);
+.helmet-aurora-layer-right {
   animation-delay: -3s;
 }
 
-.helmet-edge-glow-bottom {
-  background:
-    radial-gradient(circle at 28% 100%, rgba(96, 188, 255, 0.22), transparent 36%),
-    radial-gradient(circle at 72% 100%, rgba(110, 255, 238, 0.2), transparent 34%),
-    linear-gradient(0deg, rgba(13, 82, 108, 0.22), transparent 58%);
+.helmet-aurora-layer-bottom {
   animation-delay: -5s;
 }
 
-.helmet-edge-glow-left {
-  background:
-    radial-gradient(circle at 0% 30%, rgba(117, 198, 255, 0.22), transparent 35%),
-    radial-gradient(circle at 18% 68%, rgba(128, 255, 227, 0.16), transparent 34%),
-    linear-gradient(90deg, rgba(90, 212, 255, 0.12), transparent 54%);
+.helmet-aurora-layer-left {
   animation-delay: -7s;
+}
+
+/*
+ * Dominance between axes is carried by gradient REACH (ellipse size, as a
+ * percentage of element width/height) and gradient ALPHA -- not the
+ * `opacity` property, which `helmetAuroraPulse` drives on every layer
+ * uniformly (0.58 -> 0.95) and would otherwise silently clobber a per-layer
+ * static value. Dominant-axis blobs get a wide reach and stronger alpha;
+ * thin-rim blobs get a shallow reach and faint alpha.
+ */
+
+/* Portrait (phone/tall visor): top/bottom dominant, sides present but
+   secondary -- matches the mobile look Andrew already approved. Declared
+   explicitly (not just as the unqueried default) so both axes are governed
+   by an orientation query, per spec. */
+@media (orientation: portrait) {
+  .helmet-aurora-layer-top {
+    background:
+      radial-gradient(ellipse 70% 52% at 18% -6%, rgba(112, 255, 234, 0.58), transparent 72%),
+      radial-gradient(ellipse 85% 56% at 52% -8%, rgba(111, 176, 255, 0.46), transparent 70%),
+      radial-gradient(ellipse 70% 52% at 82% -6%, rgba(164, 255, 232, 0.42), transparent 72%);
+  }
+
+  .helmet-aurora-layer-bottom {
+    background:
+      radial-gradient(ellipse 70% 52% at 28% 106%, rgba(96, 188, 255, 0.5), transparent 72%),
+      radial-gradient(ellipse 70% 52% at 72% 106%, rgba(110, 255, 238, 0.46), transparent 72%);
+  }
+
+  .helmet-aurora-layer-right {
+    background:
+      radial-gradient(ellipse 20% 55% at 106% 24%, rgba(96, 188, 255, 0.22), transparent 70%),
+      radial-gradient(ellipse 17% 50% at 104% 66%, rgba(123, 255, 225, 0.16), transparent 68%);
+  }
+
+  .helmet-aurora-layer-left {
+    background:
+      radial-gradient(ellipse 20% 55% at -6% 30%, rgba(117, 198, 255, 0.22), transparent 70%),
+      radial-gradient(ellipse 17% 50% at -4% 70%, rgba(128, 255, 227, 0.16), transparent 68%);
+  }
+}
+
+/* Landscape (desktop/wide visor): inverted -- sides are the dominant aurora
+   presence, top/bottom recede to a thin rim. */
+@media (orientation: landscape) {
+  .helmet-aurora-layer-top {
+    background:
+      radial-gradient(ellipse 50% 16% at 18% -10%, rgba(112, 255, 234, 0.2), transparent 72%),
+      radial-gradient(ellipse 65% 18% at 52% -12%, rgba(111, 176, 255, 0.15), transparent 70%),
+      radial-gradient(ellipse 50% 16% at 82% -10%, rgba(164, 255, 232, 0.14), transparent 72%);
+  }
+
+  .helmet-aurora-layer-bottom {
+    background:
+      radial-gradient(ellipse 50% 16% at 28% 110%, rgba(96, 188, 255, 0.18), transparent 72%),
+      radial-gradient(ellipse 50% 16% at 72% 110%, rgba(110, 255, 238, 0.16), transparent 72%);
+  }
+
+  .helmet-aurora-layer-right {
+    background:
+      radial-gradient(ellipse 48% 72% at 108% 26%, rgba(96, 188, 255, 0.56), transparent 70%),
+      radial-gradient(ellipse 42% 62% at 106% 68%, rgba(123, 255, 225, 0.4), transparent 68%);
+  }
+
+  .helmet-aurora-layer-left {
+    background:
+      radial-gradient(ellipse 48% 72% at -8% 26%, rgba(117, 198, 255, 0.56), transparent 70%),
+      radial-gradient(ellipse 42% 62% at -6% 68%, rgba(128, 255, 227, 0.4), transparent 68%);
+  }
 }
 
 .helmet-visor-noise {

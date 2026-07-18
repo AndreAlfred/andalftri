@@ -1,6 +1,7 @@
 import { useProgress } from "@react-three/drei";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFireOnceGuard } from "@/hud/bootLifecycle";
+import { VisorChrome } from "@/hud/VisorChrome";
 
 interface LoadingScreenProps {
   onReady?: () => void;
@@ -67,13 +68,7 @@ export function LoadingScreen({ onReady }: LoadingScreenProps) {
       }`}
       aria-live="polite"
     >
-      <div className="helmet-vignette absolute inset-0" />
-      <div className="helmet-peripheral-blur absolute inset-0" />
-      <div className="helmet-edge-glow helmet-edge-glow-top absolute inset-x-0 top-0 h-44" />
-      <div className="helmet-edge-glow helmet-edge-glow-right absolute bottom-0 right-0 top-0 w-32" />
-      <div className="helmet-edge-glow helmet-edge-glow-bottom absolute inset-x-0 bottom-0 h-40" />
-      <div className="helmet-edge-glow helmet-edge-glow-left absolute bottom-0 left-0 top-0 w-32" />
-      <div className="helmet-visor-noise absolute inset-0 opacity-55" />
+      <VisorChrome noiseOpacity={0.55} />
 
       <div className="helmet-panel relative w-full max-w-xl overflow-hidden rounded-[32px] p-7 text-white sm:p-9">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(137,241,255,0.15),transparent_34%),radial-gradient(circle_at_bottom,rgba(255,255,255,0.04),transparent_42%)]" />

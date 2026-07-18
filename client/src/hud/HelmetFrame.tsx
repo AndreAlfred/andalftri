@@ -3,6 +3,7 @@ import { getSectionForPage } from "@/data/hubSections";
 import { PAGES } from "@/data/sceneConfig";
 import { computeBootTimeline } from "@/hud/bootLifecycle";
 import { HELMET_BOOT_CHAR_MS, HELMET_BOOT_LINE } from "@/hud/helmetBoot";
+import { VisorChrome } from "@/hud/VisorChrome";
 
 interface HelmetFrameProps {
   bootSequenceId: number;
@@ -133,13 +134,7 @@ export function HelmetFrame({
 
   return (
     <div className="pointer-events-none absolute inset-0 z-30 overflow-hidden">
-      <div className="helmet-vignette absolute inset-0" />
-      <div className="helmet-peripheral-blur absolute inset-0" />
-      <div className="helmet-edge-glow helmet-edge-glow-top absolute inset-x-0 top-0 h-44" />
-      <div className="helmet-edge-glow helmet-edge-glow-right absolute bottom-0 right-0 top-0 w-32" />
-      <div className="helmet-edge-glow helmet-edge-glow-bottom absolute inset-x-0 bottom-0 h-40" />
-      <div className="helmet-edge-glow helmet-edge-glow-left absolute bottom-0 left-0 top-0 w-32" />
-      <div className="helmet-visor-noise absolute inset-0 opacity-45" />
+      <VisorChrome noiseOpacity={0.45} />
       <div className="helmet-ornament absolute left-4 top-24 w-[min(11rem,32vw)] sm:left-6 sm:top-28">
         <p className="helmet-ornament-label">Vector drift</p>
         <p className="helmet-ornament-value">

@@ -1,6 +1,7 @@
 import { useEffect, type MouseEvent, type ReactNode } from "react";
 import { PAGES } from "@/data/sceneConfig";
 import { CyberspaceNav } from "@/hud/CyberspaceNav";
+import { VisorChrome } from "@/hud/VisorChrome";
 
 interface HudOverlayProps {
   open: boolean;
@@ -41,8 +42,7 @@ export function HudOverlay({ open, pageId, title, children, onClose, onNavigate 
       onClick={handleBackdropClick}
       aria-hidden={false}
     >
-      <div className="helmet-vignette absolute inset-0" />
-      <div className="helmet-peripheral-blur absolute inset-0" />
+      <VisorChrome aurora={false} noise={false} />
 
       <div className="hud-shell helmet-panel relative w-full max-w-4xl overflow-hidden rounded-[32px] text-white">
         <div className="hud-scanlines pointer-events-none absolute inset-0 opacity-40" />
