@@ -152,10 +152,12 @@ select {
  * boundaries to crop into a hard rectangular edge at any width from 320px to
  * 3440px+.
  *
- * `.helmet-aurora` is a full-viewport wrapper carrying an elliptical ring
- * mask (transparent center -> opaque rim); the ellipse's default sizing
- * fits the wrapper's own aspect ratio, so the ring automatically hugs
- * whichever edges are closest without any per-breakpoint tuning. Each
+ * `.helmet-aurora` is a plain full-viewport grouping element (pointer-events
+ * only -- it must never carry a mask/filter/opacity; see the warning on
+ * `.helmet-aurora-layer`). The elliptical ring mask (transparent center ->
+ * opaque rim) lives on each leaf layer; the ellipse's default sizing fits
+ * the layer's own aspect ratio, so the ring automatically hugs whichever
+ * edges are closest without any per-breakpoint tuning. Each
  * `.helmet-aurora-layer-*` is itself a full-viewport (inset-0) layer whose
  * background gradients use explicit percentage ellipse sizes -- the reach of
  * each blob scales with element width/height, not a container crop.
@@ -176,10 +178,15 @@ select {
   /* The ring mask MUST live on each leaf layer, never on the .helmet-aurora
      wrapper: a masked ancestor forms an isolated compositing group, so the
      leaves' screen blend would only see transparency inside the group and
-     the result would be alpha-composited over the scene as a flat color
-     wash instead of scene-reactive light (verified: white under the glow
-     tinted cyan with the wrapper masked; stays pure white with the mask
-     here). Mask + filter + blend on the same element adds no isolating
+     the result would be alpha-composited over the backdrop as a flat color
+     wash (verified: white under the glow tinted cyan with the wrapper
+     masked; stays pure white with the mask here). Scope note: the blend's
+     reachable backdrop is the helmet chrome group's own lower layers
+     (vignette / peripheral blur) -- HelmetFrame's positioned z-30 root is
+     itself an isolated group, so the aurora has never blended against the
+     WebGL canvas, before or after this overhaul; this restores the approved
+     baseline's compositing scope, no more, no less.
+     Mask + filter + blend on the same element adds no isolating
      ancestor between the blend and its backdrop. Each layer is the same
      full-viewport box the wrapper was, so the geometry is unchanged. */
   mask-image: radial-gradient(ellipse at center, transparent 44%, rgba(0, 0, 0, 0.55) 70%, black 100%);
