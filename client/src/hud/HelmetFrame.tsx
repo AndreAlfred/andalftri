@@ -125,7 +125,10 @@ export function HelmetFrame({
     };
 
     updateOrnaments();
-    const interval = window.setInterval(updateOrnaments, 160);
+    // D2: slowed from 160ms so the readouts feel like a sampled instrument,
+    // not jittering noise -- the value-generation math above is untouched,
+    // it just advances on a calmer clock.
+    const interval = window.setInterval(updateOrnaments, 500);
     return () => window.clearInterval(interval);
   }, [bootActive, currentPage, isHudOpen, isTransitioning]);
 
@@ -135,19 +138,22 @@ export function HelmetFrame({
   return (
     <div className="pointer-events-none absolute inset-0 z-30 overflow-hidden">
       <VisorChrome noiseOpacity={0.45} />
-      <div className="helmet-ornament absolute left-4 top-24 w-[min(11rem,32vw)] sm:left-6 sm:top-28">
+      {/* hud-frame-sm chamfer 0.6rem -> .helmet-ornament's padding (index.css)
+          must stay >= 0.85rem on every side; see the coupling note on
+          .hud-frame there before changing either. */}
+      <div className="hud-frame hud-frame-sm helmet-ornament absolute left-4 top-24 w-[min(11rem,32vw)] sm:left-6 sm:top-28">
         <p className="helmet-ornament-label">Vector drift</p>
         <p className="helmet-ornament-value">
           {formatSigned(ornaments.drift[0])} / {formatSigned(ornaments.drift[1])} / {formatSigned(ornaments.drift[2])}
         </p>
       </div>
-      <div className="helmet-ornament absolute right-4 top-28 w-[min(10rem,30vw)] text-right sm:right-6 sm:top-32">
+      <div className="hud-frame hud-frame-sm helmet-ornament absolute right-4 top-28 w-[min(10rem,30vw)] text-right sm:right-6 sm:top-32">
         <p className="helmet-ornament-label">Section / signal</p>
         <p className="helmet-ornament-value">
           {String(activeSection ?? 0).padStart(2, "0")} // {String(ornaments.signal).padStart(2, "0")}%
         </p>
       </div>
-      <div className="helmet-ornament absolute bottom-28 left-4 w-[min(12rem,38vw)] sm:bottom-32 sm:left-6">
+      <div className="hud-frame hud-frame-sm helmet-ornament absolute bottom-28 left-4 w-[min(12rem,38vw)] sm:bottom-32 sm:left-6">
         <p className="helmet-ornament-label">Heading / noise</p>
         <p className="helmet-ornament-value">
           {ornaments.heading.toFixed(0).padStart(3, "0")} deg // {String(ornaments.noise).padStart(2, "0")} db
@@ -155,8 +161,10 @@ export function HelmetFrame({
       </div>
 
       <div className="absolute inset-x-0 top-0 flex justify-center px-4 pt-4">
+        {/* hud-frame-md chamfer 0.75rem -> padding here must stay >= 1rem on
+            every side; px-5 (20px) / py-5 (20px) clear it with margin. */}
         <div
-          className={`helmet-chip max-w-[min(92vw,42rem)] px-4 py-2 text-center transition-all duration-700 ${
+          className={`hud-frame hud-frame-md max-w-[min(92vw,42rem)] px-5 py-5 text-center transition-all duration-700 ${
             bootActive ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
           }`}
         >

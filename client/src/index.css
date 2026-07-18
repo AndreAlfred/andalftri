@@ -83,6 +83,113 @@ select {
   );
 }
 
+/*
+ * hud-frame: shared AR-telemetry chrome primitive (D1, fixes RC-4 -- "the
+ * HUD's boxes aren't reading as HUD"). Chamfers the top-right/bottom-left
+ * corners at the same 45deg cut as `.cyberspace-panel` below (angle is
+ * identical because both offsets equal the chamfer variable), scaled per
+ * tier, and leaves top-left/bottom-right square for a pair of
+ * corner-bracket ticks -- classic AR reticle framing.
+ *
+ * Ticks are painted as `background-image` strips on the element itself,
+ * NOT as ::before/::after: an element only has two pseudo-elements (not
+ * four -- one per corner), and `clip-path` on the element clips its
+ * pseudo-elements too, so a bracket positioned outside the polygon would
+ * simply vanish. Background-image layers get clipped the same way, but
+ * since each tick sits just inside its corner, it always stays inside the
+ * visible polygon. This also leaves both pseudo-element slots free for a
+ * caller to add its own scanline/texture overlay (see `.hud-scanlines`).
+ *
+ * PADDING COUPLING (critical -- see the RC-2 corner-safety rule that Task 3
+ * established): any element using hud-frame must give its content padding
+ * on EVERY side >= var(--hud-chamfer) + 4px. Each side borders one
+ * chamfered corner and one square corner, so this must hold uniformly, not
+ * only on the two literally-chamfered edges. Minimums per tier:
+ *   hud-frame-sm  (chamfer 0.6rem  / 9.6px) -> padding >= 0.85rem (13.6px)
+ *   hud-frame-md  (chamfer 0.75rem / 12px)  -> padding >= 1rem    (16px)
+ *   hud-frame-lg  (chamfer 1.25rem / 20px)  -> padding >= 1.5rem  (24px)
+ * Every call site documents (in its own file) which tier it uses and how
+ * its padding clears that minimum -- do not add a new hud-frame usage
+ * without doing the same arithmetic.
+ */
+.hud-frame {
+  --hud-chamfer: 0.75rem;
+  --hud-tick-len: 0.7rem;
+  --hud-tick-thick: 1.5px;
+  --hud-stroke: rgba(120, 226, 255, 0.42);
+  --hud-tick-color: rgba(205, 250, 255, 0.88);
+
+  position: relative;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--hud-chamfer)) 0,
+    100% var(--hud-chamfer),
+    100% 100%,
+    var(--hud-chamfer) 100%,
+    0 calc(100% - var(--hud-chamfer))
+  );
+  border: 1px solid var(--hud-stroke);
+  /* Near-transparent fill (down from the old 0.68-0.72 alpha "frosted
+     glass" cards) -- the void/scene should read through the box, not be
+     upholstered by it. */
+  background-color: rgba(6, 18, 28, 0.3);
+  background-image:
+    /* corner-bracket ticks: top-left + bottom-right (the two square
+       corners -- the other two already read as cut accents from the
+       chamfer + brighter stroke). Each pair is one thin horizontal strip
+       and one thin vertical strip meeting at the corner. */
+    linear-gradient(var(--hud-tick-color), var(--hud-tick-color)),
+    linear-gradient(var(--hud-tick-color), var(--hud-tick-color)),
+    linear-gradient(var(--hud-tick-color), var(--hud-tick-color)),
+    linear-gradient(var(--hud-tick-color), var(--hud-tick-color)),
+    linear-gradient(135deg, rgba(91, 212, 255, 0.07), transparent 42%, transparent 64%, rgba(112, 255, 234, 0.05));
+  background-size:
+    var(--hud-tick-len) var(--hud-tick-thick),
+    var(--hud-tick-thick) var(--hud-tick-len),
+    var(--hud-tick-len) var(--hud-tick-thick),
+    var(--hud-tick-thick) var(--hud-tick-len),
+    100% 100%;
+  background-position:
+    top left,
+    top left,
+    bottom right,
+    bottom right,
+    0 0;
+  background-repeat: no-repeat;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 10px 26px rgba(0, 0, 0, 0.22);
+  /* Drastically reduced from the old 18px glassmorphism blur -- peripheral
+     blur is VisorChrome's job (`.helmet-peripheral-blur`, masked to the
+     visor edge only); each box just needs a hair of blur to keep thin
+     monospace legible over bright scene content behind it. */
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.hud-frame-sm {
+  --hud-chamfer: 0.6rem;
+  --hud-tick-len: 0.55rem;
+}
+
+.hud-frame-md {
+  --hud-chamfer: 0.75rem;
+  --hud-tick-len: 0.7rem;
+}
+
+.hud-frame-lg {
+  --hud-chamfer: 1.25rem;
+  --hud-tick-len: 1.1rem;
+}
+
+/*
+ * Legacy glassmorphism block (RC-4) -- still backs `.helmet-panel` /
+ * `.helmet-chip` / `.helmet-action` consumers that have not yet been
+ * converted to `.hud-frame`. Commit 5b converts the narrator pill,
+ * HudOverlay shell, loading card, and helmet-action buttons over to
+ * hud-frame and trims this block down to whatever's left in use -- do not
+ * delete it here in 5a, or every unconverted consumer loses its styling.
+ */
 .helmet-panel,
 .helmet-chip,
 .helmet-action {
@@ -298,19 +405,16 @@ select {
   pointer-events: none;
 }
 
+/*
+ * Ornaments now get their chrome (border/fill/ticks/blur) from
+ * `.hud-frame.hud-frame-sm` on the same element (see HelmetFrame.tsx) --
+ * this rule is down to layout only. hud-frame-sm's chamfer is 0.6rem
+ * (9.6px), so every side here must stay >= 0.85rem (13.6px) per the
+ * padding-coupling rule documented on `.hud-frame` above; 0.9rem/1rem
+ * clears that with margin.
+ */
 .helmet-ornament {
-  border-top: 1px solid rgba(137, 241, 255, 0.16);
-  border-bottom: 1px solid rgba(137, 241, 255, 0.08);
-  background:
-    linear-gradient(90deg, rgba(103, 169, 255, 0.12), transparent 30%, transparent 82%, rgba(158, 246, 255, 0.1)),
-    linear-gradient(180deg, rgba(2, 12, 20, 0.54), rgba(2, 12, 20, 0));
-  padding: 0.45rem 0.7rem 0.5rem;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 0 22px rgba(82, 196, 255, 0.08);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  opacity: 0.72;
+  padding: 0.9rem 1rem;
 }
 
 .helmet-ornament-label {
@@ -318,16 +422,19 @@ select {
   font-size: 0.52rem;
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: rgba(178, 251, 255, 0.62);
+  color: rgba(178, 251, 255, 0.68);
 }
 
 .helmet-ornament-value {
-  padding-top: 0.28rem;
+  padding-top: 0.32rem;
   font-family: var(--font-panel-meta);
   font-size: 0.68rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(235, 253, 255, 0.74);
+  color: rgba(235, 253, 255, 0.82);
+  /* D2: numbers update on a timer (see HelmetFrame.tsx's ornament tick) --
+     tabular figures stop digit-width changes from wobbling the layout. */
+  font-variant-numeric: tabular-nums;
 }
 
 @keyframes helmetAuroraPulse {
