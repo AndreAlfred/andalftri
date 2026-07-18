@@ -66,7 +66,7 @@ export function HudOverlay({ open, pageId, title, children, onClose, onNavigate 
             child lets it shrink and scroll instead of overflowing the cap. */}
         <div className="relative flex h-[min(42rem,calc(100vh-4rem))] flex-col px-6 py-7 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
           <div className="scroll-fade-y min-h-0 flex-1 overflow-y-auto">
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,0.68fr)_minmax(16rem,0.32fr)]">
+            <div className="min-h-full grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,0.68fr)_minmax(16rem,0.32fr)]">
               <div className="min-w-0 pt-10 lg:pt-4">{children}</div>
 
               <aside className="helmet-chip flex flex-col justify-between gap-6 rounded-[24px] p-5 lg:p-6">
