@@ -12,7 +12,11 @@ import { useLemniscate } from "@/hooks/useLemniscate";
 import { useProximityTilt } from "@/hooks/useProximityTilt";
 import type { LightingMode } from "./lightingConfig";
 import { getMedallionEnvMapIntensity } from "./medallionMaterialRole";
-import { ScreenWakeManager } from "./screenWake";
+import {
+  INFLUENCE_SCREEN_FONT,
+  OEUVRE_SCREEN_FONT,
+  ScreenWakeManager,
+} from "./screenWake";
 
 // The seven-section medallion replaces the @ logo + six capsule buttons as the
 // nav hub. Mesh naming contract (see docs/medallion-glb-notes.md):
@@ -127,10 +131,12 @@ export const MedallionHub = memo(function MedallionHub({
         m.name.endsWith("_screen"),
       );
       const pageId = SECTION_PAGE_MAP[sec];
-      const label = pageId
-        ? (PAGES.find((p) => p.id === pageId)?.label ?? "")
-        : "";
-      wake.attach(sec, screens, label);
+      const page = pageId ? (PAGES.find((p) => p.id === pageId) ?? null) : null;
+      // 2026-07-19: screen display names carry the site's display faces —
+      // Bruno Ace on oeuvre sections, Zen Dots on influence sections.
+      const fontStack =
+        page?.group === "influences" ? INFLUENCE_SCREEN_FONT : OEUVRE_SCREEN_FONT;
+      wake.attach(sec, screens, page?.label ?? "", fontStack);
     }
     return () => wake.dispose();
   }, [wake, sectionMeshes]);

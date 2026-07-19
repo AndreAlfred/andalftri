@@ -54,6 +54,7 @@ interface SectionWake {
   texture: THREE.CanvasTexture;
   materials: THREE.MeshStandardMaterial[];
   label: string;
+  fontStack: string;
   box: { x: number; y: number; w: number; h: number }; // canvas px
   layout: TextLayout | null;
   phase: Phase;
@@ -81,17 +82,27 @@ function easeInOutCubic(t: number) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
-const FONT_STACK = '"Arial Rounded MT Bold", "Trebuchet MS", "Verdana", sans-serif';
+// 2026-07-19 (Andrew): the display names ON the CRT screens carry the site's
+// display faces — Bruno Ace for oeuvre sections, Zen Dots for influence
+// sections. The old rounded-sans stack stays as the fallback tail (canvas 2d
+// silently falls back if a family isn't loaded yet — see the font-load
+// invalidation in ScreenWakeManager.attach). Both faces ship a single 400
+// weight, so labels draw at normal weight: a synthetic canvas "bold" would
+// smear these wide display faces.
+const FALLBACK_STACK = '"Arial Rounded MT Bold", "Trebuchet MS", "Verdana", sans-serif';
+export const OEUVRE_SCREEN_FONT = `"Bruno Ace", ${FALLBACK_STACK}`;
+export const INFLUENCE_SCREEN_FONT = `"Zen Dots", ${FALLBACK_STACK}`;
 
 /** Wrap + size the label so every line fits the safe box. */
 function fitTextToBox(
   ctx: CanvasRenderingContext2D,
   label: string,
   box: { w: number; h: number },
+  fontStack: string,
 ): TextLayout {
   const words = label.split(" ");
   for (let fontSize = 46; fontSize >= 14; fontSize -= 2) {
-    const font = `bold ${fontSize}px ${FONT_STACK}`;
+    const font = `${fontSize}px ${fontStack}`;
     ctx.font = font;
     const lines: string[] = [];
     let line = "";
@@ -115,7 +126,7 @@ function fitTextToBox(
       return { lines, fontSize, font };
     }
   }
-  return { lines: [label], fontSize: 14, font: `bold 14px ${FONT_STACK}` };
+  return { lines: [label], fontSize: 14, font: `14px ${fontStack}` };
 }
 
 function drawScanlines(ctx: CanvasRenderingContext2D, alpha: number) {
@@ -143,7 +154,7 @@ function drawText(s: SectionWake, dim: number) {
     ctx.fill();
     return;
   }
-  if (!s.layout) s.layout = fitTextToBox(ctx, s.label, box);
+  if (!s.layout) s.layout = fitTextToBox(ctx, s.label, box, s.fontStack);
   const { lines, fontSize, font } = s.layout;
   ctx.font = font;
   ctx.textAlign = "center";
@@ -193,7 +204,12 @@ function drawBlinkLine(ctx: CanvasRenderingContext2D, spread: number, seed: numb
 export class ScreenWakeManager {
   private sections = new Map<number, SectionWake>();
 
-  attach(section: number, screenMeshes: THREE.Mesh[], label: string) {
+  attach(
+    section: number,
+    screenMeshes: THREE.Mesh[],
+    label: string,
+    fontStack: string = OEUVRE_SCREEN_FONT,
+  ) {
     if (this.sections.has(section) || screenMeshes.length === 0) return;
     const { canvas, ctx } = makeCanvas();
     ctx.fillStyle = "#000";
@@ -221,6 +237,7 @@ export class ScreenWakeManager {
       texture,
       materials,
       label,
+      fontStack,
       box: {
         x: b.u0 * SIZE,
         y: b.v0 * SIZE,
@@ -235,6 +252,26 @@ export class ScreenWakeManager {
       hoverLevel: 0,
       redrawAccum: 0,
     });
+
+    // Webfonts load lazily on first DOM use, and at boot no panel has rendered
+    // yet — without this explicit load the canvas would draw the fallback sans
+    // forever. When the face arrives, dropping `layout` makes the text phase's
+    // 30Hz redraw re-measure and re-render with the real font. Sized query
+    // (16px) is arbitrary: FontFaceSet.load keys on family, not size.
+    if (typeof document !== "undefined" && "fonts" in document) {
+      const primaryFamily = fontStack.split(",")[0]?.trim();
+      if (primaryFamily) {
+        document.fonts
+          .load(`16px ${primaryFamily}`)
+          .then((faces) => {
+            const s = this.sections.get(section);
+            if (s && faces.length > 0) s.layout = null;
+          })
+          .catch(() => {
+            // fallback stack already covers a failed load
+          });
+      }
+    }
   }
 
   /** Kick off the staggered boot cascade (sections light in numeric order). */
