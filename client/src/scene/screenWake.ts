@@ -30,6 +30,16 @@ const SAFE_BOXES: Record<number, { u0: number; v0: number; u1: number; v1: numbe
 };
 const DEFAULT_BOX = { u0: 0.25, v0: 0.3, u1: 0.75, v1: 0.7 };
 
+// Per-section vertical bias for the text block, as a fraction of the safe-box
+// height. Negative = up (canvas v grows down). Applied on top of centering and
+// clamped in drawText so the block never leaves the safe box (the box is the
+// aperture-inscribed rectangle — outside it the chrome clips glyphs).
+// 2026-07-19: section 3's inscribed box sits low in its aperture, so
+// "See Canto" read visibly low on the tube (Andrew's call to move it up).
+const TEXT_V_BIAS: Record<number, number> = {
+  3: -0.16,
+};
+
 const SIZE = 256;
 // blink-on sub-phase boundaries (seconds within the "blink" phase)
 const T_FLASH = 0.1;
@@ -55,6 +65,7 @@ interface SectionWake {
   materials: THREE.MeshStandardMaterial[];
   label: string;
   fontStack: string;
+  vBias: number;
   box: { x: number; y: number; w: number; h: number }; // canvas px
   layout: TextLayout | null;
   phase: Phase;
@@ -162,7 +173,12 @@ function drawText(s: SectionWake, dim: number) {
   ctx.lineJoin = "round";
   const lineHeight = fontSize * 1.14;
   const cxp = box.x + box.w / 2;
-  const y0 = box.y + box.h / 2 - ((lines.length - 1) * lineHeight) / 2;
+  // Bias shifts the whole block off center, clamped to the headroom left
+  // after the block's own height so no line exits the safe box.
+  const blockHeight = lines.length * lineHeight;
+  const headroom = Math.max(0, (box.h - blockHeight) / 2);
+  const shift = THREE.MathUtils.clamp(s.vBias * box.h, -headroom, headroom);
+  const y0 = box.y + box.h / 2 + shift - ((lines.length - 1) * lineHeight) / 2;
   lines.forEach((ln, i) => {
     const y = y0 + i * lineHeight;
     ctx.lineWidth = Math.max(6, fontSize * 0.22);
@@ -238,6 +254,7 @@ export class ScreenWakeManager {
       materials,
       label,
       fontStack,
+      vBias: TEXT_V_BIAS[section] ?? 0,
       box: {
         x: b.u0 * SIZE,
         y: b.v0 * SIZE,
