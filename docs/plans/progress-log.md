@@ -127,3 +127,8 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 - Added the procedural studio preview behind `?lighting=studio`, with matched-exposure `?tone=aces` comparison and `?screens=dormant` black-glass diagnostic paths. At this preview checkpoint, the legacy lighting remained the public/default path pending Andrew's real-browser signoff.
 - Added dependency-free tests for preview parsing and the GLB material-role contract; `pnpm test`, `pnpm check`, and `pnpm build` pass at this implementation checkpoint.
 - Andrew explicitly selected Studio ACES in the live matched-exposure comparison. Promoted Studio ACES at exposure `0.92` to the no-query default, retained `?lighting=legacy` as the temporary complete rollback, and retained `?tone=agx` as the matched-exposure comparison.
+
+## 2026-07-18
+
+- Direct session with Andrew: typography system (Bruno Ace / Zen Dots / Chivo Mono, self-hosted OFL), real reading-list data from Andrew's Lent log, inspirations content (Seurat + Mondrian public-domain images, podcast tile grid), music album tiles with Spotify/Apple links, project pages converted to standalone screenshot showcase with copy moved to the context overlay, `@` return bubble + pulsing 'Tap to see context' bubble replacing the helmet narrator, key-light nudge with ?keylight= A/B param. Spec: docs/plans/2026-07-18-content-typography-hud-spec.md. Visual endpoints pending Andrew's real-browser review.
+- Added Earmarked section to the master build plan with three forward-looking tasks: accessible non-WebGL version, Angel nightly Spotify recap via cron, and background world/environment (blocked pending Andrew's brainstorm direction).

@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { getSectionForPage } from "@/data/hubSections";
 import { PAGES } from "@/data/sceneConfig";
 import { computeBootTimeline } from "@/hud/bootLifecycle";
 import { HELMET_BOOT_CHAR_MS, HELMET_BOOT_LINE } from "@/hud/helmetBoot";
+import { computeReturnAnchor, type ReturnAnchor } from "@/hud/returnAnchor";
 import { VisorChrome } from "@/hud/VisorChrome";
 
 interface HelmetFrameProps {
@@ -24,6 +25,23 @@ interface OrnamentState {
 
 function formatSigned(value: number) {
   return `${value >= 0 ? "+" : "-"}${Math.abs(value).toFixed(1)}`;
+}
+
+// The `@` return bubble parks on the viewport edge that faces the hub (the
+// direction the camera flew in from). The wrapper owns edge placement; the
+// caret aims via --return-angle (see .hud-return-caret in index.css).
+function returnWrapperStyle(anchor: ReturnAnchor): CSSProperties {
+  const inset = "1.1rem";
+  switch (anchor.edge) {
+    case "right":
+      return { right: inset, top: `${anchor.alongPercent}%`, transform: "translateY(-50%)" };
+    case "left":
+      return { left: inset, top: `${anchor.alongPercent}%`, transform: "translateY(-50%)" };
+    case "top":
+      return { top: inset, left: `${anchor.alongPercent}%`, transform: "translateX(-50%)" };
+    case "bottom":
+      return { bottom: inset, left: `${anchor.alongPercent}%`, transform: "translateX(-50%)" };
+  }
 }
 
 export function HelmetFrame({
@@ -134,6 +152,10 @@ export function HelmetFrame({
 
   const bootLine = HELMET_BOOT_LINE.slice(0, visibleChars);
   const cursorVisible = bootActive || visibleChars < HELMET_BOOT_LINE.length;
+  const returnAnchor = useMemo(
+    () => (currentPage ? computeReturnAnchor(currentPage.cameraLookAt) : null),
+    [currentPage],
+  );
 
   return (
     <div className="pointer-events-none absolute inset-0 z-30 overflow-hidden">
@@ -171,7 +193,7 @@ export function HelmetFrame({
           <p className="panel-meta text-[0.58rem] uppercase tracking-[0.28em] text-[#b2fbff]/72">
             Visor boot
           </p>
-          <p className="panel-meta mt-2 break-words text-[0.7rem] uppercase tracking-[0.24em] text-white/82 sm:text-[0.8rem]">
+          <p className="label-long mt-2 break-words text-[0.7rem] uppercase tracking-[0.12em] text-white/82 sm:text-[0.8rem]">
             {bootLine}
             <span className={`ml-1 inline-block text-[#9ef6ff] ${cursorVisible ? "animate-pulse" : "opacity-0"}`}>
               _
@@ -180,50 +202,54 @@ export function HelmetFrame({
         </div>
       </div>
 
-      {currentPage ? (
-        <div className="absolute inset-x-0 bottom-0 flex justify-center px-4 pb-5">
-          {/* hud-frame-md chamfer 0.75rem -> padding here must stay >= 1rem
-              on every side; px-4 (16px) meets it exactly, py-4/sm:py-5 clear
-              it with margin (py-3 used to leave the bottom-left/top-right
-              cut inside the padding zone). */}
-          <div className="hud-frame hud-frame-md pointer-events-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5 sm:py-5">
-            <div className="min-w-0">
-              <p className="panel-meta text-[0.58rem] uppercase tracking-[0.28em] text-[#b2fbff]/72">
-                Helmet narrator
-              </p>
-              <p className="truncate pt-1 text-sm text-white/70 sm:text-base">
-                {currentPage.label}
-              </p>
-              <p className="panel-meta pt-1 text-[0.58rem] uppercase tracking-[0.24em] text-white/42">
-                {currentPage.group} // {currentPage.route}
-              </p>
-            </div>
+      {/* Context bubble (2026-07-18 spec §4): the old bottom-pill `@` toggle,
+          promoted to its own larger upper-right bubble with a slow blink.
+          Opens the context overlay (title / copy / tech stack / commentary).
+          hud-frame-md chamfer 0.75rem -> px-5/py-4 (20px/16px) clear the
+          >= 1rem padding-coupling minimum. */}
+      {currentPage && !isHudOpen ? (
+        <div className="absolute right-4 top-6 sm:right-6">
+          <button
+            type="button"
+            onClick={onToggleHud}
+            className="hud-frame hud-frame-md hud-context-pulse helmet-action label-long pointer-events-auto px-5 py-4 text-[0.66rem] uppercase tracking-[0.14em] text-[#cdfaff]/92"
+            aria-label={`Open context for ${currentPage.label}`}
+          >
+            Tap to see context
+          </button>
+        </div>
+      ) : null}
 
-            <div className="flex items-center gap-2 sm:gap-3">
-              {/* hud-frame-sm chamfer 0.6rem (min clearance 0.85rem): fixed
-                  h-10 w-10 with a single centered glyph, so the flex-centered
-                  "@" sits well clear of the corner cut without an explicit
-                  padding utility. */}
-              <button
-                type="button"
-                onClick={onToggleHud}
-                className="hud-frame hud-frame-sm helmet-action panel-meta flex h-10 w-10 items-center justify-center text-sm uppercase tracking-[0.24em] text-white/80"
-                aria-label={isHudOpen ? "Close helmet narrator" : "Open helmet narrator"}
-              >
-                @
-              </button>
-              {/* hud-frame-sm chamfer 0.6rem -> padding must stay >= 0.85rem;
-                  px-5/py-4 (20px/16px) clear it (py-2 used to leave it short). */}
-              <button
-                type="button"
-                onClick={onBack}
-                disabled={isTransitioning || isClosing}
-                className="hud-frame hud-frame-sm helmet-action panel-meta px-5 py-4 text-[0.64rem] uppercase tracking-[0.24em] text-white/78 disabled:cursor-not-allowed disabled:opacity-45"
-              >
-                Return
-              </button>
-            </div>
-          </div>
+      {/* `@` return bubble: the @ is now the way BACK to the artifact. It sits
+          on the edge facing the hub, with a free caret floating outside the
+          bubble, pointing at where the artifact is. hud-frame-sm chamfer
+          0.6rem: fixed h-16 w-16 with one centered glyph clears the corner
+          cut without an explicit padding utility. */}
+      {currentPage && returnAnchor ? (
+        <div className="absolute" style={returnWrapperStyle(returnAnchor)}>
+          <button
+            type="button"
+            onClick={onBack}
+            disabled={isTransitioning || isClosing}
+            className="hud-frame hud-frame-sm helmet-action pointer-events-auto flex h-16 w-16 items-center justify-center text-3xl text-white/88 disabled:cursor-not-allowed disabled:opacity-45"
+            style={{ fontFamily: "var(--font-at-glyph)" }}
+            aria-label="Return to the main artifact"
+          >
+            @
+          </button>
+          {/* Aim, then push past the bubble; the inner span only bobs along
+              the rotated axis so the transforms never fight. */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-1/2"
+            style={{
+              transform: `translate(-50%, -50%) rotate(${returnAnchor.angleDeg}deg) translateY(-3.6rem)`,
+            }}
+          >
+            <span className="hud-return-caret block panel-meta text-lg leading-none text-[#9ef6ff]/90">
+              ^
+            </span>
+          </span>
         </div>
       ) : null}
     </div>

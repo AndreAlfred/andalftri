@@ -5,10 +5,12 @@ import { STUDIO_LIGHTING, type LightingMode } from "./lightingConfig";
 
 interface EnvironmentProps {
   lightingMode?: LightingMode;
+  keyLightPosition?: [number, number, number];
 }
 
 export const Environment = memo(function Environment({
   lightingMode = "legacy",
+  keyLightPosition,
 }: EnvironmentProps) {
   const studio = lightingMode === "studio";
   const background = studio ? STUDIO_LIGHTING.background : "#1a1a1a";
@@ -40,7 +42,7 @@ export const Environment = memo(function Environment({
         infiniteGrid
       />
       {studio ? (
-        <ArtifactLighting />
+        <ArtifactLighting keyLightPosition={keyLightPosition} />
       ) : (
         <>
           <ambientLight intensity={0.4} />

@@ -5,7 +5,14 @@ export interface LightingPreviewSettings {
   mode: LightingMode;
   toneMapping: StudioToneMapping;
   screensDormant: boolean;
+  keyLightPosition: [number, number, number];
 }
+
+// Pre-2026-07-18 key position. Andrew reported it put a glare on the center
+// medallion `@` that read dark instead of brilliant white at the rest pose
+// (the drift-darkening during the lemniscate is intentional and kept).
+// Compare live via `?keylight=legacy`; free-tune via `?keylight=x,y,z`.
+export const LEGACY_KEY_LIGHT_POSITION: [number, number, number] = [0.8, 4.6, 7.5];
 
 export function getLightingPreviewSettings(search: string): LightingPreviewSettings {
   const params = new URLSearchParams(search);
@@ -13,7 +20,19 @@ export function getLightingPreviewSettings(search: string): LightingPreviewSetti
     mode: params.get("lighting") === "legacy" ? "legacy" : "studio",
     toneMapping: params.get("tone") === "agx" ? "agx" : "aces",
     screensDormant: params.get("screens") === "dormant",
+    keyLightPosition: parseKeyLightParam(params.get("keylight")),
   };
+}
+
+function parseKeyLightParam(raw: string | null): [number, number, number] {
+  if (raw === "legacy") return LEGACY_KEY_LIGHT_POSITION;
+  if (raw) {
+    const parts = raw.split(",").map(Number);
+    if (parts.length === 3 && parts.every(Number.isFinite)) {
+      return [parts[0], parts[1], parts[2]];
+    }
+  }
+  return STUDIO_LIGHTING.direct.key.position;
 }
 
 export const STUDIO_LIGHTING = {
@@ -40,7 +59,12 @@ export const STUDIO_LIGHTING = {
     key: {
       color: "#ffffff",
       intensity: 1.35,
-      position: [0.8, 4.6, 7.5] as [number, number, number],
+      // 2026-07-18: nudged from LEGACY_KEY_LIGHT_POSITION [0.8, 4.6, 7.5] —
+      // slightly lower and more frontal so the center `@` emblem catches the
+      // key square-on at the rest pose instead of a glancing glare. NEEDS
+      // Andrew's real-browser verdict; revert to the legacy constant if it
+      // reads worse (A/B via `?keylight=legacy`).
+      position: [0.4, 3.8, 7.9] as [number, number, number],
     },
   },
   environment: {

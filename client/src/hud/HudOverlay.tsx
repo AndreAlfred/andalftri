@@ -50,7 +50,13 @@ export function HudOverlay({ open, pageId, title, children, onClose, onNavigate 
           descendant painting the same way overflow-hidden did, so dropping
           overflow-hidden here doesn't lose the corner-safe clipping the
           scanline/noise overlays below rely on. */}
-      <div className="hud-shell hud-frame hud-frame-lg relative w-full max-w-4xl text-white">
+      {/* hud-context-enter: scanline wipe + scale settle from the top-right —
+          the "wow" beat when the pulsing context bubble is pressed (spec §4).
+          Re-keyed by pageId so revisits replay it. */}
+      <div
+        key={pageId ?? "context"}
+        className="hud-shell hud-frame hud-frame-lg hud-context-enter relative w-full max-w-4xl text-white"
+      >
         <div className="hud-scanlines pointer-events-none absolute inset-0 opacity-40" />
         {/* Panel-scoped texture on the modal card (scaled to this shell, like
             hud-scanlines above) -- intentionally separate from VisorChrome's
@@ -65,7 +71,7 @@ export function HudOverlay({ open, pageId, title, children, onClose, onNavigate 
           type="button"
           onClick={onClose}
           className="hud-frame hud-frame-sm helmet-action panel-meta absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center text-sm uppercase tracking-[0.22em] text-white/72 transition hover:text-white"
-          aria-label="Close commentary overlay"
+          aria-label="Close context overlay"
         >
           X
         </button>
@@ -91,15 +97,11 @@ export function HudOverlay({ open, pageId, title, children, onClose, onNavigate 
               <aside className="hud-frame hud-frame-md flex flex-col justify-between gap-6 p-5 lg:p-6">
                 <div className="space-y-5">
                   <div className="space-y-2">
-                    <p className="panel-kicker text-xs uppercase text-[#89f1ff]/80">Helmet narrator</p>
+                    <p className="panel-kicker text-xs uppercase text-[#89f1ff]/80">Context</p>
                     <h3 className="panel-meta text-sm uppercase text-white/72">Current page</h3>
                     <p className="text-xl text-white">{title ?? "Untitled"}</p>
                     {page ? <p className="panel-meta text-[11px] uppercase text-white/46">Route: {page.route}</p> : null}
                   </div>
-
-                  <p className="panel-body text-sm leading-7 text-white/62">
-                    The visor is the storyteller now: cold, clipped, and hovering at the edges while the world stays central.
-                  </p>
 
                   <CyberspaceNav currentPageId={pageId} onNavigate={onNavigate} />
                 </div>

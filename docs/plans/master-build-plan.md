@@ -1297,3 +1297,15 @@ CyberspaceNav should be absorbed into this frame, not duplicated by it.
 feedback.md blocker entry before stopping (`git add docs/plans && git commit -m "docs: log blocker" && git push`).
 Blocker entries sitting uncommitted for weeks is how Andrew loses visibility
 (it happened June 24 – July 9, 2026 — see lessons.md entry C).
+
+---
+
+## Earmarked (added 2026-07-18)
+
+Earmarked for future implementation pending direction or dependency completion.
+
+- [ ] **Accessible version of the site** — a parallel, non-WebGL, screen-reader-first route that reuses the same content data (projects, influences, reading list, music). Needs its own design pass; earmarked at Andrew's request 2026-07-18.
+
+- [ ] **Angel nightly Spotify recap cron** — replace the static album list in `client/src/data/music.ts` with data regenerated nightly from Andrew's live Spotify listening by the Angel agent. Do not build until Andrew wires Spotify credentials/API access.
+
+- [ ] **Background world/environment** — replace the void once Andrew picks a direction from the 2026-07-18 brainstorm (see docs/plans/2026-07-18-content-typography-hud-spec.md §6). Do not build autonomously.

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   getLightingPreviewSettings,
+  LEGACY_KEY_LIGHT_POSITION,
   STUDIO_LIGHTING,
 } from "../client/src/scene/lightingConfig.ts";
 
@@ -10,6 +11,7 @@ test("Studio ACES is the default after visual approval", () => {
     mode: "studio",
     toneMapping: "aces",
     screensDormant: false,
+    keyLightPosition: STUDIO_LIGHTING.direct.key.position,
   });
   assert.equal(getLightingPreviewSettings("?lighting=legacy").mode, "legacy");
   assert.equal(getLightingPreviewSettings("?lighting=studio").mode, "studio");
@@ -17,6 +19,28 @@ test("Studio ACES is the default after visual approval", () => {
   assert.equal(
     getLightingPreviewSettings("?lighting=studio&screens=dormant").screensDormant,
     true,
+  );
+});
+
+test("the keylight param supports legacy A/B and free x,y,z tuning", () => {
+  // Default is the 2026-07-18 nudge, not the legacy position.
+  assert.notDeepEqual(STUDIO_LIGHTING.direct.key.position, LEGACY_KEY_LIGHT_POSITION);
+  assert.deepEqual(
+    getLightingPreviewSettings("?keylight=legacy").keyLightPosition,
+    LEGACY_KEY_LIGHT_POSITION,
+  );
+  assert.deepEqual(
+    getLightingPreviewSettings("?keylight=1.5,-2,7.25").keyLightPosition,
+    [1.5, -2, 7.25],
+  );
+  // Malformed values fall back to the shipped default.
+  assert.deepEqual(
+    getLightingPreviewSettings("?keylight=oops").keyLightPosition,
+    STUDIO_LIGHTING.direct.key.position,
+  );
+  assert.deepEqual(
+    getLightingPreviewSettings("?keylight=1,2").keyLightPosition,
+    STUDIO_LIGHTING.direct.key.position,
   );
 });
 

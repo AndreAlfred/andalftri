@@ -36,7 +36,7 @@ export function CyberspaceNav({ currentPageId, onNavigate }: CyberspaceNavProps)
                   }`}
                 >
                   <span className="panel-meta text-[11px] uppercase text-[#00e5ff]/80">{String(index + 1).padStart(2, "0")}</span>
-                  <span className="min-w-0 flex-1 truncate panel-body text-sm uppercase tracking-[0.08em]">
+                  <span className="min-w-0 flex-1 truncate label-long text-sm uppercase">
                     {page.label}
                   </span>
                   <span className="panel-meta text-[10px] uppercase text-white/45">{isActive ? "Live" : "Jump"}</span>

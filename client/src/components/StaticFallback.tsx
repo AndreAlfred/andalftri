@@ -65,7 +65,7 @@ export function StaticFallback({ capability }: StaticFallbackProps) {
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-3">
             <p className="panel-meta text-[0.72rem] uppercase text-cyan-200/70">Static fallback mode</p>
-            <h1 className="panel-title text-5xl text-white sm:text-6xl">@</h1>
+            <h1 className="text-5xl text-white sm:text-6xl" style={{ fontFamily: "var(--font-at-glyph)" }}>@</h1>
             <p className="max-w-xl text-sm text-white/68 sm:text-base">
               This device gets the lighter 2D build so the site still feels intentional without asking weak hardware to render the full 3D scene.
             </p>
@@ -112,7 +112,7 @@ export function StaticFallback({ capability }: StaticFallbackProps) {
                 <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4">
                   <div>
                     <p className="panel-meta text-[0.72rem] uppercase text-cyan-200/72">{activePage.group}</p>
-                    <h2 className="panel-title mt-2 text-4xl text-white sm:text-5xl">{activePage.label}</h2>
+                    <h2 className="panel-title mt-2 text-3xl text-white sm:text-4xl">{activePage.label}</h2>
                   </div>
                   <button
                     type="button"
@@ -131,7 +131,7 @@ export function StaticFallback({ capability }: StaticFallbackProps) {
             ) : (
               <div className="flex h-full min-h-[20rem] flex-col items-center justify-center rounded-[26px] border border-dashed border-white/10 bg-white/[0.03] px-6 text-center">
                 <p className="panel-meta text-[0.72rem] uppercase text-cyan-200/70">Wireframe poster mode</p>
-                <h2 className="panel-title mt-4 text-4xl text-white sm:text-5xl">Pick a page</h2>
+                <h2 className="panel-title mt-4 text-3xl text-white sm:text-4xl">Pick a page</h2>
                 <p className="mt-4 max-w-lg text-sm text-white/68 sm:text-base">
                   The full 3D hub is swapped for a lighter poster-like menu here, but the portfolio content and routes still work the same.
                 </p>

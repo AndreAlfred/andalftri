@@ -2,7 +2,15 @@ import { Environment as DreiEnvironment, Lightformer } from "@react-three/drei";
 import { memo } from "react";
 import { STUDIO_LIGHTING } from "./lightingConfig";
 
-export const ArtifactLighting = memo(function ArtifactLighting() {
+interface ArtifactLightingProps {
+  // Defaults to the config constant; overridable for the `?keylight=` A/B
+  // preview (2026-07-18 medallion-`@` glare check).
+  keyLightPosition?: [number, number, number];
+}
+
+export const ArtifactLighting = memo(function ArtifactLighting({
+  keyLightPosition = STUDIO_LIGHTING.direct.key.position,
+}: ArtifactLightingProps) {
   const { direct, environment } = STUDIO_LIGHTING;
 
   return (
@@ -11,7 +19,7 @@ export const ArtifactLighting = memo(function ArtifactLighting() {
       <directionalLight
         color={direct.key.color}
         intensity={direct.key.intensity}
-        position={direct.key.position}
+        position={keyLightPosition}
       />
       <DreiEnvironment
         background={false}

@@ -1,10 +1,71 @@
-@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap");
 @import "tailwindcss";
 
+/* Self-hosted display/label faces (2026-07-18 typography spec). All three are
+   licensed under SIL OFL 1.1 — see client/public/fonts/licenses/. */
+@font-face {
+  font-family: "Bruno Ace";
+  src: url("/fonts/BrunoAce-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Zen Dots";
+  src: url("/fonts/ZenDots-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Chivo Mono";
+  src: url("/fonts/ChivoMono-VariableFont_wght.ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Chivo Mono";
+  src: url("/fonts/ChivoMono-Italic-VariableFont_wght.ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Kingthings Spikeless: file supplied by Andrew later (see 2026-07-18 spec
+   §1) — not yet present in client/public/fonts/. Declared ahead of time so
+   the stack falls through to Zen Dots until the TTF lands; --font-at-glyph
+   below already carries that fallback order. */
+@font-face {
+  font-family: "Kingthings Spikeless";
+  src: url("/fonts/KingthingsSpikeless.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*
+ * Typography role system (2026-07-18 spec):
+ *   Bruno Ace     -> oeuvre (project) screen-title display face
+ *   Zen Dots      -> influence screen-title display face (--font-display-influence)
+ *   Chivo Mono    -> any longer label needing legibility (--font-mono-long):
+ *                    nav links, boot line, item-level names
+ *   Space Mono    -> short all-caps microtype only (panel-meta/chip/kicker)
+ * All three new faces are self-hosted under SIL OFL 1.1
+ * (licenses in client/public/fonts/licenses/).
+ */
 :root {
-  --font-panel-title: "Cormorant Garamond", Georgia, serif;
+  --font-panel-title: "Bruno Ace", "Zen Dots", sans-serif;
   --font-panel-body: "Inter", "Helvetica Neue", Arial, sans-serif;
   --font-panel-meta: "Space Mono", "SFMono-Regular", "Consolas", monospace;
+  --font-display-influence: "Zen Dots", sans-serif;
+  --font-mono-long: "Chivo Mono", "Space Mono", "SFMono-Regular", monospace;
+  /* Kingthings Spikeless has no bundled file yet (Andrew supplies the TTF —
+     see 2026-07-18 spec §1); until then the stack falls through to Zen Dots. */
+  --font-at-glyph: "Kingthings Spikeless", "Zen Dots", var(--font-panel-meta);
 }
 
 html,
@@ -38,9 +99,18 @@ select {
 
 .panel-title {
   font-family: var(--font-panel-title);
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  line-height: 0.96;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.08;
+}
+
+.panel-title-influence {
+  font-family: var(--font-display-influence);
+}
+
+.label-long {
+  font-family: var(--font-mono-long);
+  letter-spacing: 0.05em;
 }
 
 .panel-kicker,
@@ -112,6 +182,19 @@ select {
  * its padding clears that minimum -- do not add a new hud-frame usage
  * without doing the same arithmetic.
  */
+/* position lives in @layer base, NOT in the unlayered block below: unlayered
+   author rules beat ALL layered rules (the RC-6 lesson), so an unlayered
+   `position: relative` here silently overrode Tailwind's layered `absolute`
+   utility on any element carrying both — which is exactly how the three
+   telemetry ornaments and the overlay close button ended up flow-stacked in
+   the top-left on production (found 2026-07-18). In the base layer this is
+   only a default: position utilities on the same element win again. */
+@layer base {
+  .hud-frame {
+    position: relative;
+  }
+}
+
 .hud-frame {
   --hud-chamfer: 0.75rem;
   --hud-tick-len: 0.7rem;
@@ -119,7 +202,6 @@ select {
   --hud-stroke: rgba(120, 226, 255, 0.42);
   --hud-tick-color: rgba(205, 250, 255, 0.88);
 
-  position: relative;
   clip-path: polygon(
     0 0,
     calc(100% - var(--hud-chamfer)) 0,
@@ -439,6 +521,101 @@ select {
   50% {
     opacity: 0.95;
     transform: scale(1.03) translate3d(0, -1.5%, 0);
+  }
+}
+
+/*
+ * Context bubble + `@` return bubble (2026-07-18 spec §4).
+ *
+ * `.hud-context-pulse`: the "Tap to see context" bubble breathes on a slow
+ * ~2.8s cycle — opacity plus a cyan glow — so it reads as an invitation, not
+ * an alarm. Hover/focus parks the animation at full presence.
+ */
+.hud-context-pulse {
+  animation: hudContextPulse 2.8s ease-in-out infinite;
+}
+
+.hud-context-pulse:hover,
+.hud-context-pulse:focus-visible {
+  animation-play-state: paused;
+  opacity: 1;
+}
+
+@keyframes hudContextPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    box-shadow: 0 0 0 rgba(103, 200, 255, 0);
+  }
+
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 26px rgba(103, 200, 255, 0.32);
+  }
+}
+
+/*
+ * `.hud-return-caret` floats free OUTSIDE the `@` bubble, pointing at the
+ * artifact. The OUTER element owns the aim (rotate by --return-angle, then
+ * push outward past the bubble radius); this INNER class only bobs along
+ * that already-rotated axis, so the two transforms never fight.
+ */
+.hud-return-caret {
+  animation: hudReturnCaretBob 2.2s ease-in-out infinite;
+}
+
+@keyframes hudReturnCaretBob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-0.3rem);
+  }
+}
+
+/*
+ * Overlay "wow" entrance (spec §4): a scanline-style wipe that unrolls from
+ * the context button's corner (top-right) with a slight scale settle. Purely
+ * transform/clip-path/opacity — no layout thrash above the WebGL loop.
+ */
+.hud-context-enter {
+  transform-origin: top right;
+  animation: hudContextEnter 460ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
+}
+
+@keyframes hudContextEnter {
+  0% {
+    clip-path: inset(0 0 96% 0);
+    transform: scale(0.94) translate(2.5%, -3%);
+    opacity: 0;
+  }
+
+  55% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+
+  100% {
+    clip-path: inset(0 0 0 0);
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-context-pulse,
+  .hud-return-caret {
+    animation: none;
+  }
+
+  .hud-context-pulse {
+    opacity: 1;
+  }
+
+  .hud-context-enter {
+    animation: none;
   }
 }
 

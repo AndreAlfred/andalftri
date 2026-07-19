@@ -11,6 +11,7 @@ import { HudOverlay } from "@/hud/HudOverlay";
 import { useCameraStore } from "@/hooks/useCamera";
 import { ContentPanel } from "@/panels/ContentPanel";
 import { InfluencePanel } from "@/panels/InfluencePanel";
+import { MusicPanel } from "@/panels/MusicPanel";
 import { ProjectPanel } from "@/panels/ProjectPanel";
 import { CameraController } from "@/scene/CameraController";
 import { Environment } from "@/scene/Environment";
@@ -126,12 +127,24 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
 
   const pagePanels = useMemo(
     () =>
-      PAGES.map((page) => ({
-        page,
-        project: page.group === "oeuvre" ? getProjectById(page.id) : null,
-        influence: page.group === "influences" ? getInfluenceById(page.id) : null,
-      })),
+      PAGES.map((page) => {
+        const project = page.group === "oeuvre" ? getProjectById(page.id) : null;
+        return {
+          page,
+          project,
+          influence: page.group === "influences" ? getInfluenceById(page.id) : null,
+          // Screenshot projects get the standalone showcase stage (2026-07-18
+          // spec §4); their copy lives in the context overlay instead.
+          isShowcase: Boolean(project && project.media.screenshots?.length),
+          isMusic: page.id === "music",
+        };
+      }),
     [],
+  );
+
+  const currentPanel = useMemo(
+    () => pagePanels.find(({ page }) => page.id === currentPage) ?? null,
+    [pagePanels, currentPage],
   );
 
   const handlePageSelect = useCallback(
@@ -176,7 +189,10 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
           toneMappingExposure,
         }}
       >
-        <Environment lightingMode={lightingSettings.mode} />
+        <Environment
+          lightingMode={lightingSettings.mode}
+          keyLightPosition={lightingSettings.keyLightPosition}
+        />
         {lightingSettings.mode === "legacy" ? (
           <DreiEnvironment preset="city" />
         ) : null}
@@ -187,7 +203,7 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
           lightingMode={lightingSettings.mode}
           screensDormant={lightingSettings.screensDormant}
         />
-        {pagePanels.map(({ page, project, influence }) => (
+        {pagePanels.map(({ page, project, influence, isShowcase, isMusic }) => (
           <ContentPanel
             key={page.id}
             position={page.cameraLookAt}
@@ -195,9 +211,16 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
             activePageId={currentPage}
             isTransitioning={isTransitioning}
             isClosing={closingPageId === page.id}
+            variant={isShowcase ? "showcase" : "card"}
             onClose={handlePanelClose}
           >
-            {project ? <ProjectPanel project={project} /> : null}
+            {project ? (
+              isMusic ? (
+                <MusicPanel project={project} />
+              ) : (
+                <ProjectPanel project={project} />
+              )
+            ) : null}
             {influence ? <InfluencePanel influence={influence} /> : null}
           </ContentPanel>
         ))}
@@ -221,7 +244,12 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
           onClose={() => setIsHudOpen(false)}
           onNavigate={handleHudNavigate}
         >
-          <Commentary pageId={currentPage} />
+          <Commentary
+            pageId={currentPage}
+            // Showcase pages moved their copy/tech-stack/links into this
+            // overlay; music keeps its copy in the panel, so no project here.
+            project={currentPanel?.isShowcase ? currentPanel.project : null}
+          />
         </HudOverlay>
       ) : null}
     </div>
