@@ -26,7 +26,7 @@ export function getMedallionEnvMapIntensity(meshName: string): number {
 // micro-wrinkle caught an env highlight and the disc read as ~90% "copper
 // wool". Softening the core's surface response, not its basecolor, closes the
 // renderer gap. Tune NORMAL first (relief depth), then ROUGHNESS (sparkle).
-const CORE_NORMAL_SCALE = 0.4; // 1 = full baked relief, 0 = flat
+const CORE_NORMAL_SCALE = 0.45; // 1 = full baked relief, 0 = flat
 const CORE_ROUGHNESS_BOOST = 1.25; // multiplies the baked roughness map
 
 export function applyMedallionSurfaceTuning(
