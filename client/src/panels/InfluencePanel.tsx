@@ -43,30 +43,46 @@ function ImageCard({ item }: { item: InfluenceItem }) {
   );
 }
 
+// Cover-art tiles (2026-07-19, Andrew: "that's what I intended for those
+// tiles"). The blurb overlay covers only the ARTWORK, not the whole tile, so
+// the show name and network stay readable while the note is revealed —
+// hovering shouldn't cost you the label that told you what you're hovering.
 function TileGrid({ items }: { items: InfluenceItem[] }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
       {items.map((item) => (
         <a
           key={item.name}
           href={item.url}
           target="_blank"
           rel="noreferrer"
-          className="group relative block min-h-[7rem] rounded-[16px] border border-white/10 bg-black/25 p-4 transition hover:border-cyan-200/35"
+          className="group block rounded-[16px] border border-white/10 bg-black/25 p-3 transition hover:border-cyan-200/35"
         >
-          <div className="flex items-start justify-between gap-2">
+          <div className="relative overflow-hidden rounded-[12px] border border-white/10">
+            {item.artworkSrc ? (
+              <img
+                src={item.artworkSrc}
+                alt={`${item.name} cover art`}
+                loading="lazy"
+                className="aspect-square w-full object-cover"
+              />
+            ) : (
+              <div className="aspect-square w-full bg-white/[0.05]" />
+            )}
+            <div className="absolute inset-0 flex items-center bg-black/88 p-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+              <p className="panel-body text-xs leading-5 text-white/85">{item.note}</p>
+            </div>
+          </div>
+          <div className="flex items-start justify-between gap-2 pt-3">
             <div className="space-y-1">
-              <h3 className="label-long text-lg text-white">{item.name}</h3>
+              <h3 className="label-long text-sm text-white">{item.name}</h3>
               {item.meta ? (
-                <p className="panel-meta text-xs text-white/45">{item.meta}</p>
+                <p className="panel-meta text-[0.6rem] uppercase text-white/45">{item.meta}</p>
               ) : null}
             </div>
-            <span aria-hidden="true" className="panel-meta pt-1 text-white/40">
+            <span aria-hidden="true" className="panel-meta pt-0.5 text-white/40">
               ↗
             </span>
-          </div>
-          <div className="absolute inset-0 rounded-[16px] bg-black/85 p-4 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
-            <p className="panel-body text-xs text-white/78">{item.note}</p>
           </div>
         </a>
       ))}

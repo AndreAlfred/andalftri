@@ -5,6 +5,8 @@ export interface InfluenceItem {
   category?: string;
   display?: "tile";
   meta?: string;
+  /** Square cover art for tile items (podcast/show artwork). */
+  artworkSrc?: string;
   images?: { src: string; alt: string; caption: string }[];
 }
 
@@ -180,6 +182,7 @@ export const INFLUENCES: Influence[] = [
       },
       {
         name: "Cortex",
+        artworkSrc: "/images/inspirations/podcasts/cortex.jpg",
         meta: "Relay FM",
         url: "https://www.relay.fm/cortex",
         note: "CGP Grey and Myke Hurley on the operating systems behind two self-employed creators.",
@@ -188,7 +191,8 @@ export const INFLUENCES: Influence[] = [
       },
       {
         name: "Double Tap",
-        meta: "AMI-audio",
+        artworkSrc: "/images/inspirations/podcasts/double-tap.jpg",
+        meta: "Double Tap Productions",
         url: "https://www.doubletaponair.com",
         note: "Steven Scott and Shaun Preece's daily, candid show about accessible technology.",
         category: "Podcasts",
@@ -196,6 +200,7 @@ export const INFLUENCES: Influence[] = [
       },
       {
         name: "Reply All",
+        artworkSrc: "/images/inspirations/podcasts/reply-all.jpg",
         meta: "Gimlet — ended 2022",
         url: "https://gimletmedia.com/shows/reply-all",
         note: "Gimlet's show about the internet and the strange things people do on it.",
@@ -204,6 +209,7 @@ export const INFLUENCES: Influence[] = [
       },
       {
         name: "Spotless",
+        artworkSrc: "/images/inspirations/podcasts/spotless.jpg",
         meta: "Independent",
         url: "https://spotlesspod.com",
         note: "Andrew Walsh and Hanna Brooks Olsen's friendly show about cleaning, ADHD, and keeping a life together.",
@@ -212,6 +218,7 @@ export const INFLUENCES: Influence[] = [
       },
       {
         name: "White Horse Inn",
+        artworkSrc: "/images/inspirations/podcasts/white-horse-inn.jpg",
         meta: "Sola Media",
         url: "https://www.whitehorseinn.org",
         note: "A Reformed theology roundtable on Scripture, culture, and the church, running since 1990.",
@@ -220,6 +227,7 @@ export const INFLUENCES: Influence[] = [
       },
       {
         name: "Connected",
+        artworkSrc: "/images/inspirations/podcasts/connected.jpg",
         meta: "Relay FM",
         url: "https://www.relay.fm/connected",
         note: "Stephen Hackett, Myke Hurley, and Federico Viticci's weekly Apple roundtable.",
