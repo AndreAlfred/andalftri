@@ -11,7 +11,10 @@ import {
 import { useLemniscate } from "@/hooks/useLemniscate";
 import { useProximityTilt } from "@/hooks/useProximityTilt";
 import type { LightingMode } from "./lightingConfig";
-import { getMedallionEnvMapIntensity } from "./medallionMaterialRole";
+import {
+  applyMedallionSurfaceTuning,
+  getMedallionEnvMapIntensity,
+} from "./medallionMaterialRole";
 import {
   INFLUENCE_SCREEN_FONT,
   OEUVRE_SCREEN_FONT,
@@ -81,6 +84,7 @@ export const MedallionHub = memo(function MedallionHub({
           (cloned as THREE.MeshStandardMaterial).envMapIntensity =
             getMedallionEnvMapIntensity(child.name);
         }
+        applyMedallionSurfaceTuning(child.name, cloned);
         return cloned;
       };
       child.material = Array.isArray(child.material)
