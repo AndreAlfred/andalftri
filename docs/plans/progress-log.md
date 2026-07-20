@@ -132,3 +132,7 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 
 - Direct session with Andrew: typography system (Bruno Ace / Zen Dots / Chivo Mono, self-hosted OFL), real reading-list data from Andrew's Lent log, inspirations content (Seurat + Mondrian public-domain images, podcast tile grid), music album tiles with Spotify/Apple links, project pages converted to standalone screenshot showcase with copy moved to the context overlay, `@` return bubble + pulsing 'Tap to see context' bubble replacing the helmet narrator, key-light nudge with ?keylight= A/B param. Spec: docs/plans/2026-07-18-content-typography-hud-spec.md. Visual endpoints pending Andrew's real-browser review.
 - Added Earmarked section to the master build plan with three forward-looking tasks: accessible non-WebGL version, Angel nightly Spotify recap via cron, and background world/environment (blocked pending Andrew's brainstorm direction).
+
+## 2026-07-19
+
+- (Claude Code, Blender side) `medallion.glb` updated — `medallion_core` rebaked with new `core_warm_metal` material: concentric elliptical striations (lathe-turned look) replacing the mis-scaled "copper wool" texture; object-scale undistort fixed feature sizes to match the body; no geometry/contract changes. Source material builder is `scripts/build_core_concentric_mat.py` in the Blender repo.

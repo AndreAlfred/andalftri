@@ -42,6 +42,9 @@ reads correctly. Bake pipeline: Blender project `scripts/bake_body_textures.py`
 (headless: `Blender --background <blend> --python scripts/bake_body_textures.py`)
 then `scripts/export_glb.py`. File grew 888KB -> ~3.1MB.
 
+2026-07-19 — core textures rebaked from new `core_warm_metal` (concentric
+striations); contract unchanged.
+
 ## Material caveat (placeholder PBR) [HISTORICAL — superseded by v2 above]
 The Blender look is procedural Cycles (mineral body, warm metal) which glTF
 can't carry; this v1 ships flat PBR approximations:
