@@ -1,11 +1,18 @@
 export type LightingMode = "legacy" | "studio";
 export type StudioToneMapping = "agx" | "aces";
 
+export interface EmblemTuning {
+  /** null = leave the baked roughness untouched. */
+  roughnessFloor: number | null;
+  envIntensity: number;
+}
+
 export interface LightingPreviewSettings {
   mode: LightingMode;
   toneMapping: StudioToneMapping;
   screensDormant: boolean;
   keyLightPosition: [number, number, number];
+  emblem: EmblemTuning;
 }
 
 // Pre-2026-07-18 key position. Andrew reported it put a glare on the center
@@ -21,6 +28,39 @@ export function getLightingPreviewSettings(search: string): LightingPreviewSetti
     toneMapping: params.get("tone") === "agx" ? "agx" : "aces",
     screensDormant: params.get("screens") === "dormant",
     keyLightPosition: parseKeyLightParam(params.get("keylight")),
+    emblem: parseEmblemParam(params.get("emblem")),
+  };
+}
+
+// `?emblem=baked` restores the pre-2026-07-19 emblem (mirror-sharp, bezel
+// reflection strength) as a true before/after; `?emblem=0.42` sets just the
+// roughness floor; `?emblem=0.42,2.2` sets floor and env intensity.
+export function parseEmblemParam(raw: string | null): EmblemTuning {
+  const fallback: EmblemTuning = {
+    roughnessFloor: STUDIO_LIGHTING.emblemRoughnessFloor,
+    envIntensity: STUDIO_LIGHTING.materialEnvIntensity.emblem,
+  };
+
+  if (raw === "baked") {
+    return {
+      roughnessFloor: null,
+      envIntensity: STUDIO_LIGHTING.materialEnvIntensity.chrome,
+    };
+  }
+
+  if (!raw) return fallback;
+
+  const [rawFloor, rawEnv] = raw.split(",");
+  const floor = Number(rawFloor);
+  const env = rawEnv === undefined ? fallback.envIntensity : Number(rawEnv);
+
+  if (!Number.isFinite(floor) || !Number.isFinite(env)) return fallback;
+
+  return {
+    // Roughness is a 0..1 material property; clamping keeps a fat-fingered
+    // value from producing an invisible or fully-diffuse emblem.
+    roughnessFloor: Math.min(1, Math.max(0, floor)),
+    envIntensity: Math.max(0, env),
   };
 }
 
@@ -59,12 +99,14 @@ export const STUDIO_LIGHTING = {
     key: {
       color: "#ffffff",
       intensity: 1.35,
-      // 2026-07-18: nudged from LEGACY_KEY_LIGHT_POSITION [0.8, 4.6, 7.5] —
-      // slightly lower and more frontal so the center `@` emblem catches the
-      // key square-on at the rest pose instead of a glancing glare. NEEDS
-      // Andrew's real-browser verdict; revert to the legacy constant if it
-      // reads worse (A/B via `?keylight=legacy`).
-      position: [0.4, 3.8, 7.9] as [number, number, number],
+      // 2026-07-19: back to the approved baseline. The 2026-07-18 nudge to
+      // [0.4, 3.8, 7.9] was aimed at the emblem's "dark glint" and Andrew
+      // reported no visible change — expected in hindsight, since the `@` is a
+      // near-mirror metal driven by env reflections, not by this light (see
+      // medallionMaterialRole.ts). Restoring the baseline removes that
+      // confound so the emblem roughness/env change is the only variable
+      // under test. `?keylight=x,y,z` still free-tunes it.
+      position: [0.8, 4.6, 7.5] as [number, number, number],
     },
   },
   environment: {
@@ -108,7 +150,15 @@ export const STUDIO_LIGHTING = {
   materialEnvIntensity: {
     body: 0.55,
     chrome: 1.25,
+    // 2026-07-19: the `@` reflects harder than the bezels so the softened
+    // (rougher) lobe still reads as bright metal rather than grey. Paired with
+    // EMBLEM_ROUGHNESS_FLOOR in medallionMaterialRole.ts.
+    emblem: 1.9,
     screen: 0.85,
     default: 0.7,
   },
+  // Lives here (not in medallionMaterialRole.ts) so the `?emblem=` parser
+  // below can default from it without a circular import — that module already
+  // imports this one.
+  emblemRoughnessFloor: 0.34,
 };

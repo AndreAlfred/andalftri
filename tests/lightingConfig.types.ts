@@ -17,6 +17,10 @@ type ExpectedPreviewSettings = {
   toneMapping: "agx" | "aces";
   screensDormant: boolean;
   keyLightPosition: [number, number, number];
+  emblem: {
+    roughnessFloor: number | null;
+    envIntensity: number;
+  };
 };
 type LightingModeIsExact = Assert<
   Equal<LightingMode, "legacy" | "studio">

@@ -10,14 +10,16 @@ import {
 } from "@/hud/helmetBoot";
 import { useLemniscate } from "@/hooks/useLemniscate";
 import { useProximityTilt } from "@/hooks/useProximityTilt";
-import type { LightingMode } from "./lightingConfig";
+import type { EmblemTuning, LightingMode } from "./lightingConfig";
 import {
   applyMedallionSurfaceTuning,
   getMedallionEnvMapIntensity,
+  getMedallionMaterialRole,
 } from "./medallionMaterialRole";
 import {
   INFLUENCE_SCREEN_FONT,
   OEUVRE_SCREEN_FONT,
+  parseScreenTextParam,
   ScreenWakeManager,
 } from "./screenWake";
 
@@ -44,6 +46,7 @@ interface MedallionHubProps {
   bootSequenceId: number;
   lightingMode: LightingMode;
   screensDormant: boolean;
+  emblem: EmblemTuning;
   disabled?: boolean;
   opacity?: number;
 }
@@ -58,6 +61,7 @@ export const MedallionHub = memo(function MedallionHub({
   bootSequenceId,
   lightingMode,
   screensDormant,
+  emblem,
   disabled = false,
   opacity = 1,
 }: MedallionHubProps) {
@@ -82,9 +86,13 @@ export const MedallionHub = memo(function MedallionHub({
         const cloned = material.clone();
         if (lightingMode === "studio" && "envMapIntensity" in cloned) {
           (cloned as THREE.MeshStandardMaterial).envMapIntensity =
-            getMedallionEnvMapIntensity(child.name);
+            getMedallionMaterialRole(child.name) === "emblem"
+              ? emblem.envIntensity
+              : getMedallionEnvMapIntensity(child.name);
         }
-        applyMedallionSurfaceTuning(child.name, cloned);
+        applyMedallionSurfaceTuning(child.name, cloned, {
+          emblemRoughnessFloor: emblem.roughnessFloor,
+        });
         return cloned;
       };
       child.material = Array.isArray(child.material)
@@ -107,7 +115,7 @@ export const MedallionHub = memo(function MedallionHub({
         offset: center.multiplyScalar(-1),
       },
     };
-  }, [scene, lightingMode]);
+  }, [scene, lightingMode, emblem]);
 
   useEffect(() => {
     clonedScene.traverse((child) => {
@@ -128,7 +136,17 @@ export const MedallionHub = memo(function MedallionHub({
 
   // CRT wake states (Task 29/2026-07-11): canvas emissiveMaps per screen;
   // boot cascade lights them at load, hover lifts brightness (see screenWake).
-  const wake = useMemo(() => new ScreenWakeManager(), []);
+  const wake = useMemo(
+    () =>
+      new ScreenWakeManager(
+        parseScreenTextParam(
+          typeof window === "undefined"
+            ? null
+            : new URLSearchParams(window.location.search).get("screentext"),
+        ),
+      ),
+    [],
+  );
   useEffect(() => {
     for (let sec = 1; sec <= 7; sec += 1) {
       const screens = (sectionMeshes[sec] ?? []).filter((m) =>

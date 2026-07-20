@@ -8,7 +8,7 @@ import {
   useScrollInteraction,
   useScrollInteractionStore,
 } from "@/hooks/useScrollInteraction";
-import type { LightingMode } from "./lightingConfig";
+import type { EmblemTuning, LightingMode } from "./lightingConfig";
 import { MenuButton } from "./MenuButton";
 import { LogoModel } from "./LogoModel";
 import { MedallionHub } from "./MedallionHub";
@@ -18,6 +18,7 @@ interface MenuHubProps {
   bootSequenceId: number;
   lightingMode: LightingMode;
   screensDormant: boolean;
+  emblem: EmblemTuning;
 }
 
 export function MenuHub({
@@ -25,6 +26,7 @@ export function MenuHub({
   bootSequenceId,
   lightingMode,
   screensDormant,
+  emblem,
 }: MenuHubProps) {
   const groupRef = useRef<THREE.Group>(null);
   const visualRef = useRef<THREE.Group>(null);
@@ -92,6 +94,7 @@ export function MenuHub({
             bootSequenceId={bootSequenceId}
             lightingMode={lightingMode}
             screensDormant={screensDormant}
+            emblem={emblem}
             disabled={!canInteract}
             opacity={hubVisibility}
           />

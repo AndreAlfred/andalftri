@@ -12,6 +12,10 @@ test("Studio ACES is the default after visual approval", () => {
     toneMapping: "aces",
     screensDormant: false,
     keyLightPosition: STUDIO_LIGHTING.direct.key.position,
+    emblem: {
+      roughnessFloor: STUDIO_LIGHTING.emblemRoughnessFloor,
+      envIntensity: STUDIO_LIGHTING.materialEnvIntensity.emblem,
+    },
   });
   assert.equal(getLightingPreviewSettings("?lighting=legacy").mode, "legacy");
   assert.equal(getLightingPreviewSettings("?lighting=studio").mode, "studio");
@@ -23,8 +27,10 @@ test("Studio ACES is the default after visual approval", () => {
 });
 
 test("the keylight param supports legacy A/B and free x,y,z tuning", () => {
-  // Default is the 2026-07-18 nudge, not the legacy position.
-  assert.notDeepEqual(STUDIO_LIGHTING.direct.key.position, LEGACY_KEY_LIGHT_POSITION);
+  // 2026-07-19: back on the approved baseline. Two attempts at fixing the
+  // emblem glint by moving this light produced no visible change, because the
+  // emblem is reflection-driven, not key-driven (medallionMaterialRole.ts).
+  assert.deepEqual(STUDIO_LIGHTING.direct.key.position, LEGACY_KEY_LIGHT_POSITION);
   assert.deepEqual(
     getLightingPreviewSettings("?keylight=legacy").keyLightPosition,
     LEGACY_KEY_LIGHT_POSITION,
@@ -41,6 +47,31 @@ test("the keylight param supports legacy A/B and free x,y,z tuning", () => {
   assert.deepEqual(
     getLightingPreviewSettings("?keylight=1,2").keyLightPosition,
     STUDIO_LIGHTING.direct.key.position,
+  );
+});
+
+test("the emblem param gives a one-reload before/after", () => {
+  // `baked` must reproduce the pre-2026-07-19 emblem exactly: untouched
+  // roughness (the mirror) at the bezels' reflection strength.
+  assert.deepEqual(getLightingPreviewSettings("?emblem=baked").emblem, {
+    roughnessFloor: null,
+    envIntensity: STUDIO_LIGHTING.materialEnvIntensity.chrome,
+  });
+  assert.deepEqual(getLightingPreviewSettings("?emblem=0.42").emblem, {
+    roughnessFloor: 0.42,
+    envIntensity: STUDIO_LIGHTING.materialEnvIntensity.emblem,
+  });
+  assert.deepEqual(getLightingPreviewSettings("?emblem=0.42,2.2").emblem, {
+    roughnessFloor: 0.42,
+    envIntensity: 2.2,
+  });
+  // Roughness is a 0..1 property; a fat-fingered value clamps rather than
+  // producing an invisible emblem.
+  assert.equal(getLightingPreviewSettings("?emblem=5").emblem.roughnessFloor, 1);
+  assert.equal(getLightingPreviewSettings("?emblem=-5").emblem.roughnessFloor, 0);
+  assert.deepEqual(
+    getLightingPreviewSettings("?emblem=nonsense").emblem.roughnessFloor,
+    STUDIO_LIGHTING.emblemRoughnessFloor,
   );
 });
 

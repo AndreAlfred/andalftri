@@ -1,7 +1,6 @@
 import { useFrame } from "@react-three/fiber";
 import type { RefObject } from "react";
 import * as THREE from "three";
-import { useScrollInteractionStore } from "@/hooks/useScrollInteraction";
 
 interface LemniscateOptions {
   yAmplitude?: number;
@@ -24,11 +23,16 @@ export function useLemniscate(
   const yAmp = THREE.MathUtils.degToRad(yAmplitude);
   const xAmp = THREE.MathUtils.degToRad(xAmplitude);
 
+  // 2026-07-19 (Andrew): scroll no longer couples into this rotation. The old
+  // phaseNudge/speedBoost injection jerked the drift phase on every wheel tick
+  // — and the sin(2t) pitch term doubled each jump — which read as the
+  // artifact "wiggling" under scroll. Scroll feedback is now only the vertical
+  // camera tilt (CameraController); the lemniscate stays a calm ambient drift
+  // on its own clock.
   useFrame(({ clock }) => {
     if (!ref.current) return;
 
-    const { phaseNudge, speedBoost } = useScrollInteractionStore.getState();
-    const t = clock.getElapsedTime() * (speed + speedBoost) + phaseOffset + phaseNudge;
+    const t = clock.getElapsedTime() * speed + phaseOffset;
     ref.current.rotation.y = yAmp * Math.sin(t);
     ref.current.rotation.x = xAmp * Math.sin(t * 2);
   });

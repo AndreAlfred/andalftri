@@ -31,14 +31,47 @@ const SAFE_BOXES: Record<number, { u0: number; v0: number; u1: number; v1: numbe
 const DEFAULT_BOX = { u0: 0.25, v0: 0.3, u1: 0.75, v1: 0.7 };
 
 // Per-section vertical bias for the text block, as a fraction of the safe-box
-// height. Negative = up (canvas v grows down). Applied on top of centering and
-// clamped in drawText so the block never leaves the safe box (the box is the
-// aperture-inscribed rectangle — outside it the chrome clips glyphs).
-// 2026-07-19: section 3's inscribed box sits low in its aperture, so
-// "See Canto" read visibly low on the tube (Andrew's call to move it up).
+// height. Negative = up (canvas v grows down).
+//
+// 2026-07-19, second pass. The first attempt (-0.16, clamped to the leftover
+// headroom INSIDE the box) moved "See Canto" by 11.8px on a 256px canvas —
+// 4.6%, which Andrew correctly read as "same height as before". The clamp was
+// the limiter, and it could never have been enough: section 3's safe box is
+// only 73.6px tall and its own center sits at v=0.5625, i.e. 6% BELOW canvas
+// center. The box is low, so no bias bounded by the box can raise the label.
+//
+// So the bias now moves the block ABOVE the box, and pays for the height in
+// width: TEXT_WIDTH_TRADE shrinks the wrapping width in proportion to |bias|.
+// That is the real geometric constraint — the safe box is the largest
+// rectangle inscribed in an irregular aperture, so the aperture narrows as you
+// travel away from the box, and only narrower text can follow it up. The only
+// hard bound left is the canvas itself (drawText); anything that overshoots
+// the aperture hides under the chrome rather than corrupting the render, and
+// `?screentext=` below exists so that verdict costs one reload, not a session.
 const TEXT_V_BIAS: Record<number, number> = {
-  3: -0.16,
+  3: -0.42,
 };
+const TEXT_WIDTH_TRADE = 0.5;
+
+/**
+ * `?screentext=3:-0.55` overrides one section's bias; `3:-0.55,5:0.1` several.
+ * Unparseable entries are skipped rather than throwing — a typo in a preview
+ * URL should not blank the medallion.
+ */
+export function parseScreenTextParam(raw: string | null): Record<number, number> {
+  if (!raw) return {};
+
+  const out: Record<number, number> = {};
+  raw.split(",").forEach((entry) => {
+    const [rawSection, rawBias] = entry.split(":");
+    const section = Number(rawSection);
+    const bias = Number(rawBias);
+    if (!Number.isInteger(section) || section < 1 || section > 7) return;
+    if (!Number.isFinite(bias)) return;
+    out[section] = Math.min(1, Math.max(-1, bias));
+  });
+  return out;
+}
 
 const SIZE = 256;
 // blink-on sub-phase boundaries (seconds within the "blink" phase)
@@ -110,6 +143,7 @@ function fitTextToBox(
   label: string,
   box: { w: number; h: number },
   fontStack: string,
+  widthLimit = box.w,
 ): TextLayout {
   const words = label.split(" ");
   for (let fontSize = 46; fontSize >= 14; fontSize -= 2) {
@@ -120,7 +154,7 @@ function fitTextToBox(
     let widest = 0;
     for (const w of words) {
       const cand = line ? `${line} ${w}` : w;
-      if (ctx.measureText(cand).width <= box.w || !line) {
+      if (ctx.measureText(cand).width <= widthLimit || !line) {
         line = cand;
       } else {
         widest = Math.max(widest, ctx.measureText(line).width);
@@ -133,7 +167,7 @@ function fitTextToBox(
       lines.push(line);
     }
     const lineHeight = fontSize * 1.14;
-    if (widest <= box.w && lines.length * lineHeight <= box.h) {
+    if (widest <= widthLimit && lines.length * lineHeight <= box.h) {
       return { lines, fontSize, font };
     }
   }
@@ -165,7 +199,12 @@ function drawText(s: SectionWake, dim: number) {
     ctx.fill();
     return;
   }
-  if (!s.layout) s.layout = fitTextToBox(ctx, s.label, box, s.fontStack);
+  if (!s.layout) {
+    // Height is bought with width (see TEXT_V_BIAS): the further the block
+    // travels from the box, the narrower the aperture it has to fit through.
+    const widthLimit = box.w * (1 - TEXT_WIDTH_TRADE * Math.abs(s.vBias));
+    s.layout = fitTextToBox(ctx, s.label, box, s.fontStack, widthLimit);
+  }
   const { lines, fontSize, font } = s.layout;
   ctx.font = font;
   ctx.textAlign = "center";
@@ -173,12 +212,20 @@ function drawText(s: SectionWake, dim: number) {
   ctx.lineJoin = "round";
   const lineHeight = fontSize * 1.14;
   const cxp = box.x + box.w / 2;
-  // Bias shifts the whole block off center, clamped to the headroom left
-  // after the block's own height so no line exits the safe box.
+  // Bias shifts the whole block off the box center. The old clamp to the
+  // box's leftover headroom is deliberately gone — it capped section 3 at
+  // 4.6% of the canvas and made the label look unmoved. The remaining clamp
+  // is the canvas edge, so a large bias can push text under the chrome
+  // (visible, correctable via `?screentext=`) but never off the texture.
   const blockHeight = lines.length * lineHeight;
-  const headroom = Math.max(0, (box.h - blockHeight) / 2);
-  const shift = THREE.MathUtils.clamp(s.vBias * box.h, -headroom, headroom);
-  const y0 = box.y + box.h / 2 + shift - ((lines.length - 1) * lineHeight) / 2;
+  const centered = box.y + box.h / 2 + s.vBias * box.h;
+  const halfBlock = blockHeight / 2;
+  const clampedCenter = THREE.MathUtils.clamp(
+    centered,
+    halfBlock + 2,
+    SIZE - halfBlock - 2,
+  );
+  const y0 = clampedCenter - ((lines.length - 1) * lineHeight) / 2;
   lines.forEach((ln, i) => {
     const y = y0 + i * lineHeight;
     ctx.lineWidth = Math.max(6, fontSize * 0.22);
@@ -219,6 +266,11 @@ function drawBlinkLine(ctx: CanvasRenderingContext2D, spread: number, seed: numb
 
 export class ScreenWakeManager {
   private sections = new Map<number, SectionWake>();
+  private biasOverrides: Record<number, number>;
+
+  constructor(biasOverrides: Record<number, number> = {}) {
+    this.biasOverrides = biasOverrides;
+  }
 
   attach(
     section: number,
@@ -254,7 +306,7 @@ export class ScreenWakeManager {
       materials,
       label,
       fontStack,
-      vBias: TEXT_V_BIAS[section] ?? 0,
+      vBias: this.biasOverrides[section] ?? TEXT_V_BIAS[section] ?? 0,
       box: {
         x: b.u0 * SIZE,
         y: b.v0 * SIZE,

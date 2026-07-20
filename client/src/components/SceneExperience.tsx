@@ -202,6 +202,7 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
           bootSequenceId={bootSequenceId}
           lightingMode={lightingSettings.mode}
           screensDormant={lightingSettings.screensDormant}
+          emblem={lightingSettings.emblem}
         />
         {pagePanels.map(({ page, project, influence, isShowcase, isMusic }) => (
           <ContentPanel
