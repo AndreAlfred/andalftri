@@ -47,9 +47,15 @@ export const QUALITY_PROFILES: Record<QualityTier, QualityProfile> = {
   // The degradation order Andrew approved: streaks first, then sparks, then
   // DPR, then stars. The artifact itself is never touched by this table — no
   // tier here decimates, swaps, or softens the medallion.
-  low: { dpr: 0.75, starCount: 900, sparkCount: 0, streakCount: 0, grainHz: 12 },
-  medium: { dpr: 1, starCount: 2200, sparkCount: 24, streakCount: 1, grainHz: 20 },
-  high: { dpr: 1.5, starCount: 3600, sparkCount: 48, streakCount: 2, grainHz: 30 },
+  //
+  // 2026-07-21 review: counts raised across the board (Andrew asked for more
+  // magic), and critically NO tier is allowed to reach zero any more. The
+  // original table zeroed sparks and streaks at `low`, which meant a machine
+  // that dipped once lost the atmosphere permanently and silently. Thinning is
+  // the goal; switching a layer off is a different, worse thing.
+  low: { dpr: 0.75, starCount: 1400, sparkCount: 20, streakCount: 1, grainHz: 12 },
+  medium: { dpr: 1, starCount: 2600, sparkCount: 44, streakCount: 2, grainHz: 20 },
+  high: { dpr: 1.5, starCount: 3600, sparkCount: 72, streakCount: 3, grainHz: 30 },
 };
 
 export interface PreviewFlags {

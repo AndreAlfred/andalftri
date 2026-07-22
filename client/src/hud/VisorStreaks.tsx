@@ -21,9 +21,14 @@ import { buildStreakPath, cubicAt, type Streak } from "@/hud/visorStreakPath";
  */
 
 const NEON = ["#4ef0ff", "#ff6ae4", "#8dffa8", "#ffd25e", "#b98cff"];
-/** Seconds between spawn attempts. Sparse is the whole point. */
-const SPAWN_MIN = 7;
-const SPAWN_MAX = 19;
+/**
+ * Seconds between spawn attempts. Sparse is still the point — these should read
+ * as something you caught out of the corner of your eye — but 7-19s meant a
+ * visitor could easily watch the hub for half a minute and see nothing at all,
+ * which is what Andrew hit. Shortened 2026-07-21.
+ */
+const SPAWN_MIN = 3.5;
+const SPAWN_MAX = 11;
 const DRAW_SEGMENTS = 48;
 
 interface VisorStreaksProps {

@@ -1,5 +1,5 @@
 import { useFrame } from "@react-three/fiber";
-import { memo, useMemo, useRef } from "react";
+import { memo, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
 /**
@@ -23,10 +23,33 @@ import * as THREE from "three";
  */
 
 const TAIL_POINTS = 8;
+
+/**
+ * 2026-07-21 review: Andrew saw magic on load and then "haven't seen any magic
+ * since". Two causes, both fixed here.
+ *
+ * 1. The buffer was rebuilt when the quality tier changed `count`, which reset
+ *    every spark's phase (and at the low tier removed them entirely). Same bug
+ *    as the starfield's jarring cut — the tier now drives `setDrawRange` and
+ *    never touches the buffer.
+ * 2. The sparks were genuinely too rare ON SCREEN. The shell reached out to 22
+ *    units in every direction, but the camera only ever sees a cone of it, so
+ *    most live sparks were firing behind the viewer. Expected simultaneously
+ *    visible sparks was around one. A tighter shell puts a much larger fraction
+ *    of them inside the frustum without adding a single vertex, and a longer
+ *    duty cycle means more of them are awake at any moment.
+ *
+ * The shell stays spherical rather than being aimed at the camera because the
+ * camera flies to fixed page targets all around the hub — a view-aligned volume
+ * would be correct at the hub and wrong everywhere else.
+ */
 const SHELL_INNER = 6;
-const SHELL_OUTER = 22;
-/** Fraction of its period a spark is actually alive. Low = rare. */
-const DUTY = 0.13;
+const SHELL_OUTER = 16;
+/** Fraction of its period a spark is actually alive. */
+const DUTY = 0.2;
+
+/** Buffer is always built at this size; the tier varies the draw range. */
+const MAX_SPARKS = 72;
 
 // Fluorescent, deliberately saturated — these are the only saturated things in
 // the void, which is what makes them read as events.
@@ -129,7 +152,10 @@ function buildGeometry(count: number) {
     color.set(NEON[Math.floor(Math.random() * NEON.length)]);
     // Spread the periods widely and never share one. A common period would
     // have every spark fire in lockstep, which reads as a machine, not magic.
-    const period = 7 + Math.random() * 26;
+    // Shortened from 7-33s at Andrew's request for more frequent magic; the
+    // spread matters more than the absolute values, since it is what stops the
+    // field resynchronising into a visible pulse.
+    const period = 5 + Math.random() * 17;
     const offset = Math.random() * period;
     const size = 2.2 + Math.random() * 3.6;
     const travel = 2.5 + Math.random() * 7;
@@ -174,7 +200,9 @@ function buildGeometry(count: number) {
 
 export const Sparks = memo(function Sparks({ count, reducedMotion = false }: SparksProps) {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
-  const geometry = useMemo(() => buildGeometry(count), [count]);
+  // Built once at full size. The tier never reaches this call — rebuilding here
+  // is what reset every spark's phase when the quality stepped down.
+  const geometry = useMemo(() => buildGeometry(MAX_SPARKS), []);
 
   const uniforms = useMemo(
     () => ({
@@ -185,16 +213,22 @@ export const Sparks = memo(function Sparks({ count, reducedMotion = false }: Spa
     [],
   );
 
+  useEffect(() => {
+    const visible = reducedMotion ? 0 : Math.min(Math.max(count, 0), MAX_SPARKS);
+    geometry.setDrawRange(0, visible * TAIL_POINTS);
+  }, [geometry, count, reducedMotion]);
+
+  useEffect(() => () => geometry.dispose(), [geometry]);
+
   useFrame((_, delta) => {
     if (!materialRef.current) return;
     materialRef.current.uniforms.uTime.value += delta;
   });
 
-  // Streaks of light darting across the periphery are exactly what reduced
-  // motion is asking to be spared, so this layer goes away entirely rather
-  // than slowing down. It is decoration; the field is composition.
-  if (count <= 0 || reducedMotion) return null;
-
+  // Reduced motion and the count are both handled by the draw range above
+  // rather than by unmounting: darting streaks of light are exactly what
+  // reduced motion asks to be spared, but tearing the object down would mean a
+  // machine that recovered could never get its sparks back.
   return (
     <points geometry={geometry} frustumCulled={false}>
       <shaderMaterial

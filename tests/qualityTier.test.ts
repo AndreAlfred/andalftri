@@ -83,13 +83,26 @@ test("the degradation order thins the atmosphere before anything else", () => {
   const high = profileFor("high");
 
   // Andrew's approved order: streaks -> sparks -> dpr -> stars, artifact never.
-  assert.equal(low.streakCount, 0, "streaks go first");
-  assert.equal(low.sparkCount, 0, "sparks go second");
-  assert.ok(low.starCount > 0, "the field survives every tier — it is composition");
-
   for (const key of ["dpr", "starCount", "sparkCount", "streakCount", "grainHz"] as const) {
     assert.ok(low[key] <= medium[key], `${key} must not rise as quality drops`);
     assert.ok(medium[key] <= high[key], `${key} must not rise as quality drops`);
+  }
+
+  // Streaks and sparks must thin FASTER than the field, which is composition
+  // rather than decoration and survives intact at every tier.
+  assert.ok(low.streakCount / high.streakCount <= low.starCount / high.starCount);
+  assert.ok(low.sparkCount / high.sparkCount <= low.starCount / high.starCount);
+});
+
+test("no tier switches a layer off entirely", () => {
+  // Regression guard, 2026-07-21: `low` originally zeroed sparks and streaks,
+  // so a machine that dipped once lost the magic permanently and silently.
+  // Andrew reported exactly that symptom ("haven't seen any magic since").
+  for (const tier of QUALITY_TIERS) {
+    const profile = profileFor(tier);
+    for (const key of ["starCount", "sparkCount", "streakCount", "grainHz", "dpr"] as const) {
+      assert.ok(profile[key] > 0, `${tier}.${key} must stay above zero`);
+    }
   }
 });
 

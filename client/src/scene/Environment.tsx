@@ -33,7 +33,9 @@ export const Environment = memo(function Environment({
           A studio floor and deep space are different fictions, and the grid was
           the last thing anchoring the artifact to a room rather than a void.
           `STUDIO_LIGHTING.grid` is kept in the config as history for now. */}
-      <Starfield count={starCount} reducedMotion={reducedMotion} />
+      {/* The field has no animation at all now (stars are opaque and static),
+          so reduced motion has nothing to suppress here. */}
+      <Starfield count={starCount} />
       <Sparks count={sparkCount} reducedMotion={reducedMotion} />
       {studio ? (
         <ArtifactLighting keyLightPosition={keyLightPosition} />

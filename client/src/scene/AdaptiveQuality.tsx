@@ -54,7 +54,10 @@ export function AdaptiveQuality({ pinnedTier }: AdaptiveQualityProps) {
       factor={1}
       step={0.15}
       flipflops={3}
-      onChange={({ factor }) => applyDpr(dprForFactor(factor, profileFor("high").dpr))}
+      onChange={({ factor }) => {
+        useQualityStore.getState().setFactor(factor);
+        applyDpr(dprForFactor(factor, profileFor("high").dpr));
+      }}
       onFallback={() => applyTier("low")}
     />
   );

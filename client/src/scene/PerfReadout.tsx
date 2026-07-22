@@ -30,12 +30,12 @@ export function PerfProbe() {
     const node = document.getElementById(READOUT_ID);
     if (node) {
       const fps = frames.current / elapsed.current;
-      const { tier, dpr, pinned } = useQualityStore.getState();
+      const { tier, dpr, pinned, factor } = useQualityStore.getState();
       const { calls, triangles } = gl.info.render;
       node.textContent = [
         `${fps.toFixed(0).padStart(3, " ")} fps`,
         `dpr ${dpr.toFixed(2)}`,
-        `${tier}${pinned ? " (pinned)" : ""}`,
+        `${tier}${pinned ? " (pinned)" : ` ${factor.toFixed(2)}`}`,
         `${calls} calls`,
         `${(triangles / 1000).toFixed(0)}k tris`,
       ].join("  //  ");
