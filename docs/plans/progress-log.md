@@ -179,3 +179,47 @@ runs the DOM and compiles shaders but never advances the WebGL frame loop (the
 canvas stays at its default 300x150). Shader compilation, route behaviour, the
 lite fallback and the console are verified; star density, spark rarity, streak
 frequency and the medallion against a starfield instead of a grid are not.
+
+### 2026-07-21 addendum -- Andrew's first review of the magic space
+
+Two findings, one of them a bug this session introduced.
+
+**Stars read as bokeh.** Andrew: "stars don't change opacity, they are opaque."
+He was right, and for the exact reason he named -- a large soft point with
+animated alpha is the definition of a defocused highlight. Real stars
+scintillate through atmosphere; there is none in space, so removing the twinkle
+was both the honest choice and the cheap one. Three things caused the read and
+all three changed: the alpha pulse is gone, `gl_PointSize` is clamped so a near
+star cannot bloom into a disc, and the falloff is tight so a point is a hard dot
+with one antialiased pixel. The field now has zero per-frame work -- not even a
+uniform to update.
+
+**The sky "cut" to a new distribution ~15s in.** Self-inflicted. The adaptive
+tier stepped down, which changed `starCount`, which was a `useMemo` dependency,
+which regenerated every position from `Math.random()`. An entirely new sky in
+one frame.
+
+The lesson worth keeping: **never tie a procedural seed to a quality
+parameter.** Both the starfield and the sparks now build once at max size and
+let the tier drive `setDrawRange`. Because positions are generated
+independently, a prefix of the buffer is already a uniform random subset, so
+thinning removes stars without moving the ones that remain.
+
+The same rebuild reset every spark's phase, and `low` zeroed sparks and streaks
+outright -- so a machine that dipped once lost the atmosphere permanently and
+silently. That is why Andrew saw magic on load and none afterwards. **No tier
+switches a layer off any more**; thinning is the goal, and a zero is a different
+and worse thing. Guarded by a test.
+
+Magic frequency raised at Andrew's request. The largest single win was not a
+count: the spark shell reached 22 units in every direction while the camera only
+ever sees a cone of it, so most live sparks were firing behind the viewer.
+Tightening the shell to 16 put far more of them on screen without adding a
+vertex.
+
+`?perf=1` now also reports the monitor's raw health factor, so a tier change is
+diagnosable instead of mysterious.
+
+Still needs Andrew's eyes: the sandbox compiles shaders and drives the DOM but
+never advances the WebGL frame loop, so star density, the new opaque dot, spark
+rarity and streak frequency are all unverified visually.
