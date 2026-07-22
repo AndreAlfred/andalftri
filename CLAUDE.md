@@ -40,6 +40,9 @@ to stack indiscriminately. Avoid modern corporate minimalism.
   exposure `1`.
 - Pixel-level WebGL judgment requires Andrew's real browser. Automated/in-app capture
   can verify loading, DOM, routes, console, and builds but not final 3D appearance.
+  The sandbox does have a working WebGL2 *context* — what it lacks is an advancing
+  frame loop — so hand-written shaders can and should be compile-checked headlessly
+  before pushing (see `lessons.md` entry A for how).
 
 ## Current product decisions
 
@@ -73,7 +76,8 @@ Before changing the project, reconcile sources in this order:
    `docs/plans/progress-log.md`.
 4. Feature contracts such as `docs/medallion-glb-notes.md` and focused session docs
    such as `docs/plans/lighting-session.md`.
-5. `lessons.md` for transferable failure history.
+5. `lessons.md` for transferable failure history — read it before acting, and treat a
+   relevant entry as binding unless a dated decision above supersedes it.
 6. `docs/plans/website-build-spec.md` for original intent only; it is historically
    useful but predates the medallion and helmet direction.
 
@@ -99,7 +103,8 @@ for the black-glass diagnostic.
 ## Required workflow
 
 1. Read the relevant current docs and inspect `git status` before editing. Preserve
-   unrelated user changes.
+   unrelated user changes. **Read `lessons.md` first** — it is short by design and
+   exists to stop you repeating a wrong turn someone already paid for.
 2. Keep changes scoped and reversible. Do not edit the GLB binary by hand; geometry
    and source-material changes belong in the Blender medallion project.
 3. For visual work, capture a deterministic baseline and compare the same camera/state
@@ -114,7 +119,13 @@ git push
 ```
 
 6. Tell Andrew that the live site should update in roughly 30 seconds. Update planning
-   logs only when the task calls for it; do not add repetitive blocker noise.
+   logs only when the task calls for it; do not add repetitive blocker noise. **A
+   blocked task is a routing problem, not a stopping problem** — if the next queued
+   item is gated, move to the next unblocked one and say so, rather than logging the
+   same blocker again. (Promoted from `lessons.md` entry C, 2026-07-21.)
+7. **Curate `lessons.md` before the session ends** — append what was learned, rewrite
+   entries the session disproved, delete what went stale, and promote anything now
+   permanent up into this file. See below. This is a required step, not a courtesy.
 
 ## Stack
 
@@ -164,6 +175,10 @@ aperture change also requires regenerating the per-screen safe boxes used by
 - No Google Analytics. Use Plausible or Vercel Analytics if analytics are introduced.
 - Do not add major dependencies or expensive postprocessing without checking bundle
   and real-device performance.
+- Any pointer-interactive GLB beyond a few thousand triangles is wrapped in Drei's
+  `<Bvh firstHitOnly>` from the start. three.js raycasts brute-force per triangle on
+  every `pointermove`; the medallion is ~349k tris. (Promoted from `lessons.md` entry
+  B, 2026-07-21 — held since 2026-07-10.)
 
 ## Working philosophy from lessons.md
 
@@ -179,5 +194,53 @@ aperture change also requires regenerating the per-screen safe boxes used by
   that roughness values hide; diagnose those before compensating with lighting.
 - **Visual work needs human signoff.** Do not call lighting, motion, composition, or
   world-building complete without Andrew reviewing a real-browser render.
-- Append genuinely transferable wrong turns to `lessons.md`; promote recurring rules
-  here and prune repetitive/stale entries.
+- Keep `lessons.md` current — see the section below, which is a required part of every
+  session rather than an optional flourish.
+
+## Lessons discipline
+
+`lessons.md` is a living document, not an archive. **Expect to write to it several
+times in a session** — when a wrong turn is diagnosed, when an assumption is
+disproved, when a fix reveals why the first attempt failed. Writing it once at the
+end, from memory, produces vague entries; writing it at the moment of the discovery
+produces useful ones. Reach for it mid-session.
+
+**Read it first.** Before editing, before proposing, before deciding an approach. Its
+whole value is stopping you from re-paying a cost someone already paid.
+
+**What earns an entry.** Only transferable things: a wrong turn, a near-miss, a
+disproved assumption, or a surprising constraint. The lesson has to be usable by a
+future session working on something *else*. Not "task N is done", not a changelog of
+what shipped — that belongs in `docs/plans/progress-log.md`. If the entry could not
+change a future decision, it does not belong here.
+
+Each entry: date, what happened, root cause, and the lesson stated as a rule.
+
+**The four operations, all expected regularly:**
+
+- **Append** — a new wrong turn, written when it happens.
+- **Rewrite** — when a later session proves an entry was wrong, incomplete, or
+  overstated, edit the entry rather than adding a contradicting one. Two entries that
+  disagree are worse than none, because the reader cannot tell which is current.
+  Entry A's 2026-07-21 refinement is the model: the original claim was too pessimistic,
+  so it gained a correction in place.
+- **Prune** — delete entries that have gone stale: the code they describe is gone, the
+  library changed, the trap is now structurally impossible. A long lessons file stops
+  being read, and an unread lessons file has no value. Prefer a short, true file.
+- **Promote** — when a lesson has held across several sessions, or is really a standing
+  rule rather than a war story, move it into this file (usually **Working philosophy**
+  or **Hard constraints**) and delete it from `lessons.md`. Promotion is the goal;
+  `lessons.md` is the proving ground, `CLAUDE.md` is what graduated.
+
+**Where things go, when it is ambiguous:**
+
+| Content | File |
+|---|---|
+| A transferable wrong turn or disproved assumption | `lessons.md` |
+| A rule that now always applies | `CLAUDE.md` |
+| What happened this session, what shipped, what is deferred | `docs/plans/progress-log.md` |
+| Queue and task status | `docs/plans/master-build-plan.md` |
+| Andrew's dated direction | `docs/plans/feedback.md` |
+
+The failure mode to avoid is a lessons file that only grows. If a session appends
+without ever rewriting, pruning, or promoting, the curation step was skipped.
