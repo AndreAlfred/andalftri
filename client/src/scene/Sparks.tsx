@@ -1,59 +1,41 @@
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { memo, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import {
+  buildSparkBuffers,
+  DUTY,
+  FAR_RADIUS,
+  MAX_SPARKS,
+  TAIL_POINTS,
+} from "./sparkGeometry";
 
 /**
- * Near-field neon sparks (2026-07-21, Andrew's "magic space").
+ * Near-field neon sparks — the rare, coloured half of Andrew's "magic space".
  *
- * The rare, coloured half of the brief: fluorescent sparks with trails that
- * appear sparsely and randomly at close range, with real depth variation. The
- * starfield stays near-white precisely so these can carry all the colour — an
- * event, not a colour scheme.
+ * The generator (`sparkGeometry.ts`) owns the depth, speed, size and grouping
+ * rules and their reasoning. This file owns the GPU side: the life cycle, the
+ * screen-space size cap, and the look of the head.
  *
- * COST: one draw call, zero per-frame CPU. There is no spawner. Each spark's
+ * COST: one draw call, zero per-frame CPU. There is no spawner — each spark's
  * whole life cycle is a `fract()` of `uTime` against its own period, so the
- * "random appearance" is the shader reading pre-baked per-spark constants. A
- * CPU spawner would have re-uploaded a buffer on every spawn; this never
- * touches the buffer after construction.
- *
- * Apparent randomness comes from mutually-incommensurable periods rather than
- * from an RNG: with periods spread over an irrational-ish range, the sparks
- * never resynchronise into a visible pattern, which is what a shared period
- * would do within seconds.
+ * "random appearance" is the shader reading pre-baked constants. Nothing writes
+ * to the buffer after construction, which is also what stops a quality-tier
+ * change from resetting every spark's phase (see the starfield's `MAX_STARS`
+ * note — same lesson, same fix: never tie a procedural seed to a quality knob).
  */
-
-const TAIL_POINTS = 8;
 
 /**
- * 2026-07-21 review: Andrew saw magic on load and then "haven't seen any magic
- * since". Two causes, both fixed here.
+ * Hard ceiling on a spark's rendered diameter, as a fraction of viewport
+ * height.
  *
- * 1. The buffer was rebuilt when the quality tier changed `count`, which reset
- *    every spark's phase (and at the low tier removed them entirely). Same bug
- *    as the starfield's jarring cut — the tier now drives `setDrawRange` and
- *    never touches the buffer.
- * 2. The sparks were genuinely too rare ON SCREEN. The shell reached out to 22
- *    units in every direction, but the camera only ever sees a cone of it, so
- *    most live sparks were firing behind the viewer. Expected simultaneously
- *    visible sparks was around one. A tighter shell puts a much larger fraction
- *    of them inside the frustum without adding a single vertex, and a longer
- *    duty cycle means more of them are awake at any moment.
- *
- * The shell stays spherical rather than being aimed at the camera because the
- * camera flies to fixed page targets all around the hub — a view-aligned volume
- * would be correct at the hub and wrong everywhere else.
+ * Andrew: "none of them should be as large as even the 'contact' screen." A
+ * medallion section subtends roughly 15% of viewport height, so 3.5% leaves a
+ * wide margin and still allows a near spark to read as genuinely closer. This
+ * is expressed against the viewport rather than in pixels so the rule holds on
+ * any window size — the previous version had no ceiling at all and a near spark
+ * could project to ~500px.
  */
-const SHELL_INNER = 6;
-const SHELL_OUTER = 16;
-/** Fraction of its period a spark is actually alive. */
-const DUTY = 0.2;
-
-/** Buffer is always built at this size; the tier varies the draw range. */
-const MAX_SPARKS = 72;
-
-// Fluorescent, deliberately saturated — these are the only saturated things in
-// the void, which is what makes them read as events.
-const NEON = ["#3ef0ff", "#ff5ae0", "#7cff9a", "#ffc94a", "#b07bff"];
+const MAX_SIZE_VIEWPORT_FRACTION = 0.035;
 
 interface SparksProps {
   count: number;
@@ -73,6 +55,7 @@ const VERTEX = /* glsl */ `
   uniform float uTime;
   uniform float uPixelRatio;
   uniform float uDuty;
+  uniform float uMaxSize;
 
   varying vec3 vColor;
   varying float vAlpha;
@@ -98,7 +81,13 @@ const VERTEX = /* glsl */ `
 
     vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
     gl_Position = projectionMatrix * mvPosition;
-    gl_PointSize = aSize * tailFade * uPixelRatio * (260.0 / max(-mvPosition.z, 0.001));
+
+    // Perspective sizing is kept here — unlike the stars, these ARE nearby
+    // objects with a real size, so a closer one genuinely should look bigger.
+    // But it is capped: uncapped, this term is what turned near sparks into the
+    // coloured blobs Andrew reported.
+    float projected = aSize * uPixelRatio * (150.0 / max(-mvPosition.z, 0.001));
+    gl_PointSize = min(projected, uMaxSize) * tailFade;
   }
 `;
 
@@ -109,109 +98,69 @@ const FRAGMENT = /* glsl */ `
   void main() {
     if (vAlpha <= 0.001) discard;
     vec2 d = gl_PointCoord - vec2(0.5);
-    float r = dot(d, d);
-    if (r > 0.25) discard;
-    // Hot core, soft halo — additive blending turns the overlap into the
-    // fluorescent bloom Andrew asked for without any postprocessing pass.
-    float core = smoothstep(0.25, 0.0, r);
-    float glow = smoothstep(0.25, 0.02, r);
-    float alpha = (core * 0.55 + glow * 0.65) * vAlpha;
-    gl_FragColor = vec4(vColor * alpha, alpha);
+    float r = length(d);
+    if (r > 0.5) discard;
+
+    // WHITE-HOT CORE, COLOURED HALO. Andrew: "the glowing head looks a little
+    // strange on some of the colours." It did, and the reason is that the head
+    // was tinted at full saturation and then additively blended, so a saturated
+    // hue clipped one or two channels and went muddy while the others blew out.
+    // Real incandescence desaturates toward white as it gets hotter, so pushing
+    // the core to white is both the physical answer and the one that reads
+    // consistently across every hue in the palette.
+    float core = 1.0 - smoothstep(0.0, 0.22, r);
+    float halo = 1.0 - smoothstep(0.1, 0.5, r);
+    vec3 tint = mix(vColor, vec3(1.0), core * 0.85);
+    float alpha = (core * 0.5 + halo * 0.5) * vAlpha;
+    gl_FragColor = vec4(tint * alpha, alpha);
   }
 `;
 
-function buildGeometry(count: number) {
-  const total = count * TAIL_POINTS;
-  const positions = new Float32Array(total * 3);
-  const origins = new Float32Array(total * 3);
-  const dirs = new Float32Array(total * 3);
-  const colors = new Float32Array(total * 3);
-  const tails = new Float32Array(total);
-  const periods = new Float32Array(total);
-  const offsets = new Float32Array(total);
-  const sizes = new Float32Array(total);
-  const travels = new Float32Array(total);
-
-  const color = new THREE.Color();
-
-  for (let s = 0; s < count; s += 1) {
-    const u = Math.random() * 2 - 1;
-    const theta = Math.random() * Math.PI * 2;
-    const planar = Math.sqrt(1 - u * u);
-    const radius = SHELL_INNER + Math.random() * (SHELL_OUTER - SHELL_INNER);
-    const ox = planar * Math.cos(theta) * radius;
-    const oy = planar * Math.sin(theta) * radius;
-    const oz = u * radius;
-
-    const dir = new THREE.Vector3(
-      Math.random() * 2 - 1,
-      Math.random() * 2 - 1,
-      Math.random() * 2 - 1,
-    ).normalize();
-
-    color.set(NEON[Math.floor(Math.random() * NEON.length)]);
-    // Spread the periods widely and never share one. A common period would
-    // have every spark fire in lockstep, which reads as a machine, not magic.
-    // Shortened from 7-33s at Andrew's request for more frequent magic; the
-    // spread matters more than the absolute values, since it is what stops the
-    // field resynchronising into a visible pulse.
-    const period = 5 + Math.random() * 17;
-    const offset = Math.random() * period;
-    const size = 2.2 + Math.random() * 3.6;
-    const travel = 2.5 + Math.random() * 7;
-
-    for (let t = 0; t < TAIL_POINTS; t += 1) {
-      const i = s * TAIL_POINTS + t;
-      origins[i * 3] = ox;
-      origins[i * 3 + 1] = oy;
-      origins[i * 3 + 2] = oz;
-      // `position` is unused by the shader but three.js requires the attribute
-      // to exist to compute draw range; seed it with the origin.
-      positions[i * 3] = ox;
-      positions[i * 3 + 1] = oy;
-      positions[i * 3 + 2] = oz;
-      dirs[i * 3] = dir.x;
-      dirs[i * 3 + 1] = dir.y;
-      dirs[i * 3 + 2] = dir.z;
-      colors[i * 3] = color.r;
-      colors[i * 3 + 1] = color.g;
-      colors[i * 3 + 2] = color.b;
-      tails[i] = t / (TAIL_POINTS - 1);
-      periods[i] = period;
-      offsets[i] = offset;
-      sizes[i] = size;
-      travels[i] = travel;
-    }
-  }
-
+function buildGeometry() {
+  const b = buildSparkBuffers(MAX_SPARKS);
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute("aOrigin", new THREE.BufferAttribute(origins, 3));
-  geometry.setAttribute("aDir", new THREE.BufferAttribute(dirs, 3));
-  geometry.setAttribute("aColor", new THREE.BufferAttribute(colors, 3));
-  geometry.setAttribute("aTail", new THREE.BufferAttribute(tails, 1));
-  geometry.setAttribute("aPeriod", new THREE.BufferAttribute(periods, 1));
-  geometry.setAttribute("aOffset", new THREE.BufferAttribute(offsets, 1));
-  geometry.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
-  geometry.setAttribute("aTravel", new THREE.BufferAttribute(travels, 1));
-  geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(), SHELL_OUTER + 10);
+  // `position` is unused by the shader — the vertex stage builds the position
+  // from aOrigin/aDir/aTravel — but three.js needs the attribute present to
+  // derive the draw count. Seed it with the origin.
+  geometry.setAttribute("position", new THREE.BufferAttribute(b.origins.slice(), 3));
+  geometry.setAttribute("aOrigin", new THREE.BufferAttribute(b.origins, 3));
+  geometry.setAttribute("aDir", new THREE.BufferAttribute(b.dirs, 3));
+  geometry.setAttribute("aColor", new THREE.BufferAttribute(b.colors, 3));
+  geometry.setAttribute("aTail", new THREE.BufferAttribute(b.tails, 1));
+  geometry.setAttribute("aPeriod", new THREE.BufferAttribute(b.periods, 1));
+  geometry.setAttribute("aOffset", new THREE.BufferAttribute(b.offsets, 1));
+  geometry.setAttribute("aSize", new THREE.BufferAttribute(b.sizes, 1));
+  geometry.setAttribute("aTravel", new THREE.BufferAttribute(b.travels, 1));
+  geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(), FAR_RADIUS * 2);
   return geometry;
 }
 
 export const Sparks = memo(function Sparks({ count, reducedMotion = false }: SparksProps) {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
-  // Built once at full size. The tier never reaches this call — rebuilding here
-  // is what reset every spark's phase when the quality stepped down.
-  const geometry = useMemo(() => buildGeometry(MAX_SPARKS), []);
+  const geometry = useMemo(() => buildGeometry(), []);
+
+  const pixelRatio = useThree((state) => state.gl.getPixelRatio());
+  const viewportHeight = useThree((state) => state.size.height);
 
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uPixelRatio: { value: typeof window === "undefined" ? 1 : window.devicePixelRatio },
+      uPixelRatio: { value: pixelRatio },
       uDuty: { value: DUTY },
+      uMaxSize: { value: 12 },
     }),
+    // Deliberately built once: uTime must survive a resize or a DPR change, or
+    // every spark's phase would reset (the bug Andrew saw as "the magic stopped").
+    // The two size uniforms are kept current by the effect below instead.
     [],
   );
+
+  useEffect(() => {
+    uniforms.uPixelRatio.value = pixelRatio;
+    // gl_PointSize is in device pixels, so the viewport cap converts through
+    // the pixel ratio too.
+    uniforms.uMaxSize.value = viewportHeight * MAX_SIZE_VIEWPORT_FRACTION * pixelRatio;
+  }, [uniforms, pixelRatio, viewportHeight]);
 
   useEffect(() => {
     const visible = reducedMotion ? 0 : Math.min(Math.max(count, 0), MAX_SPARKS);
@@ -230,13 +179,26 @@ export const Sparks = memo(function Sparks({ count, reducedMotion = false }: Spa
   // reduced motion asks to be spared, but tearing the object down would mean a
   // machine that recovered could never get its sparks back.
   return (
-    <points geometry={geometry} frustumCulled={false}>
+    <points
+      geometry={geometry}
+      frustumCulled={false}
+      // Draw after the artifact. The medallion now returns to the OPAQUE pass at
+      // full opacity (MedallionHub), which fixes the occlusion properly, but its
+      // visibility lerp is asymptotic — there is a ~1.3s window after a panel
+      // closes where it is still transparent. renderOrder covers that window.
+      renderOrder={10}
+    >
       <shaderMaterial
         ref={materialRef}
         uniforms={uniforms}
         vertexShader={VERTEX}
         fragmentShader={FRAGMENT}
         transparent
+        // depthTest so solid geometry occludes a spark behind it; NO depthWrite,
+        // so sparks never occlude each other — the 8 tail points of one spark
+        // would z-fight, and overlapping sparks would stop summing, which is
+        // what produces the fluorescent bloom without a postprocessing pass.
+        depthTest
         depthWrite={false}
         blending={THREE.AdditiveBlending}
       />

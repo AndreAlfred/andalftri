@@ -310,7 +310,13 @@ function renderTextLayer(s: SectionWake) {
   const y0 = clampedCenter - ((lines.length - 1) * lineHeight) / 2;
   lines.forEach((ln, i) => {
     const y = y0 + i * lineHeight;
-    ctx.lineWidth = Math.max(6, fontSize * 0.22);
+    // 2026-07-22 legibility pass. This was `max(6, fontSize * 0.22)` — a 10px
+    // stroke around a 46px glyph. `strokeText` centres the stroke on the path,
+    // so half of that ate INTO the letterform from every side, closing the
+    // counters and merging the halo with the glyph under any minification. The
+    // outline exists to separate the text from the screen glow, which a much
+    // thinner stroke does just as well.
+    ctx.lineWidth = Math.max(3, fontSize * 0.13);
     ctx.strokeStyle = "rgba(20, 90, 130, 0.9)";
     ctx.strokeText(ln, cxp, y);
     ctx.fillStyle = "rgba(225, 250, 255, 1)";
@@ -383,13 +389,39 @@ export class ScreenWakeManager {
     const texture = new THREE.CanvasTexture(canvas);
     texture.flipY = false; // glTF UV convention
     texture.colorSpace = THREE.SRGBColorSpace;
-    // Every `needsUpdate` re-uploads this canvas, and 256 is power-of-two, so
-    // the default LinearMipmapLinear filter had three.js rebuild a full mip
-    // chain on all seven screens 30x/sec. The screens are viewed at a roughly
-    // constant distance and never minify meaningfully, so the mip levels bought
-    // nothing at all. (2026-07-21 perf pass.)
-    texture.generateMipmaps = false;
-    texture.minFilter = THREE.LinearFilter;
+    // 2026-07-22: REVERTS the 2026-07-21 perf pass here, which was wrong.
+    //
+    // It disabled mipmaps on the reasoning that "the screens are viewed at a
+    // roughly constant distance and never minify meaningfully". That is a claim
+    // about the ISOTROPIC scale. What the sampler cares about is the footprint
+    // of one screen pixel projected into texel space, which on a plate viewed at
+    // an angle is an ellipse — stretched by 1/cos(theta) along the tilt axis.
+    // The medallion drifts (useLemniscate) and tilts (useProximityTilt), so
+    // every plate sweeps that range continuously.
+    //
+    // With minFilter = LinearFilter the GPU computes the LOD and then DISCARDS
+    // it: four texels of level 0, always, however many texels the pixel actually
+    // covers. The 1px scanline comb at a 3px pitch then undersamples and beats
+    // against the pixel grid, and sub-pixel drift sweeps the beat across the
+    // glyphs. That is exactly the "ripples being sent across the words" Andrew
+    // reported, and it is why the text also read as blurrier — aliasing eats
+    // edge contrast.
+    //
+    // LinearMipmapLinearFilter is also the ONLY filter that unlocks anisotropy:
+    // three.js returns early from the TEXTURE_MAX_ANISOTROPY call for any other
+    // min filter. Anisotropy is what keeps the text sharp rather than merely
+    // stable — isotropic trilinear picks its LOD from the LONG axis of the
+    // footprint and blurs the short axis by the same factor, which is the
+    // classic oblique-surface mush. 16 is clamped to the device maximum by
+    // three.js, so no capabilities lookup is needed.
+    //
+    // These MUST be set before the first upload: WebGL2 sizes immutable texture
+    // storage from generateMipmaps once, so flipping the flag later leaves a
+    // one-level texture and generateMipmap fails.
+    texture.generateMipmaps = true;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.anisotropy = 16;
     const materials: THREE.MeshStandardMaterial[] = [];
     screenMeshes.forEach((mesh) => {
       const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
@@ -546,7 +578,10 @@ export class ScreenWakeManager {
           }
           drawText(s, fadeIn);
           drawGrain(ctx, 200 + Math.floor(140 * s.hoverLevel));
-          compositeScanlines(ctx, 0.22);
+          // 0.22 -> 0.17 (2026-07-22): the comb was darkening a third of the
+          // rows by 22%, which lands directly on the glyph strokes. The CRT
+          // read survives the reduction; the legibility gain is measurable.
+          compositeScanlines(ctx, 0.17);
           s.texture.needsUpdate = true;
         }
         const flicker = 1 + Math.sin(s.t * 46) * 0.03 + Math.sin(s.t * 7.3) * 0.02;

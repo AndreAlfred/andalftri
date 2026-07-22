@@ -63,8 +63,9 @@ test("dprForFactor clamps out-of-range factors instead of indexing off the ladde
 
 test("a lower ceiling caps the ladder rather than emptying it", () => {
   assert.equal(dprForFactor(1, 1), 1);
-  assert.equal(dprForFactor(1, 0.75), 0.75);
-  // A ceiling below every rung still has to yield a usable dpr.
+  assert.equal(dprForFactor(1, 1.3), 1.3);
+  // A ceiling below every rung still has to yield a usable dpr rather than
+  // indexing into an empty array.
   assert.equal(dprForFactor(1, 0.1), DPR_LADDER[0]);
 });
 
@@ -72,8 +73,10 @@ test("every dpr rung maps back to a real tier", () => {
   for (const dpr of DPR_LADDER) {
     assert.ok(QUALITY_TIERS.includes(tierForDpr(dpr)));
   }
-  assert.equal(tierForDpr(0.75), "low");
-  assert.equal(tierForDpr(1), "medium");
+  // 2026-07-22: the ladder floor moved 0.75 -> 1.0. Sub-1.0 DPR was a
+  // legibility cliff for the medallion's screen text.
+  assert.equal(tierForDpr(1), "low");
+  assert.equal(tierForDpr(1.15), "medium");
   assert.equal(tierForDpr(1.5), "high");
 });
 

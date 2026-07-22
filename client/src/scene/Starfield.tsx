@@ -1,3 +1,4 @@
+import { useThree } from "@react-three/fiber";
 import { memo, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { buildStarBuffers, MAX_STARS, SHELL_OUTER } from "./starfieldGeometry";
@@ -18,12 +19,19 @@ import { buildStarBuffers, MAX_STARS, SHELL_OUTER } from "./starfieldGeometry";
  * Real stars scintillate through atmosphere, and there is no atmosphere out
  * here, so the honest answer was also the cheap one: no alpha animation at all.
  * Three things changed together, since the bokeh read came from all of them —
- * the pulse is gone, point size is CLAMPED so a near star can never bloom into
+ * the pulse is gone, point size is bounded so a near star can never bloom into
  * a soft disc, and the edge falloff is tight so a point reads as a hard dot
  * with one antialiased pixel instead of a soft gradient blob.
  *
- * COST: one draw call, one buffer, and now genuinely zero per-frame work of any
- * kind — there is no longer even a uniform to update.
+ * 2026-07-22: the size BOUND turned out to be a clamp that 100% of the field
+ * saturated, so every star rendered at an identical 2.6px — Andrew's "all the
+ * stars are the same size". Sizing now comes from apparent magnitude with no
+ * distance term at all; see `starfieldGeometry.ts`, which also carries the
+ * colour physics (why there are no green stars, and why the field is nearly
+ * white).
+ *
+ * COST: one draw call, one buffer, and genuinely zero per-frame work — the only
+ * uniform changes when the renderer's pixel ratio does.
  */
 
 interface StarfieldProps {
@@ -44,14 +52,14 @@ const VERTEX = /* glsl */ `
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
     gl_Position = projectionMatrix * mvPosition;
 
-    // Perspective sizing still sells the parallax during the fly-to
-    // transitions, but it is CLAMPED. Unclamped, a star at the inner shell
-    // radius was drawn several times larger than one at the outer radius, and a
-    // big soft point is the definition of a bokeh circle. A star should read as
-    // a point of light at any distance — brightness carries the depth cue here,
-    // not diameter.
-    float projected = aSize * uPixelRatio * (260.0 / max(-mvPosition.z, 0.001));
-    gl_PointSize = clamp(projected, 1.0 * uPixelRatio, 2.6 * uPixelRatio);
+    // NO DISTANCE TERM. Stars are unresolved point sources: apparent size comes
+    // from the point spread function, not from how far away they are. The
+    // previous 260.0 / -mvPosition.z was the physics of a sphere, and because
+    // it produced 2.7-50px it then had to be clamped -- which drove 100% of the
+    // field to the clamp, so every star rendered at exactly the same size. That
+    // is the bug Andrew reported. aSize now carries magnitude directly, and the
+    // whole range it spans survives to the screen.
+    gl_PointSize = aSize * uPixelRatio;
   }
 `;
 
@@ -95,15 +103,27 @@ export const Starfield = memo(function Starfield({ count }: StarfieldProps) {
 
   useEffect(() => () => geometry.dispose(), [geometry]);
 
-  const uniforms = useMemo(
-    () => ({
-      uPixelRatio: { value: typeof window === "undefined" ? 1 : window.devicePixelRatio },
-    }),
-    [],
-  );
+  // The RENDERER's pixel ratio, not the window's. AdaptiveQuality drives the
+  // renderer live down the DPR ladder, so `window.devicePixelRatio` (read once,
+  // and 2.0 on any Retina Mac) could be well above the buffer actually in use —
+  // stars rendered up to 167% larger than specified with nothing to correct it.
+  const pixelRatio = useThree((state) => state.gl.getPixelRatio());
+
+  const uniforms = useMemo(() => ({ uPixelRatio: { value: pixelRatio } }), [pixelRatio]);
+
+  useEffect(() => {
+    uniforms.uPixelRatio.value = pixelRatio;
+  }, [uniforms, pixelRatio]);
 
   return (
-    <points ref={pointsRef} geometry={geometry} frustumCulled={false}>
+    <points
+      ref={pointsRef}
+      geometry={geometry}
+      frustumCulled={false}
+      // Consistency with the sparks rather than correctness: the shell is at
+      // radius 22-78 and the medallion at 4.4, so the field is always behind.
+      renderOrder={-1}
+    >
       <shaderMaterial
         uniforms={uniforms}
         vertexShader={VERTEX}
