@@ -136,3 +136,46 @@ Timestamped log of work sessions. Alfred writes an entry after each session.
 ## 2026-07-19
 
 - (Claude Code, Blender side) `medallion.glb` updated — `medallion_core` rebaked with new `core_warm_metal` material: concentric elliptical striations (lathe-turned look) replacing the mis-scaled "copper wool" texture; object-scale undistort fixed feature sizes to match the body; no geometry/contract changes. Source material builder is `scripts/build_core_concentric_mat.py` in the Blender repo.
+
+## 2026-07-21 — Latency pass + magic space (Claude Code)
+
+Andrew's direction this session: adapt silently (no visitor-facing quality
+control), hybrid 3D-field + screen-space-streak background, grid removed,
+starfield near-white with a slight cool/warm drift.
+
+**Measured first** (`docs/plans/2026-07-21-latency-and-environment-proposal.md`).
+Andrew's instinct was that the medallion dwarfs everything and thinning the
+atmosphere would not buy enough. Directionally right about where the weight is,
+but the two largest recoverable costs turned out to need no visual sacrifice at
+all:
+
+- the seven CRT screens were pushing ~54 MB/s of sustained texture upload and
+  ~60k canvas-2d ops/sec, forever, re-rasterizing static text to animate noise,
+  never gated on visibility, and rebuilding seven mip chains 30x/sec;
+- 145,152 of the model's 348,992 triangles (41.6%) sit in seven flat,
+  texture-driven screen plates.
+
+Shipped: the CRT rebuild, adaptive DPR, the aurora scale fix, reduced-motion
+coverage for the aurora, `?lite=1` / `?quality=` / `?perf=1`, grid removal, and
+the three magic-space layers. 38 tests, tsc and build clean, all four new
+shaders compile against a real WebGL2 context.
+
+**Deferred, with reasons:**
+
+- *Idle frame governor* (proposal 1A.4). The only clean way to cap the frame
+  rate in R3F is `frameloop="never"` plus a hand-rolled rAF driver, which would
+  put the boot cascade and the screen-wake state machine on a clock this session
+  did not own. Held rather than shipped fragile — the lemniscate means
+  `frameloop="demand"` is not available as the easy version.
+- *HelmetFrame ornament interval* (1A.5). Listed as cleanup, then measured: it
+  is two setStates per second, which is negligible. Left alone rather than
+  churned. The proposal overstated it.
+- *Screen-plate decimation* (1B.1) and *KTX2* (1B.3) — queued in
+  master-build-plan.md. Decimation belongs to the Blender project by contract.
+- *Moire on the CRTs* — Andrew's request, queued for its own session.
+
+**Needs Andrew's real browser.** Nothing 3D was visually verified: the sandbox
+runs the DOM and compiles shaders but never advances the WebGL frame loop (the
+canvas stays at its default 300x150). Shader compilation, route behaviour, the
+lite fallback and the console are verified; star density, spark rarity, streak
+frequency and the medallion against a starfield instead of a grid are not.
