@@ -1308,4 +1308,6 @@ Earmarked for future implementation pending direction or dependency completion.
 
 - [ ] **Angel nightly Spotify recap cron** — replace the static album list in `client/src/data/music.ts` with data regenerated nightly from Andrew's live Spotify listening by the Angel agent. Do not build until Andrew wires Spotify credentials/API access.
 
-- [ ] **Background world/environment** — replace the void once Andrew picks a direction from the 2026-07-18 brainstorm (see docs/plans/2026-07-18-content-typography-hud-spec.md §6). Do not build autonomously.
+- [ ] **Background world/environment** — replace the void once Andrew picks a direction from the 2026-07-18 brainstorm (see docs/plans/2026-07-18-content-typography-hud-spec.md §6). Do not build autonomously. **2026-07-21:** Andrew picked "magic space" (hybrid 3D field + screen-space visor streaks); two costed paths in `docs/plans/2026-07-21-latency-and-environment-proposal.md` Part 2, awaiting his answers on the floor grid and palette.
+
+- [ ] **Runtime latency on capable-but-contended machines** — measured audit and two paths in `docs/plans/2026-07-21-latency-and-environment-proposal.md` Part 1. Headline finding: the seven CRT screens push ~54 MB/s of texture upload and ~60k canvas-2D ops/sec continuously, and 42% of the medallion's triangles sit in seven flat screen plates. Both recoverable with no visual change. Andrew chose silent auto-adaptation over a visitor-facing quality toggle.
