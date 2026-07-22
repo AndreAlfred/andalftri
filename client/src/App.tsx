@@ -2,6 +2,7 @@ import { Suspense, lazy, useCallback, useEffect, useState } from "react";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { StaticFallback } from "@/components/StaticFallback";
 import { getDeviceCapability, type DeviceCapability } from "@/lib/deviceCapability";
+import { getPreviewFlags } from "@/lib/qualityTier";
 
 const SceneExperience = lazy(() => import("@/components/SceneExperience"));
 
@@ -9,9 +10,10 @@ export default function App() {
   const [capability, setCapability] = useState<DeviceCapability | null>(null);
   const [sceneReady, setSceneReady] = useState(false);
   const [bootSequenceId, setBootSequenceId] = useState(0);
-  const forceFullScene =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("force-3d") === "1";
+  const { forceFullScene, forceLite } =
+    typeof window === "undefined"
+      ? { forceFullScene: false, forceLite: false }
+      : getPreviewFlags(window.location.search);
 
   // Stable identity across re-renders (RC-5): LoadingScreen's ready effect
   // depends on this callback, so an inline arrow here would reschedule the
@@ -22,6 +24,11 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    // `?lite=1` is a preview of the weak-device site, so it must not pay for a
+    // GPU benchmark it will never consult (detect-gpu fetches a benchmark set
+    // over the network). Short-circuit before the probe, not after it.
+    if (forceLite) return undefined;
+
     let cancelled = false;
 
     getDeviceCapability()
@@ -49,7 +56,22 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [forceLite]);
+
+  if (forceLite) {
+    return (
+      <StaticFallback
+        capability={{
+          strength: "weak",
+          tier: 1,
+          type: "BENCHMARK",
+          isWeak: true,
+          summary: "Lite preview (?lite=1)",
+          result: { tier: 1, type: "BENCHMARK" },
+        }}
+      />
+    );
+  }
 
   if (!capability) {
     return (

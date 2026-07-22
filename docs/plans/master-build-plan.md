@@ -1308,6 +1308,27 @@ Earmarked for future implementation pending direction or dependency completion.
 
 - [ ] **Angel nightly Spotify recap cron** — replace the static album list in `client/src/data/music.ts` with data regenerated nightly from Andrew's live Spotify listening by the Angel agent. Do not build until Andrew wires Spotify credentials/API access.
 
+- [ ] **CRT screens: moiré pass** (Andrew, 2026-07-21) — the seven `section_0N_screen`
+      canvases currently read as "lit text plates" more than as tubes. Andrew wants a
+      moiré/interference treatment added so they read unmistakably as CRTs. Deliberately
+      held for its own session: the 2026-07-21 perf work rebuilt `screenWake.ts` around a
+      cached text layer + per-frame grain, so any new effect must be classified as
+      **static** (bake into the cached base layer, free) or **animated** (per-frame, costs
+      budget) — see the layer note at the top of `screenWake.ts`. A shadow-mask/aperture-
+      grille pattern is static and effectively free; a *rolling* moiré beat is animated and
+      should reuse the existing grain pass rather than adding a second full-canvas pass.
+      Do not regress the ~54 MB/s upload that the 2026-07-21 work removed.
+
+- [ ] **Medallion screen-plate decimation** (Blender source) — each `section_0N_screen` is
+      20,736 tris (a 144² grid) = 145,152 tris, **41.6% of the whole model**, on seven flat
+      plates whose entire appearance comes from the CanvasTexture emissive map and the
+      clearcoat. Decimate to ~1,000–1,500 each in
+      `~/clawd/CLI-Anything/blender/projects/personal-site-medallion/` and re-export.
+      Belongs to a Blender session, not a website session (geometry changes are that
+      project's contract). Regenerate the safe boxes with `compute_screen_safe_boxes.py`
+      afterwards if the plate geometry moves at all. Rationale and full numbers in
+      `docs/plans/2026-07-21-latency-and-environment-proposal.md` §1B.1.
+
 - [ ] **Background world/environment** — replace the void once Andrew picks a direction from the 2026-07-18 brainstorm (see docs/plans/2026-07-18-content-typography-hud-spec.md §6). Do not build autonomously. **2026-07-21:** Andrew picked "magic space" (hybrid 3D field + screen-space visor streaks); two costed paths in `docs/plans/2026-07-21-latency-and-environment-proposal.md` Part 2, awaiting his answers on the floor grid and palette.
 
 - [ ] **Runtime latency on capable-but-contended machines** — measured audit and two paths in `docs/plans/2026-07-21-latency-and-environment-proposal.md` Part 1. Headline finding: the seven CRT screens push ~54 MB/s of texture upload and ~60k canvas-2D ops/sec continuously, and 42% of the medallion's triangles sit in seven flat screen plates. Both recoverable with no visual change. Andrew chose silent auto-adaptation over a visitor-facing quality toggle.

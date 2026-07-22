@@ -19,6 +19,7 @@ interface MenuHubProps {
   lightingMode: LightingMode;
   screensDormant: boolean;
   emblem: EmblemTuning;
+  grainHz: number;
 }
 
 export function MenuHub({
@@ -27,6 +28,7 @@ export function MenuHub({
   lightingMode,
   screensDormant,
   emblem,
+  grainHz,
 }: MenuHubProps) {
   const groupRef = useRef<THREE.Group>(null);
   const visualRef = useRef<THREE.Group>(null);
@@ -95,6 +97,7 @@ export function MenuHub({
             lightingMode={lightingMode}
             screensDormant={screensDormant}
             emblem={emblem}
+            grainHz={grainHz}
             disabled={!canInteract}
             opacity={hubVisibility}
           />

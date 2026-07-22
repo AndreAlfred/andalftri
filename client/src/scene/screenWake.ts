@@ -73,6 +73,30 @@ export function parseScreenTextParam(raw: string | null): Record<number, number>
   return out;
 }
 
+// LAYER MODEL (2026-07-21 perf pass — read this before adding a new effect).
+//
+// The measured baseline was ~54 MB/s of sustained texture upload and ~60,000
+// canvas-2d ops/second, running forever, because every screen recomposed its
+// whole canvas 30x/sec — re-rasterizing wide-stroke text that never changes in
+// order to animate 200 noise dots. See
+// docs/plans/2026-07-21-latency-and-environment-proposal.md Part 0.
+//
+// The canvas is now built from three layers, and the ONLY question that matters
+// for any new effect is which one it belongs to:
+//
+//   1. TEXT layer   — per-section, cached (`s.textCanvas`). The label. Redrawn
+//                     only when the label, font, or safe box changes. FREE.
+//   2. SCANLINE     — module-level, cached, SHARED by all seven screens (the
+//      layer          pattern is identical everywhere). One `drawImage`
+//                     replaces 86 `fillRect`s per screen per redraw. FREE.
+//   3. GRAIN        — the only genuinely per-frame work left, and the only
+//                     reason the canvas is redrawn at all.
+//
+// A static effect (shadow mask, aperture grille, fixed moire) belongs in layer
+// 1 or 2 and costs nothing. An ANIMATED effect costs budget every frame on
+// every screen — fold it into the existing grain pass rather than adding a
+// second full-canvas pass. The queued moire work (master-build-plan.md) is
+// exactly this decision.
 const SIZE = 256;
 // blink-on sub-phase boundaries (seconds within the "blink" phase)
 const T_FLASH = 0.1;
@@ -94,6 +118,10 @@ interface TextLayout {
 interface SectionWake {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
+  /** Layer 1: the cached label raster, composited at the current dim. */
+  textCanvas: HTMLCanvasElement;
+  textCtx: CanvasRenderingContext2D;
+  textDirty: boolean;
   texture: THREE.CanvasTexture;
   materials: THREE.MeshStandardMaterial[];
   label: string;
@@ -116,6 +144,29 @@ function makeCanvas(): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("2d context unavailable for screen wake canvas");
   return { canvas, ctx };
+}
+
+// Layer 2. Identical on every screen, so it is built once and shared — seven
+// sections composite the same bitmap rather than each stamping 86 rects.
+let scanlineLayer: HTMLCanvasElement | null = null;
+
+function getScanlineLayer(): HTMLCanvasElement {
+  if (scanlineLayer) return scanlineLayer;
+  const { canvas, ctx } = makeCanvas();
+  // Baked at alpha 1; callers scale it with globalAlpha, so one bitmap serves
+  // the text phase (0.22) and every step of the fade (0.22 * k).
+  ctx.fillStyle = "rgb(0, 0, 0)";
+  for (let y = 0; y < SIZE; y += 3) {
+    ctx.fillRect(0, y, SIZE, 1);
+  }
+  scanlineLayer = canvas;
+  return canvas;
+}
+
+function compositeScanlines(ctx: CanvasRenderingContext2D, alpha: number) {
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(getScanlineLayer(), 0, 0);
+  ctx.globalAlpha = 1;
 }
 
 function easeOutCubic(t: number) {
@@ -174,26 +225,57 @@ function fitTextToBox(
   return { lines: [label], fontSize: 14, font: `14px ${fontStack}` };
 }
 
-function drawScanlines(ctx: CanvasRenderingContext2D, alpha: number) {
-  ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
-  for (let y = 0; y < SIZE; y += 3) {
-    ctx.fillRect(0, y, SIZE, 1);
-  }
-}
-
+/**
+ * Layer 3 — the only per-frame work.
+ *
+ * Assigning `fillStyle` parses a CSS colour string, and the previous per-dot
+ * assignment cost ~1,400 parses per redraw cycle across seven screens. Two
+ * passes means two parses. The bright/dark split moves from a per-dot coin flip
+ * to a fixed half-and-half; for a random speckle field that is the same
+ * picture, and it is literally noise.
+ */
 function drawGrain(ctx: CanvasRenderingContext2D, count: number) {
-  for (let i = 0; i < count; i += 1) {
-    const bright = Math.random() > 0.5;
-    ctx.fillStyle = bright ? "rgba(255,255,255,0.16)" : "rgba(0,0,0,0.22)";
+  const brightCount = count >> 1;
+  ctx.fillStyle = "rgba(255,255,255,0.16)";
+  for (let i = 0; i < brightCount; i += 1) {
+    ctx.fillRect(Math.random() * SIZE, Math.random() * SIZE, 1 + Math.random() * 2, 1);
+  }
+  ctx.fillStyle = "rgba(0,0,0,0.22)";
+  for (let i = brightCount; i < count; i += 1) {
     ctx.fillRect(Math.random() * SIZE, Math.random() * SIZE, 1 + Math.random() * 2, 1);
   }
 }
 
+/**
+ * Composite the cached label (layer 1) at the current dim.
+ *
+ * The label is static for the life of the section, so it is rasterized once and
+ * then blitted. At `dim === 1` — the steady state, which is where the screens
+ * spend essentially all of their time — this is pixel-identical to the previous
+ * per-frame `strokeText` + `fillText`. During the 0.28s fade-in and the fade-out
+ * the stroke/fill pair is composited as a unit at `globalAlpha` rather than each
+ * at its own alpha; over a sub-second ramp on a 256px canvas that is not a
+ * visible difference, and it buys back ~20 wide-stroke text rasterizations per
+ * redraw cycle.
+ */
 function drawText(s: SectionWake, dim: number) {
-  const { ctx, box } = s;
+  if (s.textDirty) renderTextLayer(s);
+  if (dim <= 0) return;
+  s.ctx.globalAlpha = Math.min(1, dim);
+  s.ctx.drawImage(s.textCanvas, 0, 0);
+  s.ctx.globalAlpha = 1;
+}
+
+/** Rasterize layer 1. Called on attach, and again when the webfont arrives. */
+function renderTextLayer(s: SectionWake) {
+  const ctx = s.textCtx;
+  const { box } = s;
+  s.textDirty = false;
+  ctx.clearRect(0, 0, SIZE, SIZE);
+
   if (!s.label) {
     // unassigned section: dormant test-pattern dot so hover still reads "alive"
-    ctx.fillStyle = `rgba(150, 220, 255, ${0.5 * dim})`;
+    ctx.fillStyle = "rgba(150, 220, 255, 0.5)";
     ctx.beginPath();
     ctx.arc(box.x + box.w / 2, box.y + box.h / 2, 5, 0, Math.PI * 2);
     ctx.fill();
@@ -229,9 +311,9 @@ function drawText(s: SectionWake, dim: number) {
   lines.forEach((ln, i) => {
     const y = y0 + i * lineHeight;
     ctx.lineWidth = Math.max(6, fontSize * 0.22);
-    ctx.strokeStyle = `rgba(20, 90, 130, ${0.9 * dim})`;
+    ctx.strokeStyle = "rgba(20, 90, 130, 0.9)";
     ctx.strokeText(ln, cxp, y);
-    ctx.fillStyle = `rgba(225, 250, 255, ${dim})`;
+    ctx.fillStyle = "rgba(225, 250, 255, 1)";
     ctx.fillText(ln, cxp, y);
   });
 }
@@ -264,12 +346,27 @@ function drawBlinkLine(ctx: CanvasRenderingContext2D, spread: number, seed: numb
   ctx.fillRect(SIZE / 2 - 3, yC - 2, 6, 4);
 }
 
+/**
+ * Below this hub opacity the screens are a faint suggestion behind an open
+ * content panel — MenuHub floors hub visibility at 0.12 rather than 0, so they
+ * never fully disappear and cannot simply be frozen without a visible pop.
+ * Grain at 12-30Hz is imperceptible at that opacity, so the rate drops instead.
+ */
+const DIMMED_VISIBILITY = 0.2;
+const DIMMED_GRAIN_HZ = 6;
+
 export class ScreenWakeManager {
   private sections = new Map<number, SectionWake>();
   private biasOverrides: Record<number, number>;
+  private grainHz = 30;
 
   constructor(biasOverrides: Record<number, number> = {}) {
     this.biasOverrides = biasOverrides;
+  }
+
+  /** Driven by the active quality tier (see lib/qualityTier.ts). */
+  setGrainHz(hz: number) {
+    this.grainHz = Math.max(1, hz);
   }
 
   attach(
@@ -282,9 +379,17 @@ export class ScreenWakeManager {
     const { canvas, ctx } = makeCanvas();
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, SIZE, SIZE);
+    const text = makeCanvas();
     const texture = new THREE.CanvasTexture(canvas);
     texture.flipY = false; // glTF UV convention
     texture.colorSpace = THREE.SRGBColorSpace;
+    // Every `needsUpdate` re-uploads this canvas, and 256 is power-of-two, so
+    // the default LinearMipmapLinear filter had three.js rebuild a full mip
+    // chain on all seven screens 30x/sec. The screens are viewed at a roughly
+    // constant distance and never minify meaningfully, so the mip levels bought
+    // nothing at all. (2026-07-21 perf pass.)
+    texture.generateMipmaps = false;
+    texture.minFilter = THREE.LinearFilter;
     const materials: THREE.MeshStandardMaterial[] = [];
     screenMeshes.forEach((mesh) => {
       const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
@@ -302,6 +407,9 @@ export class ScreenWakeManager {
     this.sections.set(section, {
       canvas,
       ctx,
+      textCanvas: text.canvas,
+      textCtx: text.ctx,
+      textDirty: true,
       texture,
       materials,
       label,
@@ -324,8 +432,8 @@ export class ScreenWakeManager {
 
     // Webfonts load lazily on first DOM use, and at boot no panel has rendered
     // yet — without this explicit load the canvas would draw the fallback sans
-    // forever. When the face arrives, dropping `layout` makes the text phase's
-    // 30Hz redraw re-measure and re-render with the real font. Sized query
+    // forever. When the face arrives, dropping `layout` re-measures and
+    // `textDirty` re-rasterizes the cached label with the real font. Sized query
     // (16px) is arbitrary: FontFaceSet.load keys on family, not size.
     if (typeof document !== "undefined" && "fonts" in document) {
       const primaryFamily = fontStack.split(",")[0]?.trim();
@@ -334,7 +442,10 @@ export class ScreenWakeManager {
           .load(`16px ${primaryFamily}`)
           .then((faces) => {
             const s = this.sections.get(section);
-            if (s && faces.length > 0) s.layout = null;
+            if (s && faces.length > 0) {
+              s.layout = null;
+              s.textDirty = true;
+            }
           })
           .catch(() => {
             // fallback stack already covers a failed load
@@ -358,6 +469,9 @@ export class ScreenWakeManager {
   /** Advance all wake state machines. hovered lifts that section's brightness;
    *  globalDim follows hub visibility so screens fade with the receding hub. */
   update(delta: number, hovered: number | null, globalDim = 1) {
+    const grainInterval =
+      1 / (globalDim < DIMMED_VISIBILITY ? Math.min(DIMMED_GRAIN_HZ, this.grainHz) : this.grainHz);
+
     this.sections.forEach((s, sec) => {
       s.hoverLevel = THREE.MathUtils.lerp(
         s.hoverLevel, hovered === sec ? 1 : 0, 0.14);
@@ -407,7 +521,7 @@ export class ScreenWakeManager {
             ctx.fillRect(x, yC - halfH + jag, 4, (halfH + jag) * 2);
           }
           drawBlinkLine(ctx, 1, s.jitterSeed, 0.9 - 0.6 * p);
-          drawScanlines(ctx, 0.18);
+          compositeScanlines(ctx, 0.18);
           this.apply(s, (1.5 - 0.5 * p) * globalDim);
         }
         if (s.t >= BLINK_SECONDS) {
@@ -415,10 +529,10 @@ export class ScreenWakeManager {
           s.t = 0;
         }
       } else if (s.phase === "text") {
-        // 4) picture fades in, then stays on (grain/flicker at ~30Hz)
+        // 4) picture fades in, then stays on (grain/flicker at the tier's rate)
         s.redrawAccum += delta;
         const fadeIn = Math.min(s.t / TEXT_FADE_IN, 1);
-        if (s.redrawAccum >= 1 / 30 || fadeIn < 1) {
+        if (s.redrawAccum >= grainInterval || fadeIn < 1) {
           s.redrawAccum = 0;
           ctx.fillStyle = "#000";
           ctx.fillRect(0, 0, SIZE, SIZE);
@@ -432,7 +546,7 @@ export class ScreenWakeManager {
           }
           drawText(s, fadeIn);
           drawGrain(ctx, 200 + Math.floor(140 * s.hoverLevel));
-          drawScanlines(ctx, 0.22);
+          compositeScanlines(ctx, 0.22);
           s.texture.needsUpdate = true;
         }
         const flicker = 1 + Math.sin(s.t * 46) * 0.03 + Math.sin(s.t * 7.3) * 0.02;
@@ -444,7 +558,7 @@ export class ScreenWakeManager {
         ctx.fillRect(0, 0, SIZE, SIZE);
         drawText(s, k);
         drawGrain(ctx, Math.floor(120 * k));
-        drawScanlines(ctx, 0.22 * k);
+        compositeScanlines(ctx, 0.22 * k);
         this.apply(s, TEXT_INTENSITY * k * globalDim);
         if (s.t >= FADE_SECONDS) {
           s.phase = "off";

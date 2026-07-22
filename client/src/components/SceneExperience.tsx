@@ -9,6 +9,11 @@ import { Commentary } from "@/hud/Commentary";
 import { HelmetFrame } from "@/hud/HelmetFrame";
 import { HudOverlay } from "@/hud/HudOverlay";
 import { useCameraStore } from "@/hooks/useCamera";
+import { useQualityStore } from "@/hooks/useQuality";
+import { getPreviewFlags } from "@/lib/qualityTier";
+import { AdaptiveQuality } from "@/scene/AdaptiveQuality";
+import { PerfOverlay, PerfProbe } from "@/scene/PerfReadout";
+import { VisorStreaks } from "@/hud/VisorStreaks";
 import { ContentPanel } from "@/panels/ContentPanel";
 import { InfluencePanel } from "@/panels/InfluencePanel";
 import { MusicPanel } from "@/panels/MusicPanel";
@@ -44,6 +49,16 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
 
   const lightingSettings = useMemo(
     () => getLightingPreviewSettings(window.location.search),
+    [],
+  );
+  const previewFlags = useMemo(() => getPreviewFlags(window.location.search), []);
+  const profile = useQualityStore((state) => state.profile);
+  // Read once: a visitor toggling the OS setting mid-session is not worth a
+  // media-query subscription that would rebuild the star buffer underneath them.
+  const reducedMotion = useMemo(
+    () =>
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     [],
   );
   const toneMapping =
@@ -181,7 +196,9 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
     <div className="relative h-screen w-screen overflow-hidden bg-[#1a1a1a]">
       <Canvas
         camera={{ position: [0, 0, 8], fov: 60 }}
-        dpr={[1, 1.5]}
+        // Initial only — AdaptiveQuality drives DPR through `setDpr` from here
+        // on, so the renderer is never remounted by a quality change.
+        dpr={1.5}
         gl={{
           antialias: true,
           powerPreference: "high-performance",
@@ -189,9 +206,14 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
           toneMappingExposure,
         }}
       >
+        <AdaptiveQuality pinnedTier={previewFlags.pinnedTier} />
+        {previewFlags.showPerfReadout ? <PerfProbe /> : null}
         <Environment
           lightingMode={lightingSettings.mode}
           keyLightPosition={lightingSettings.keyLightPosition}
+          starCount={profile.starCount}
+          sparkCount={profile.sparkCount}
+          reducedMotion={reducedMotion}
         />
         {lightingSettings.mode === "legacy" ? (
           <DreiEnvironment preset="city" />
@@ -203,6 +225,7 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
           lightingMode={lightingSettings.mode}
           screensDormant={lightingSettings.screensDormant}
           emblem={lightingSettings.emblem}
+          grainHz={profile.grainHz}
         />
         {pagePanels.map(({ page, project, influence, isShowcase, isMusic }) => (
           <ContentPanel
@@ -226,6 +249,10 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
           </ContentPanel>
         ))}
       </Canvas>
+
+      {/* Above the canvas, below the helmet chrome: the streaks read as light
+          crossing the visor glass the visitor is looking through. */}
+      <VisorStreaks maxStreaks={profile.streakCount} />
 
       <HelmetFrame
         bootSequenceId={bootSequenceId}
@@ -253,6 +280,8 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
           />
         </HudOverlay>
       ) : null}
+
+      {previewFlags.showPerfReadout ? <PerfOverlay /> : null}
     </div>
   );
 }

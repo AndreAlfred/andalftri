@@ -511,16 +511,31 @@ select {
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * 2026-07-21 perf pass. The blur radius was already A/B'd in a harness (see the
+ * note on .helmet-aurora-layer) and that verdict stands; the SCALE was never
+ * isolated as its own variable, and it was the expensive half.
+ *
+ * A composited layer can be translated and faded by the compositor alone. It
+ * cannot be SCALED that way without re-rasterizing, because the layer has to be
+ * re-rendered at its new size to stay sharp — and re-rasterizing here means
+ * re-running blur(2vmin) through a radial mask on four full-viewport layers,
+ * every frame, forever, above the WebGL loop.
+ *
+ * Dropping the 3% scale keeps the opacity breath and the vertical drift, which
+ * is where essentially all of the perceived motion lives on a soft masked
+ * gradient. Restore `scale(1.03)` on the 50% stop to A/B it.
+ */
 @keyframes helmetAuroraPulse {
   0%,
   100% {
     opacity: 0.58;
-    transform: scale(1) translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
   }
 
   50% {
     opacity: 0.95;
-    transform: scale(1.03) translate3d(0, -1.5%, 0);
+    transform: translate3d(0, -1.5%, 0);
   }
 }
 
@@ -608,6 +623,15 @@ select {
   .hud-context-pulse,
   .hud-return-caret {
     animation: none;
+  }
+
+  /* 2026-07-21: the aurora was the largest continuous motion on the page and
+     was never covered here — visitors who asked for reduced motion still got a
+     12s breathing glow across the whole edge of vision. Parked at its midpoint
+     so the helmet still reads as lit rather than switched off. */
+  .helmet-aurora-layer {
+    animation: none;
+    opacity: 0.76;
   }
 
   .hud-context-pulse {

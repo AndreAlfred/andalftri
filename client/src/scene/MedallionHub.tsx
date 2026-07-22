@@ -47,6 +47,8 @@ interface MedallionHubProps {
   lightingMode: LightingMode;
   screensDormant: boolean;
   emblem: EmblemTuning;
+  /** CRT grain redraw rate from the active quality tier. */
+  grainHz?: number;
   disabled?: boolean;
   opacity?: number;
 }
@@ -62,6 +64,7 @@ export const MedallionHub = memo(function MedallionHub({
   lightingMode,
   screensDormant,
   emblem,
+  grainHz = 30,
   disabled = false,
   opacity = 1,
 }: MedallionHubProps) {
@@ -80,8 +83,10 @@ export const MedallionHub = memo(function MedallionHub({
 
     clone.traverse((child) => {
       if (!(child instanceof THREE.Mesh)) return;
-      child.castShadow = true;
-      child.receiveShadow = true;
+      // castShadow/receiveShadow were set here but <Canvas> has no `shadows`
+      // prop, so shadowMap.enabled is false and no shadow pass ever ran. The
+      // flags were inert; removed 2026-07-21 so they stop implying a shadow
+      // system that does not exist.
       const cloneMaterial = (material: THREE.Material) => {
         const cloned = material.clone();
         if (lightingMode === "studio" && "envMapIntensity" in cloned) {
@@ -167,6 +172,10 @@ export const MedallionHub = memo(function MedallionHub({
     if (!bootSequenceId || screensDormant) return;
     wake.bootAll(HELMET_BOOT_SCREEN_DELAY_S, HELMET_BOOT_SCREEN_STAGGER_S);
   }, [bootSequenceId, screensDormant, wake]);
+
+  useEffect(() => {
+    wake.setGrainHz(grainHz);
+  }, [wake, grainHz]);
 
   useLemniscate(groupRef, { yAmplitude: 15, xAmplitude: 4, speed: 0.3 });
   useProximityTilt(tiltRef, { maxTilt: 8, range: 0.85, smoothing: 0.08 });

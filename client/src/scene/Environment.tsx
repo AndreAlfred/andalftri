@@ -1,46 +1,40 @@
-import { Grid } from "@react-three/drei";
 import { memo } from "react";
 import { ArtifactLighting } from "./ArtifactLighting";
+import { Sparks } from "./Sparks";
+import { Starfield } from "./Starfield";
 import { STUDIO_LIGHTING, type LightingMode } from "./lightingConfig";
 
 interface EnvironmentProps {
   lightingMode?: LightingMode;
   keyLightPosition?: [number, number, number];
+  starCount: number;
+  sparkCount: number;
+  reducedMotion?: boolean;
 }
 
 export const Environment = memo(function Environment({
   lightingMode = "legacy",
   keyLightPosition,
+  starCount,
+  sparkCount,
+  reducedMotion = false,
 }: EnvironmentProps) {
   const studio = lightingMode === "studio";
   const background = studio ? STUDIO_LIGHTING.background : "#1a1a1a";
   const fog = studio
     ? STUDIO_LIGHTING.fog
     : { color: "#1a1a1a", near: 15, far: 40 };
-  const grid = studio
-    ? STUDIO_LIGHTING.grid
-    : {
-        cellColor: "#404040",
-        sectionColor: "#808080",
-        fadeDistance: 30,
-        fadeStrength: 1,
-      };
 
   return (
     <>
       <color attach="background" args={[background]} />
       <fog attach="fog" args={[fog.color, fog.near, fog.far]} />
-      <Grid
-        position={[0, -3, 0]}
-        args={[100, 100]}
-        cellSize={1}
-        cellColor={grid.cellColor}
-        sectionSize={5}
-        sectionColor={grid.sectionColor}
-        fadeDistance={grid.fadeDistance}
-        fadeStrength={grid.fadeStrength}
-        infiniteGrid
-      />
+      {/* The infinite floor grid was removed 2026-07-21 (Andrew: "grid goes").
+          A studio floor and deep space are different fictions, and the grid was
+          the last thing anchoring the artifact to a room rather than a void.
+          `STUDIO_LIGHTING.grid` is kept in the config as history for now. */}
+      <Starfield count={starCount} reducedMotion={reducedMotion} />
+      <Sparks count={sparkCount} reducedMotion={reducedMotion} />
       {studio ? (
         <ArtifactLighting keyLightPosition={keyLightPosition} />
       ) : (
