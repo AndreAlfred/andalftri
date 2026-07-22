@@ -109,7 +109,13 @@ for the black-glass diagnostic.
    and source-material changes belong in the Blender medallion project.
 3. For visual work, capture a deterministic baseline and compare the same camera/state
    after each isolated change. A build passing is not visual approval.
-4. After any code change, run `pnpm test`, `pnpm check`, and `pnpm build`.
+4. After any code change, run `pnpm test`, `pnpm check`, and `pnpm build`. **Every
+   hand-written `ShaderMaterial` also gets a headless compile check before pushing** —
+   the sandbox has a working WebGL2 context (only the frame loop is missing), so
+   create a bare `canvas.getContext("webgl2")`, prepend the three.js boilerplate the
+   shader references, and `compileShader`. A GLSL typo otherwise ships to Andrew as a
+   black screen, and none of the three commands above can see it. (Promoted from
+   `lessons.md` entry A, 2026-07-22 — applied twice, now standing.)
 5. Commit and push completed repository work so Vercel updates:
 
 ```bash

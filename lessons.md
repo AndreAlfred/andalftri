@@ -35,7 +35,8 @@ refinement below disproves. The context works; the frame loop is what does not.)
   references (`modelViewMatrix`, `projectionMatrix`, `in vec3 position`, the
   `#version 300 es` / `attribute`→`in` defines), and call `compileShader`. That
   turns "a GLSL typo ships as a black screen" from an unknowable into a checked
-  fact. Do this for every hand-written ShaderMaterial before pushing.
+  fact. **The do-this-every-time rule was promoted to `CLAUDE.md` required
+  workflow step 4 on 2026-07-22; this entry keeps only the why.**
 
 ### D. detect-gpu mis-tiers Apple Silicon — Andrew got the potato fallback on a MacBook
 - **What happened:** the live site served `StaticFallback` to Andrew's own Mac.
@@ -125,3 +126,81 @@ refinement below disproves. The context works; the frame loop is what does not.)
   would not happen in the depicted setting — the correct answer is often to
   remove work rather than add it. Fix was: no alpha animation, clamp point size,
   and tighten the falloff to a hard dot plus one antialiased pixel.
+
+## Session 2026-07-22 (screens + starfield quality pass, Claude Code)
+
+### J. A perf "optimisation" that removes a correctness mechanism is a regression
+- **What happened:** the 2026-07-21 pass disabled mipmaps on the seven CRT screen
+  textures to stop three.js regenerating a mip chain on every upload, justified in
+  a code comment as "the screens are viewed at a roughly constant distance and never
+  minify meaningfully". Andrew came back with text that was hard to read, with
+  "ripples being sent across the words", and a headache. The justification was a
+  claim about the ISOTROPIC scale; what a sampler cares about is the projected pixel
+  footprint, which on an angled plate is an ellipse. With `minFilter = LinearFilter`
+  the GPU computes the LOD and then discards it, so the 1px-on-3px scanline comb
+  undersampled and beat against the pixel grid, and the model's slow drift swept the
+  beat across the glyphs.
+- **Compounding it:** setting a non-mipmap min filter also silently disables
+  anisotropic filtering in three.js (it returns early from the anisotropy call). So
+  one line removed both of the mechanisms that keep small text legible on an oblique
+  surface, and only one of them was named in the comment.
+- **Lesson:** before trading away a filtering, sampling, or precision mechanism for
+  speed, state what that mechanism was *for* and confirm the condition it guards
+  against cannot occur. Here the guarded condition (minification) was assumed away in
+  a comment rather than measured. Also: mip regeneration rides the same call as the
+  upload it follows, so it could only ever be a fraction of that cost — the lever was
+  always "upload less often", never "stop mipping".
+
+### K. A clamp that everything saturates is not a bound, it is a constant
+- **What happened:** star point size was computed from camera distance and then
+  clamped to `[1.0, 2.6]px` to stop near stars blooming into bokeh discs. The clamp
+  worked. It worked on **100.00%** of the field — measured, not estimated — because the
+  pre-clamp expression produced 2.7–50px across the shell. Every star in the sky
+  rendered at exactly 2.6px, which is what Andrew reported as "all the stars are the
+  same size". The clamp had silently become the entire mapping.
+- **Lesson:** a clamp that everything saturates is not a bound, it is a constant.
+  When you add one, measure what fraction of the population actually reaches it. If
+  the answer is "most", the mapping feeding the clamp is wrong and the clamp is
+  hiding it.
+
+### L. Model the phenomenon, not the appearance (generalises I)
+- **What happened:** the first starfield invented a palette (white lerped toward a
+  hand-picked cool and warm) and sized points by distance. Both produced artifacts
+  Andrew rejected: hues that read as green, blues that were too blue, and uniform
+  sizes. Rebuilding on the actual physics — the naked-eye spectral distribution,
+  measured per-class colours, apparent magnitude, and the fact that stars are
+  unresolved point sources whose apparent size comes from the point spread function
+  rather than from distance — made the objectionable cases *structurally impossible*
+  rather than merely tuned away. Green cannot occur, because the Planckian locus never
+  enters the green region of CIE 1931.
+- **Lesson:** when a procedural effect depicts something real, spend the hour to find
+  out how the real thing works. It is usually less code, it removes whole categories
+  of art-direction bug rather than one instance, and the constraints it hands you are
+  defensible in review. "Do some research if you need to" was the right instruction.
+
+### M. Research needs an adversarial pass before it touches code
+- **What happened:** three research briefs were commissioned and then independently
+  verified against the actual repo. The verification caught, among others: a
+  prescribed sRGB→linear colour fix for a bug that **does not exist here** (a raw
+  ShaderMaterial writes verbatim into the sRGB buffer, so applying the "fix" would
+  have darkened every star); a "stop interpolating hue" recommendation for code that
+  never interpolates hue; a recommended saturation ceiling *higher* than the value the
+  user had just rejected; and a patch whose stated line range would have produced a
+  duplicate `const` and failed the build.
+- **Lesson:** a confident, well-cited brief can still be describing a different
+  codebase than yours. Verification has to READ THE REPO, not just re-check the
+  citations — every one of those errors was in the mapping from a true general fact
+  onto this specific code, not in the fact itself.
+
+### N. A generator test driven by Math.random is flaky by construction
+- **What happened:** the spark-group tests passed or failed run to run. Making the RNG
+  injectable and sweeping fixed seeds turned that into a deterministic failure, which
+  turned out to be a **real bug**: groups whose centre landed near either edge of the
+  depth shell had every member `Math.min/max`-clamped to the same radius, collapsing a
+  burst into a flat plane. Under `Math.random` it surfaced as an occasional red test
+  that a re-run would clear.
+- **Lesson:** procedural generators take an injectable `random` and their tests sweep
+  seeds. A flaky test is worse than no test, because it trains you to re-run instead of
+  to read — and here, re-running would have discarded the report of a genuine defect.
+  Clamping a jittered value back into range is itself the smell: prefer sampling from
+  an inset range so the value is in-bounds by construction.
