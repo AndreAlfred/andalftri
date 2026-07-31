@@ -191,6 +191,22 @@ refinement below disproves. The context works; the frame loop is what does not.)
   codebase than yours. Verification has to READ THE REPO, not just re-check the
   citations — every one of those errors was in the mapping from a true general fact
   onto this specific code, not in the fact itself.
+- **2026-07-30 confirmation (mobile perf council).** Same failure, larger sample. A
+  five-advisor council produced five confident briefs; a verification agent that read
+  the repo killed three of the headline claims. It reported touch navigation as
+  entirely missing (`useScrollInteraction.ts` has real touch handlers, R3F `onClick`
+  is pointer-based, `CyberspaceNav` is a `<button>` list); it recommended shipping the
+  "unused" gyroscope hook (already wired into `useMouseParallax`); it recommended
+  Draco and WebP compression for the GLB (both already in `extensionsRequired`); it
+  called the loading screen a progress-less spinner (it renders a real `useProgress()`
+  percentage). **The sharper rule:** advisors reason from a *description* of the code,
+  and a description is exactly where the "already handled" cases go missing — absence
+  of a feature in a brief is not evidence of absence in the repo. So the verification
+  pass is not optional garnish on commissioned research, it is the step that makes the
+  research usable, and it must be told to check ALREADY-DONE as a distinct verdict
+  from TRUE/FALSE. Three of the five refuted claims here would have read as FALSE
+  without that third option, which would have hidden that the work was already
+  finished rather than merely misdescribed.
 
 ### N. A generator test driven by Math.random is flaky by construction
 - **What happened:** the spark-group tests passed or failed run to run. Making the RNG
@@ -204,3 +220,50 @@ refinement below disproves. The context works; the frame loop is what does not.)
   to read — and here, re-running would have discarded the report of a genuine defect.
   Clamping a jittered value back into range is itself the smell: prefer sampling from
   an inset range so the value is in-bounds by construction.
+
+## Session 2026-07-30 (mobile performance research, Claude Code)
+
+### O. A reactive quality system cannot govern the frames before its first measurement
+- **What happened:** the adaptive ladder was reviewed as if it covered the whole
+  session, because that is how `AdaptiveQuality.tsx` reads. It does not. The Canvas
+  mounts with `dpr={1.5}` — the TOP rung of `DPR_LADDER` — and drei's
+  `PerformanceMonitor` is deliberately slow to disagree (`factor={1}` starts
+  optimistic, `step={0.15}` bounds movement, `flipflops={3}`). So the weakest phone
+  renders the opening seconds at the highest tier's resolution, and those seconds are
+  exactly when GLB decode, Draco decompression, texture upload and the boot sequence
+  are already saturating the budget. Five commissioned advisors all missed it; it
+  surfaced only from reading the `<Canvas>` props directly.
+- **Root cause:** the system's own framing. "Adaptive" invites you to check whether
+  the *response* is correct and never to ask what the *initial condition* is. A
+  measure-then-correct loop has a structural blind window equal to its own latency,
+  and a bounded, optimistic-start loop widens that window on purpose.
+- **Why it costs more than it looks on mobile:** this is a thermal event, not merely
+  some slow frames. Phones throttle on accumulated heat, so spiking at t=0 lowers the
+  ceiling for the entire rest of the session. The visitor pays at minute two for what
+  happened in second one — which also means the damage is invisible to any
+  steady-state measurement taken after the fact.
+- **Lesson:** when a system adapts, always ask what it does *before* it has anything
+  to adapt from, and state that initial condition explicitly rather than inheriting it
+  from a default. Prefer starting conservative and climbing on evidence over starting
+  optimistic and being corrected — the two are symmetric only if the cost of being
+  wrong is symmetric, and for thermal, memory-pressure, and context-loss failures it
+  never is. Corollary: a cheap synchronous signal available at mount (`pointer:
+  coarse`, `maxTouchPoints`, screen size) beats an accurate asynchronous one that
+  arrives after the damage.
+
+### P. WebP in a GLB is a transport win, not a GPU-memory win
+- **What happened:** the medallion's textures are `EXT_texture_webp`, and that had
+  been treated as "textures are compressed" — a settled question. Costing the actual
+  GPU residency for a mobile pass showed six textures (3× 2048², 3× 1024²) decompress
+  to ~63 MB of RGBA on upload, ~84 MB with mip chains. On iOS Safari that is a
+  material fraction of the WebGL budget, and its failure mode is not a dropped frame
+  but context loss — a black canvas.
+- **Root cause:** conflating two different compressions that live at different stages.
+  WebP/PNG/JPEG are decoded on upload and stored uncompressed; only GPU-native formats
+  (KTX2/Basis, ASTC, BCn) stay compressed *in* video memory. A file-size audit and a
+  texture-memory audit are different audits and one does not imply the other.
+- **Lesson:** when reasoning about texture cost, state which budget you are spending —
+  network bytes, or GPU residency. `2.9 MB on the wire` and `~84 MB resident` are both
+  true of this same asset and they lead to opposite conclusions about whether there is
+  a problem. Compute residency as `w × h × 4 × 1.33` per texture and check it against
+  the target device's ceiling before concluding an asset is optimized.
