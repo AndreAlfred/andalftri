@@ -317,9 +317,46 @@ select {
   pointer-events: none;
 }
 
+/*
+ * Quality-tier response for the screen-space helmet layers (2026-07-30).
+ *
+ * These layers live OUTSIDE the Canvas, so until now no quality knob has ever
+ * reached them: a device already stepped down to `low` — stars cut 60%, DPR at
+ * 1.0 — was still compositing four animated full-viewport blur+mask layers plus
+ * a full-viewport backdrop-filter. `useQuality` now writes the live tier to
+ * <html data-quality>, and the radii below are the only thing that reads it.
+ *
+ * Per lessons.md entry G every rung stays NON-ZERO: this thins the layers, it
+ * never removes one. All four aurora layers and the peripheral blur remain
+ * mounted and visible at `low` — a removed layer reads as a broken feature
+ * rather than a quieter one, and it takes the recovery path with it.
+ *
+ * The `filter: blur()` numbers are backed by the harness comparison recorded on
+ * `.helmet-aurora-layer` below (4vmin / 2vmin / none were visually
+ * indistinguishable; 2vmin kept as insurance against 8-bit banding). The
+ * backdrop-filter radius has NOT been A/B'd and is the more expensive of the
+ * two mechanisms — `filter` blurs the element's own pixels, `backdrop-filter`
+ * must sample and blur everything composited beneath it, every frame. Both are
+ * on Andrew's real-browser checklist.
+ */
+:root {
+  --helmet-aurora-blur: 2vmin;
+  --helmet-peripheral-blur-radius: 14px;
+}
+
+:root[data-quality="medium"] {
+  --helmet-aurora-blur: 1.4vmin;
+  --helmet-peripheral-blur-radius: 10px;
+}
+
+:root[data-quality="low"] {
+  --helmet-aurora-blur: 0.8vmin;
+  --helmet-peripheral-blur-radius: 6px;
+}
+
 .helmet-peripheral-blur {
-  backdrop-filter: blur(14px) saturate(1.08);
-  -webkit-backdrop-filter: blur(14px) saturate(1.08);
+  backdrop-filter: blur(var(--helmet-peripheral-blur-radius)) saturate(1.08);
+  -webkit-backdrop-filter: blur(var(--helmet-peripheral-blur-radius)) saturate(1.08);
   mask-image: radial-gradient(circle at center, transparent 53%, rgba(0, 0, 0, 0.72) 72%, black 100%);
   -webkit-mask-image: radial-gradient(circle at center, transparent 53%, rgba(0, 0, 0, 0.72) 72%, black 100%);
   opacity: 0.55;
@@ -379,8 +416,10 @@ select {
      full-viewport layers above the WebGL loop; even blur:none was close,
      but 2vmin is kept as cheap insurance against dark-gradient banding on
      real 8-bit displays. Final softness call is on Andrew's real-browser
-     checklist. */
-  filter: blur(2vmin);
+     checklist.
+     2026-07-30: now driven by --helmet-aurora-blur so the tier can thin it;
+     the `high` value is unchanged at 2vmin, so desktop is byte-identical. */
+  filter: blur(var(--helmet-aurora-blur));
   animation: helmetAuroraPulse 12s ease-in-out infinite;
 }
 

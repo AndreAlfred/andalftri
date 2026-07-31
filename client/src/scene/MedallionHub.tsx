@@ -10,6 +10,8 @@ import {
 } from "@/hud/helmetBoot";
 import { useLemniscate } from "@/hooks/useLemniscate";
 import { useProximityTilt } from "@/hooks/useProximityTilt";
+import { readTextureEdgeCap } from "@/lib/deviceHints";
+import { capSceneTextures } from "./textureBudget";
 import type { EmblemTuning, LightingMode } from "./lightingConfig";
 import {
   applyMedallionSurfaceTuning,
@@ -78,6 +80,13 @@ export const MedallionHub = memo(function MedallionHub({
   const { scene } = useGLTF(MEDALLION_URL);
 
   const { clonedScene, sectionMeshes, normalization } = useMemo(() => {
+    // Cap texture residency BEFORE the clone is handed to the renderer
+    // (2026-07-30). Textures are shared with the loader-cached original rather
+    // than deep-copied by `clone`, so this runs once per URL and every mount
+    // inherits it. On desktop `textureEdgeCapFor` returns Infinity and
+    // `capSceneTextures` returns immediately without touching anything.
+    capSceneTextures(scene, readTextureEdgeCap());
+
     const clone = scene.clone(true);
     const bySection: Record<number, THREE.Mesh[]> = {};
 

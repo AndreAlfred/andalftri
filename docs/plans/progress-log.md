@@ -223,3 +223,77 @@ diagnosable instead of mysterious.
 Still needs Andrew's eyes: the sandbox compiles shaders and drives the DOM but
 never advances the WebGL frame loop, so star density, the new opaque dot, spark
 rarity and streak frequency are all unverified visually.
+
+---
+
+## 2026-07-30 — mobile / low-power performance (Tier A + Tier C)
+
+Research first (`docs/plans/2026-07-30-mobile-performance-research.md`), then
+Andrew approved Tier A and Tier C. Shipped:
+
+**The opening bid was the bug.** The Canvas mounted at `dpr={1.5}` — the top rung
+of `DPR_LADDER` — on every device, and `PerformanceMonitor` cannot correct frames
+that happen before its first sample. So the weakest phone rendered its opening
+seconds at maximum cost, exactly while GLB decode, Draco decompression and
+texture upload were already saturating the budget. On a phone that is a thermal
+event, not just slow frames: heat accumulated at t=0 lowers the ceiling for the
+whole session. `startingTierFor` now derives the opening tier from synchronous
+device hints (`pointer: coarse`, `maxTouchPoints`, screen short edge,
+`hardwareConcurrency`, `deviceMemory`) and the monitor is seeded with the
+matching factor so it argues in **both** directions. A capable desktop still
+starts at `high` — the change does not tax the good case. Absent signals mean
+unknown, never weak, matching the rule `deviceCapability.ts` already applies to
+detect-gpu's FALLBACK type.
+
+**The helmet CSS joined the quality system.** Four animated full-viewport
+`filter: blur() + mask-image` layers plus a full-viewport `backdrop-filter` sat
+entirely outside every quality knob, because no tier value had ever reached the
+DOM. `useQuality` now writes the live tier to `<html data-quality>` and
+`index.css` responds through two custom properties. Per entry G every rung stays
+non-zero — this thins, it never removes a layer. Desktop values are unchanged, so
+`high` is byte-identical to before. Measured in-browser at 375×812: aurora
+7.5px → 3px, peripheral 14px → 6px.
+
+**Texture residency (Tier C).** `EXT_texture_webp` compresses on the wire only;
+on upload the maps decode to uncompressed RGBA, so the authored set (3× 2048² +
+3× 1024²) costs ~84 MB resident with mip chains. On iOS Safari the failure mode
+is context loss — a black canvas — not a dropped frame. `capSceneTextures`
+resamples the 2048² set to 1024² on phone-sized touch devices, before the scene
+first renders so the large version is never uploaded at all. Verified against a
+synthetic scene matching the real layout: **48 MB reclaimed**, 1024² maps
+untouched (a ceiling, not a target), shared textures deduped, idempotent on
+re-run, and a genuine no-op on desktop. Texture identity is preserved — the
+pixels are swapped, not the `THREE.Texture` — so every material binding survives.
+
+KTX2/Basis remains the better long-term answer (~4 MB, stays compressed *in* GPU
+memory) and is still **not** adopted: it needs a transcoder dependency and ETC1S
+degrades normal maps enough to need Andrew's eyes on the artifact. Priced in the
+research doc, not taken.
+
+**Context loss is now survivable.** `preventDefault()` on `webglcontextlost` —
+without it the browser will not even attempt a restore, so the default behaviour
+was a permanently dead canvas — and a drop to the floor tier on restore. Losing
+the context is the strongest possible over-budget signal and the one the
+frame-time monitor structurally cannot produce, because by then there are no
+frames left to measure.
+
+**New preview instrument:** `?texcap=N` (power of two) pins the texture cap, so
+the phone's texture path can be judged on a screen big enough to judge it on. A
+phone gets the reduction but is the worst place to evaluate it.
+
+Also fixed en route: `?quality=` pinned the WebGL tier but not the CSS one,
+because it was applied by an effect inside the lazily-mounted Canvas subtree —
+see lessons.md entry Q.
+
+83 tests pass (13 new), `pnpm check` and `pnpm build` clean, no new dependency,
+bundle unchanged.
+
+**Needs Andrew's eyes (Tier B, not started):** the aurora and backdrop-filter
+radii at `low` are art-direction values, not compute numbers — the aurora ones
+are backed by the existing harness note on `.helmet-aurora-layer` (4vmin/2vmin/
+none were indistinguishable), the `backdrop-filter` radius has never been A/B'd.
+Also unverified: the resampled artifact on a real phone (`?texcap=1024` on
+desktop is the proxy), and whether sub-1.0 DPR is acceptable on a phone now that
+the confounding mipmap bug is fixed. Per lessons.md entry A the sandbox drives
+the DOM and compiles shaders but never advances the frame loop, so none of the
+visual outcomes above are verified — only the mechanisms are.

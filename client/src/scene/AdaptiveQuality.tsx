@@ -1,8 +1,13 @@
 import { PerformanceMonitor } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQualityStore } from "@/hooks/useQuality";
-import { dprForFactor, profileFor, type QualityTier } from "@/lib/qualityTier";
+import {
+  dprForFactor,
+  factorForTier,
+  profileFor,
+  type QualityTier,
+} from "@/lib/qualityTier";
 
 interface AdaptiveQualityProps {
   /** ?quality=low|medium|high pins the tier and disables the monitor. */
@@ -29,6 +34,10 @@ export function AdaptiveQuality({ pinnedTier }: AdaptiveQualityProps) {
   const applyTier = useQualityStore((state) => state.setTier);
   const applyDpr = useQualityStore((state) => state.setDpr);
   const dpr = useQualityStore((state) => state.dpr);
+  // Read once, at mount: the monitor's `factor` prop is its INITIAL value, so
+  // re-rendering with a different one would not move it anyway. Capturing the
+  // store's opening tier keeps the seed and the mounted DPR in agreement.
+  const [startFactor] = useState(() => factorForTier(useQualityStore.getState().tier));
 
   useEffect(() => {
     if (!pinnedTier) return;
@@ -46,12 +55,18 @@ export function AdaptiveQuality({ pinnedTier }: AdaptiveQualityProps) {
 
   return (
     <PerformanceMonitor
-      // Start optimistic and let the machine argue. `factor` is the running
-      // 0..1 health estimate; `step` bounds how fast it can move so a single
-      // hitch (a GC pause, a tab regaining focus) cannot drop the whole site a
-      // rung. `flipflops` gives up on climbing back after repeated failures,
-      // which is what stops the visible pumping that naive adaptive-DPR does.
-      factor={1}
+      // `factor` is the running 0..1 health estimate; `step` bounds how fast it
+      // can move so a single hitch (a GC pause, a tab regaining focus) cannot
+      // drop the whole site a rung. `flipflops` gives up on climbing back after
+      // repeated failures, which is what stops the visible pumping that naive
+      // adaptive-DPR does.
+      //
+      // 2026-07-30: this was a hard-coded 1 — "start optimistic and let the
+      // machine argue". It now starts wherever the conservative opening bid put
+      // us, so the machine argues in BOTH directions. Seeding at 1 while the
+      // renderer mounts at a lower rung would tell the monitor it was already at
+      // the top, and the climb-back-up path would never fire.
+      factor={startFactor}
       step={0.15}
       flipflops={3}
       onChange={({ factor }) => {

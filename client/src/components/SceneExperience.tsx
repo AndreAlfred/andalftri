@@ -10,7 +10,8 @@ import { HelmetFrame } from "@/hud/HelmetFrame";
 import { HudOverlay } from "@/hud/HudOverlay";
 import { useCameraStore } from "@/hooks/useCamera";
 import { useQualityStore } from "@/hooks/useQuality";
-import { getPreviewFlags } from "@/lib/qualityTier";
+import { readStartingTier } from "@/lib/deviceHints";
+import { getPreviewFlags, profileFor } from "@/lib/qualityTier";
 import { AdaptiveQuality } from "@/scene/AdaptiveQuality";
 import { PerfOverlay, PerfProbe } from "@/scene/PerfReadout";
 import { VisorStreaks } from "@/hud/VisorStreaks";
@@ -67,6 +68,36 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
       : THREE.ACESFilmicToneMapping;
   const toneMappingExposure =
     lightingSettings.mode === "studio" ? STUDIO_LIGHTING.renderer.exposure : 1;
+
+  // The opening bid, decided synchronously before the first frame.
+  // `readStartingTier` already resolves ?quality= ahead of the device hints, so
+  // this must not re-implement that precedence — one source, or the renderer and
+  // the store could mount disagreeing about which rung they are on.
+  const initialDpr = useMemo(() => profileFor(readStartingTier()).dpr, []);
+
+  /**
+   * WebGL context loss (2026-07-30).
+   *
+   * On iOS Safari the failure mode under memory pressure is not a slow frame —
+   * the context is taken away and the canvas goes black, permanently, with
+   * nothing in the UI explaining it. Two things are needed:
+   *
+   * 1. `preventDefault()` on the lost event. Without it the browser will not
+   *    attempt a restore at all, so the default behaviour is a dead canvas.
+   * 2. Dropping to the floor tier on restore. Losing the context IS the
+   *    strongest possible signal that this device is over budget, and it is a
+   *    signal the frame-time monitor cannot produce — by the time the context
+   *    dies there are no frames left to measure.
+   */
+  const handleCanvasCreated = useCallback((state: { gl: THREE.WebGLRenderer }) => {
+    const canvas = state.gl.domElement;
+    canvas.addEventListener("webglcontextlost", (event) => {
+      event.preventDefault();
+    });
+    canvas.addEventListener("webglcontextrestored", () => {
+      useQualityStore.getState().setTier("low");
+    });
+  }, []);
 
   const [pathname, setPathname] = useState(getInitialPathname);
   const [closingPageId, setClosingPageId] = useState<string | null>(null);
@@ -198,13 +229,22 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
         camera={{ position: [0, 0, 8], fov: 60 }}
         // Initial only — AdaptiveQuality drives DPR through `setDpr` from here
         // on, so the renderer is never remounted by a quality change.
-        dpr={1.5}
+        //
+        // 2026-07-30: this was a hard-coded 1.5, the TOP rung of DPR_LADDER, on
+        // every device. AdaptiveQuality cannot correct that until the monitor
+        // has samples, and it is deliberately slow to move, so a phone rendered
+        // its opening seconds at maximum cost — precisely while GLB decode,
+        // Draco decompression and texture upload were already saturating the
+        // budget. The cost is thermal and therefore not recoverable within the
+        // session, so the opening bid is now conservative and climbs.
+        dpr={initialDpr}
         gl={{
           antialias: true,
           powerPreference: "high-performance",
           toneMapping,
           toneMappingExposure,
         }}
+        onCreated={handleCanvasCreated}
       >
         <AdaptiveQuality pinnedTier={previewFlags.pinnedTier} />
         {previewFlags.showPerfReadout ? <PerfProbe /> : null}

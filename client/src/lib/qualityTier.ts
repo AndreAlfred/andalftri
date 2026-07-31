@@ -13,6 +13,10 @@
  *          |medium
  *          |high
  *   ?perf=1        corner readout: fps / dpr / draw calls / tier.
+ *   ?texcap=1024   pin the texture residency cap (power of two) instead of
+ *                  deriving it from the device — puts a desktop on the phone's
+ *                  texture path so the resampled artifact can be judged on a
+ *                  screen big enough to judge it on.
  *
  * Pure module, no DOM or three.js imports, so tests/qualityTier.test.ts can
  * exercise it under plain Node.
@@ -82,6 +86,23 @@ export interface PreviewFlags {
   pinnedTier: QualityTier | null;
   /** Show the fps / dpr / draw-call readout. */
   showPerfReadout: boolean;
+  /**
+   * Pin the texture residency cap in px; null = derive it from the device.
+   * `?texcap=1024` puts a desktop on the phone's texture path, which is the
+   * only way to judge the resampled artifact on a large screen — a phone is the
+   * device that gets the reduction but the worst place to evaluate it.
+   */
+  pinnedTextureCap: number | null;
+}
+
+function parseTextureCap(raw: string | null): number | null {
+  if (!raw) return null;
+  const value = Number(raw);
+  // Powers of two only. A non-power-of-two cap would resample to a size three
+  // cannot mip cleanly, which is exactly the class of sampling bug that made
+  // the screen text unreadable in July (lessons.md entry J).
+  if (!Number.isFinite(value) || value < 16 || value > 8192) return null;
+  return Number.isInteger(Math.log2(value)) ? value : null;
 }
 
 function parseTier(raw: string | null): QualityTier | null {
@@ -102,6 +123,7 @@ export function getPreviewFlags(search: string): PreviewFlags {
     forceFullScene: params.get("force-3d") === "1",
     pinnedTier: parseTier(params.get("quality")),
     showPerfReadout: params.get("perf") === "1",
+    pinnedTextureCap: parseTextureCap(params.get("texcap")),
   };
 }
 
@@ -133,4 +155,114 @@ export function tierForDpr(dpr: number): QualityTier {
 
 export function profileFor(tier: QualityTier): QualityProfile {
   return QUALITY_PROFILES[tier];
+}
+
+/**
+ * Cheap synchronous signals available at mount, before any frame is drawn.
+ * Deliberately not a GPU benchmark — see `startingTierFor` for why.
+ */
+export interface DeviceHints {
+  /** matchMedia("(pointer: coarse)") — a finger, not a mouse. */
+  coarsePointer: boolean;
+  /** navigator.maxTouchPoints. */
+  maxTouchPoints: number;
+  /** The smaller of screen width/height in CSS px, orientation-independent. */
+  minScreenEdge: number;
+  /** navigator.hardwareConcurrency, or 0 when unavailable. */
+  cores: number;
+  /** navigator.deviceMemory in GiB, or 0 when unavailable (Safari never reports it). */
+  memoryGb: number;
+}
+
+/**
+ * Which tier the scene should START at, decided synchronously at mount.
+ *
+ * 2026-07-30. The problem this solves is the one the adaptive ladder
+ * structurally cannot: `AdaptiveQuality` only corrects AFTER drei's
+ * PerformanceMonitor has samples, and it is deliberately slow to move
+ * (`step`, `flipflops`). So every device used to mount at `dpr={1.5}` — the top
+ * rung — and render its opening seconds at maximum cost. On a phone those
+ * seconds coincide with GLB decode, Draco decompression and texture upload, and
+ * the damage is thermal: phones throttle on accumulated heat, so a spike at t=0
+ * lowers the ceiling for the whole session. A measure-then-correct loop has a
+ * blind window equal to its own latency, and the only thing that can cover that
+ * window is a signal available before the first frame.
+ *
+ * Being wrong is asymmetric, which is why this starts low and climbs: guessing
+ * too low costs a few seconds of slightly softer rendering that the monitor then
+ * corrects upward, while guessing too high costs thermal headroom that is not
+ * recoverable within the session. That asymmetry — not accuracy — is the whole
+ * argument for a conservative start.
+ *
+ * Note this deliberately does NOT try to identify the device. detect-gpu already
+ * owns "is this thing capable at all", and `deviceCapability.ts` special-cases
+ * the obfuscated Apple renderer string (lessons.md entry D) precisely because
+ * identification is unreliable. This asks a narrower, answerable question: is
+ * there any reason to think the top rung is a bad opening bid?
+ */
+export function startingTierFor(hints: DeviceHints): QualityTier {
+  const touch = hints.coarsePointer || hints.maxTouchPoints > 0;
+
+  // A phone-sized touch device is the case the whole change exists for. The
+  // 820px edge sits above every phone in portrait and below an iPad's 768pt
+  // short edge only in portrait — tablets land in `medium` below, which is the
+  // intended outcome rather than a missed case.
+  if (touch && hints.minScreenEdge > 0 && hints.minScreenEdge <= 820) return "low";
+
+  // Any touch-primary device that is not phone-sized: tablets, touch laptops.
+  if (touch) return "medium";
+
+  // Desktop with explicitly modest hardware. Both signals are absent on Safari,
+  // in which case we do NOT infer weakness — unknown is not weak, the same rule
+  // deviceCapability.ts applies to detect-gpu's FALLBACK type.
+  if (hints.cores > 0 && hints.cores <= 4) return "medium";
+  if (hints.memoryGb > 0 && hints.memoryGb <= 4) return "medium";
+
+  return "high";
+}
+
+/**
+ * Largest texture edge (px) this device should keep resident, or `Infinity` for
+ * "ship what the artist authored".
+ *
+ * 2026-07-30. This is a MEMORY decision, not a framerate one, which is why it
+ * reads device hints directly instead of the adaptive tier: textures are
+ * uploaded once at load, so a tier that changes at second 15 cannot un-upload
+ * them. It is also why it is separate from `startingTierFor` despite using the
+ * same inputs — the two answer different questions and must be allowed to
+ * disagree.
+ *
+ * The problem: `EXT_texture_webp` compresses the medallion's maps on the WIRE
+ * only. On upload they decode to uncompressed RGBA, so the authored set
+ * (3 × 2048² + 3 × 1024²) costs `w × h × 4 × 1.33` ≈ 84 MB resident once mip
+ * chains are built. On iOS Safari that is a material fraction of the WebGL
+ * budget and the failure mode is context loss — a black canvas — not a dropped
+ * frame. Halving the 2048² set to 1024² takes the total to roughly 25 MB.
+ *
+ * 1024 is the cap rather than something smaller because of viewing distance,
+ * which cuts the other way from the usual assumption: a phone is held closer
+ * than a monitor, so the angular detail budget is not as forgiving as "it's a
+ * small screen" suggests. 1024 across the artifact's dominant surface is still
+ * well above what is resolvable at arm's length; 512 would not obviously be.
+ */
+export function textureEdgeCapFor(hints: DeviceHints): number {
+  const touch = hints.coarsePointer || hints.maxTouchPoints > 0;
+  if (touch && hints.minScreenEdge > 0 && hints.minScreenEdge <= 820) return 1024;
+  return Infinity;
+}
+
+/**
+ * The PerformanceMonitor `factor` that corresponds to a starting tier.
+ *
+ * `dprForFactor` maps 0..1 onto the ladder, so seeding the monitor with the
+ * factor its own mapping would produce for our chosen tier keeps the two in
+ * agreement. Seeding it at 1 (the old default) while mounting at a lower DPR
+ * would make the monitor believe it was already at the top and it would only
+ * ever step down — the climb-back-up path would be dead on arrival.
+ */
+export function factorForTier(tier: QualityTier): number {
+  const target = profileFor(tier).dpr;
+  const index = DPR_LADDER.indexOf(target as (typeof DPR_LADDER)[number]);
+  if (index < 0) return 1;
+  return index / (DPR_LADDER.length - 1);
 }

@@ -267,3 +267,44 @@ refinement below disproves. The context works; the frame loop is what does not.)
   true of this same asset and they lead to opposite conclusions about whether there is
   a problem. Compute residency as `w × h × 4 × 1.33` per texture and check it against
   the target device's ceiling before concluding an asset is optimized.
+
+### Q. A setting that must hold from the first paint cannot be applied by an effect
+- **What happened:** `?quality=low` correctly pinned the WebGL tier but left the new
+  `data-quality` attribute — and therefore the helmet CSS — at the device-derived
+  tier. Verified in the browser, not reasoned about: the attribute read `high` on a
+  URL that had explicitly asked for `low`. Root cause was ordering, not logic. The
+  pinned tier was applied by an effect inside `AdaptiveQuality`, which lives inside
+  `<Canvas>`, which lives inside a lazily-imported `SceneExperience`. So the setting
+  could not take effect until three separate things had mounted, and for the whole of
+  loading — the exact window a preview instrument is most often used to inspect — the
+  page was showing the wrong tier.
+- **Fix:** resolve `?quality=` where the opening value is *constructed*
+  (`readStartingTier`), not where it is later corrected. One source of precedence;
+  `SceneExperience` now asks the same function rather than re-implementing the
+  "pinned wins" rule, so the renderer and the store cannot mount disagreeing.
+- **Lesson:** ask *when the earliest observer reads it*, not just *whether it is
+  applied*. A value consumed during loading has to exist before the component tree
+  that computes it. Effects run after mount by definition, so anything that must be
+  true for the first paint belongs in module or store initialisation. The tell is a
+  setting that works "eventually" in manual testing — that is not a slow success, it
+  is a failure with a short window, and lazy-loading widens the window.
+- **Second tell, worth its own note:** the bug was only visible because the DOM was
+  inspected directly. Everything upstream agreed it worked — the store held `low`, the
+  tests passed, `tsc` was clean. State being correct somewhere is not the same as
+  state having reached the thing that renders.
+
+### R. Stale Vite HMR can report a ReferenceError that no longer exists in the source
+- **What happened:** after adding an import to `deviceHints.ts`, the console showed
+  `ReferenceError: getPreviewFlags is not defined` pointing at the line that uses it —
+  a binding that plainly existed in the file. It survived a dev-server restart, which
+  made it look reproducible and real. It was neither: the browser's console buffer had
+  retained the messages across the restart (same `?t=` cache-busting timestamp on
+  every occurrence, which was the giveaway), and the page itself had never been
+  hard-reloaded against the new server.
+- **Lesson:** before diagnosing a module-level error in a dev server, confirm the
+  error is *current* — check the timestamps/URLs in the stack for a stale build id,
+  and force a real reload rather than trusting that restarting the server invalidated
+  the page. A console is an append-only log, not a view of present state. Corollary
+  specific to this repo's verification loop: `pnpm check` passing while the console
+  shows a `ReferenceError` should raise "is this console stale?" before it raises "did
+  TypeScript miss something?" — the second is possible but far rarer than the first.
