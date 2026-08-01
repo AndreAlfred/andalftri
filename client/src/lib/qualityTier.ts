@@ -86,6 +86,8 @@ export interface PreviewFlags {
   pinnedTier: QualityTier | null;
   /** Show the fps / dpr / draw-call readout. */
   showPerfReadout: boolean;
+  /** Run the on-device ablation sweep; see client/src/lib/diagnostics.ts. */
+  runDiagnostics: boolean;
   /**
    * Pin the texture residency cap in px; null = derive it from the device.
    * `?texcap=1024` puts a desktop on the phone's texture path, which is the
@@ -123,6 +125,7 @@ export function getPreviewFlags(search: string): PreviewFlags {
     forceFullScene: params.get("force-3d") === "1",
     pinnedTier: parseTier(params.get("quality")),
     showPerfReadout: params.get("perf") === "1",
+    runDiagnostics: params.get("diag") === "1",
     pinnedTextureCap: parseTextureCap(params.get("texcap")),
   };
 }

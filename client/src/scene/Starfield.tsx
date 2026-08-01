@@ -117,6 +117,7 @@ export const Starfield = memo(function Starfield({ count }: StarfieldProps) {
 
   return (
     <points
+      name="diag-starfield"
       ref={pointsRef}
       geometry={geometry}
       frustumCulled={false}

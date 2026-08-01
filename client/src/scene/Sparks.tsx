@@ -180,6 +180,7 @@ export const Sparks = memo(function Sparks({ count, reducedMotion = false }: Spa
   // machine that recovered could never get its sparks back.
   return (
     <points
+      name="diag-sparks"
       geometry={geometry}
       frustumCulled={false}
       // Draw after the artifact. The medallion now returns to the OPAQUE pass at

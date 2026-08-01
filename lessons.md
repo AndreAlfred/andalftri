@@ -308,3 +308,43 @@ refinement below disproves. The context works; the frame loop is what does not.)
   specific to this repo's verification loop: `pnpm check` passing while the console
   shows a `ReferenceError` should raise "is this console stale?" before it raises "did
   TypeScript miss something?" — the second is possible but far rarer than the first.
+
+## Session 2026-08-01 (mobile lag, second attempt — instrumenting instead of tuning)
+
+### S. Absence of a measurement is not a measurement of zero
+- **What happened:** the `?diag=1` ablation harness folds per-condition frame times
+  into a ranked table. A condition with no samples has a median of 0 ms, which the
+  recovery formula `(baseline - median) / baseline` scored as a **100% saving** — so
+  any unmeasured condition sorted straight to the top and `verdict()` announced it as
+  the dominant cost. A unit test with an empty sample map caught it before it shipped.
+  The realistic trigger is the most likely thing to happen on the target device: the
+  phone locks or the tab backgrounds partway through a 39-second sweep, and the tool
+  built to end the guessing confidently reports a fabricated winner.
+- **Root cause:** a sentinel that is also a legal value. Zero means "no data" to the
+  collector and "instantaneous" to the arithmetic, and nothing in between checked
+  which one it was.
+- **Lesson:** when a summary statistic can be computed from an empty set, decide
+  explicitly what the empty case means before the formula runs, and carry the sample
+  count alongside the value so downstream ranking can refuse to rank it. Anywhere a
+  "better" score can be achieved by measuring *less*, the metric is inverted for the
+  missing case. This generalises past diagnostics — the same shape appears in any
+  code that averages, ranks, or diffs collections that might be empty.
+- **Adjacent rule that paid off:** the harness itself exists because CLAUDE.md says
+  two failed tunings means stop tuning and instrument. Two rounds of mechanism-level
+  reasoning (both internally sound, both verified against the code) failed to fix the
+  reported lag, because being right about a mechanism is not the same as that
+  mechanism being the bottleneck. The instrument was cheaper than the third guess.
+
+### T. Interleave ablation conditions on hardware that throttles
+- **What happened (design note, not a wrong turn):** the obvious sweep shape — measure
+  condition A for 5s, then B, then C — is invalid on a phone. Thermal throttling means
+  the device measured at second 40 is materially slower than the one measured at second
+  5, so a sequential sweep confounds "which layer is expensive" with "which layer was
+  measured last", and the ordering alone would manufacture a result.
+- **Lesson:** on any device whose performance drifts with time-under-load, ablation
+  conditions must be interleaved round-robin and rotated between rounds, with a median
+  taken across rounds. Rotation matters as much as interleaving: a heavy condition
+  leaves the GPU hotter for whatever follows it, so a fixed cycle order taxes the same
+  neighbour every round. This is the measurement analogue of entry E — the metric has
+  to match what the visitor actually experiences, and on a phone that includes minute
+  two, not just second one.

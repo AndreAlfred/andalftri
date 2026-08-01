@@ -744,3 +744,13 @@ select {
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
     0 16px 40px rgba(0, 0, 0, 0.18);
 }
+
+/*
+ * ?diag=1 ablation: hide the screen-space helmet blur layers so the sweep can
+ * price them. Diagnostic only — nothing outside DiagnosticProbe ever sets this
+ * attribute, and the probe clears it on unmount.
+ */
+:root[data-diag="aurora-off"] .helmet-aurora-layer,
+:root[data-diag="aurora-off"] .helmet-peripheral-blur {
+  display: none !important;
+}

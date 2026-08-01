@@ -361,6 +361,19 @@ function drawBlinkLine(ctx: CanvasRenderingContext2D, spread: number, seed: numb
 const DIMMED_VISIBILITY = 0.2;
 const DIMMED_GRAIN_HZ = 6;
 
+
+/**
+ * Diagnostic freeze (see client/src/lib/diagnostics.ts). Module-level rather
+ * than a prop because it must be settable from inside the render loop without
+ * a React round-trip — a state update per slot transition would itself show up
+ * in the frame times being measured.
+ */
+let screenWakeFrozen = false;
+
+export function setScreenWakeFrozen(frozen: boolean) {
+  screenWakeFrozen = frozen;
+}
+
 export class ScreenWakeManager {
   private sections = new Map<number, SectionWake>();
   private biasOverrides: Record<number, number>;
@@ -501,6 +514,17 @@ export class ScreenWakeManager {
   /** Advance all wake state machines. hovered lifts that section's brightness;
    *  globalDim follows hub visibility so screens fade with the receding hub. */
   update(delta: number, hovered: number | null, globalDim = 1) {
+    // ?diag=1 freezes the canvas redraw/upload without hiding the meshes, so
+    // the sweep can separate texture-upload cost from geometry cost. The state
+    // machine still advances — only the rasterize+upload is skipped — so the
+    // screens do not visibly change phase mid-measurement.
+    if (screenWakeFrozen) {
+      this.sections.forEach((s, sec) => {
+        s.hoverLevel = THREE.MathUtils.lerp(s.hoverLevel, hovered === sec ? 1 : 0, 0.14);
+      });
+      return;
+    }
+
     const grainInterval =
       1 / (globalDim < DIMMED_VISIBILITY ? Math.min(DIMMED_GRAIN_HZ, this.grainHz) : this.grainHz);
 

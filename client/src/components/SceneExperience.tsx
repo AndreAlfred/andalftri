@@ -14,6 +14,8 @@ import { readStartingTier } from "@/lib/deviceHints";
 import { getPreviewFlags, profileFor } from "@/lib/qualityTier";
 import { AdaptiveQuality } from "@/scene/AdaptiveQuality";
 import { PerfOverlay, PerfProbe } from "@/scene/PerfReadout";
+import { DiagnosticProbe } from "@/scene/DiagnosticProbe";
+import { DiagnosticOverlay } from "@/hud/DiagnosticOverlay";
 import { VisorStreaks } from "@/hud/VisorStreaks";
 import { ContentPanel } from "@/panels/ContentPanel";
 import { InfluencePanel } from "@/panels/InfluencePanel";
@@ -248,6 +250,7 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
       >
         <AdaptiveQuality pinnedTier={previewFlags.pinnedTier} />
         {previewFlags.showPerfReadout ? <PerfProbe /> : null}
+        {previewFlags.runDiagnostics ? <DiagnosticProbe /> : null}
         <Environment
           lightingMode={lightingSettings.mode}
           keyLightPosition={lightingSettings.keyLightPosition}
@@ -322,6 +325,7 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
       ) : null}
 
       {previewFlags.showPerfReadout ? <PerfOverlay /> : null}
+      {previewFlags.runDiagnostics ? <DiagnosticOverlay /> : null}
     </div>
   );
 }
