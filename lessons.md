@@ -162,6 +162,22 @@ refinement below disproves. The context works; the frame loop is what does not.)
   When you add one, measure what fraction of the population actually reaches it. If
   the answer is "most", the mapping feeding the clamp is wrong and the clamp is
   hiding it.
+- **2026-08-02 generalisation — this is about ceilings, not about clamps.** The same
+  failure recurred in a place with no clamp in it at all. The `?diag=1` ablation
+  harness ranked conditions by median frame time; on Andrew's iPhone every one of the
+  eight conditions returned *exactly* 17.0ms, because the device was hitting 60Hz
+  vsync with everything switched on and simply waiting out the rest of each frame.
+  The harness dutifully reported "no single layer dominates" while its own p95 column
+  showed two conditions taking the tail from 40.0ms to 17.0ms — an unambiguous result,
+  buried, because the headline metric was pinned against a ceiling nobody had checked
+  for. Restated to cover both cases: **before trusting a measurement, confirm the
+  quantity was free to move.** A clamp, a frame cap, a rate limit, a saturating
+  sensor and a full buffer are the same hazard wearing different clothes, and they all
+  present as suspiciously equal readings rather than as an error. The tell is
+  variance: if a metric shows near-zero spread across treatments that genuinely differ,
+  suspect the ruler before believing the result. The fix here was to detect the
+  saturation (spread < 1ms across conditions while another metric still varies) and
+  rank on the metric that could still move.
 
 ### L. Model the phenomenon, not the appearance (generalises I)
 - **What happened:** the first starfield invented a palette (white lerped toward a

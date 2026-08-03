@@ -297,3 +297,71 @@ desktop is the proxy), and whether sub-1.0 DPR is acceptable on a phone now that
 the confounding mipmap bug is fixed. Per lessons.md entry A the sandbox drives
 the DOM and compiles shaders but never advances the frame loop, so none of the
 visual outcomes above are verified — only the mechanisms are.
+
+---
+
+## 2026-08-02 — the lag is texture uploads, not the medallion
+
+Andrew ran `?diag=1` on an iPhone (iOS 18.7, 393×852 @dpr 3, tier `low` — the
+conservative start from 2026-07-30 worked). The result settled the question that
+motivated the whole harness.
+
+Every condition returned a median of **exactly 17.0ms** — 60Hz vsync. The phone
+was hitting the frame cap with everything on, so the median could not move and
+the harness's own verdict said "no single layer dominates". That was wrong, and
+wrong in an instructive way: the median was pinned against a ceiling (lessons.md
+entry K, now rewritten to cover ceilings generally, not just clamps).
+
+The p95 column had the answer:
+
+| condition | median | p95 |
+|---|---|---|
+| Baseline | 17.0 | 40.0 |
+| DPR 0.75 | 17.0 | 40.0 |
+| Bezels hidden | 17.0 | 38.0 |
+| Sparks off | 17.0 | 36.0 |
+| Starfield off | 17.0 | 33.0 |
+| Helmet aurora off | 17.0 | 20.0 |
+| **Screens hidden** | 17.0 | **17.0** |
+| **CRT redraw frozen** | 17.0 | **17.0** |
+
+`Screens hidden` and `CRT redraw frozen` score **identically**, and that pair is
+the proof. Hiding the screen meshes removes 145,152 triangles AND the uploads
+(a WebGL texture uploads lazily at bind time, so an undrawn mesh never uploads).
+Freezing the redraw removes the uploads while still rasterizing every one of
+those triangles. Same result. **The geometry costs nothing measurable.**
+
+So the low-poly Blender re-export was not built. It would have been days of work
+against a mesh the measurement exonerates. `DPR 0.75` and `Bezels hidden` sitting
+at baseline independently confirm the scene is neither fill-rate nor vertex bound.
+
+**Fix shipped: an upload budget.** Seven screens at 10–20Hz average barely over
+one upload per frame, which is why the median never moved — the damage lands on
+the frames where several coincide, because `texImage2D` from a canvas must flush
+that canvas's 2D command queue first, so N coincident uploads means N stalls in
+one frame. `ScreenWakeManager.update` now grants at most `MAX_UPLOADS_PER_FRAME`
+(2) texture uploads per frame, with a rotating cursor so no section is
+systematically the one deferred. Per-screen redraw rate is unchanged; the
+redraws simply never land together. The boot fade-in is exempt (it redraws every
+frame by design and is the authored cascade) but still consumes budget.
+
+Also fixed: the accumulator zeroed on redraw, discarding the remainder, which
+made the effective period depend on frame timing and let independently-phased
+screens drift into lockstep. Now decremented.
+
+**Harness corrections:** ranks on p95 when the medians are saturated, detects
+saturation by spread rather than a hard-coded 16.7ms (so it works on 120Hz
+ProMotion), requires the tail to still vary before claiming a cap (otherwise a
+genuinely flat sweep would be mislabelled "capped"), and names the metric in the
+verdict so "recovers 57%" cannot be read as a claim about the typical frame.
+
+Second contributor worth noting: `Helmet aurora off` recovers 50% of the tail.
+The CSS blur layers are real, they are already tier-gated as of 2026-07-30, and
+they are the next lever if the upload fix does not close the gap.
+
+**Open:** whether the fix works. Re-run `?diag=1` — if baseline p95 now matches
+`CRT redraw frozen` p95, it is closed. If a gap remains, the residue is
+per-upload cost and the next lever is texture size at `low` (256→128), which
+needs Andrew's eyes because of the entry-J legibility history.
+
+100 tests pass, check and build clean.

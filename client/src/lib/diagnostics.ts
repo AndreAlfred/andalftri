@@ -124,6 +124,37 @@ export interface ConditionResult {
   deltaVsBaselineMs: number;
   /** Percent of baseline frame time recovered by this ablation. */
   recoveredPct: number;
+  /** Percent of baseline p95 (the hitches) recovered by this ablation. */
+  recoveredTailPct: number;
+}
+
+/**
+ * True when the medians are pinned to a frame cap and cannot express a
+ * difference.
+ *
+ * A vsync-locked device returns the same median for every condition — 16.7ms at
+ * 60Hz, 8.3ms at 120Hz — because it finished early and waited. That is not "all
+ * conditions cost the same", it is "the ruler stops here". Detected by spread
+ * rather than by comparing to a hard-coded 16.7, so it works on 120Hz ProMotion
+ * displays and on a device capped somewhere unusual.
+ */
+export function medianIsSaturated(results: readonly ConditionResult[]): boolean {
+  const measured = results.filter((r) => r.samples > 0 && r.medianMs > 0);
+  // Two conditions that happen to match is a coincidence, not a saturated ruler.
+  if (measured.length < 3) return false;
+
+  const spreadOf = (pick: (r: ConditionResult) => number) => {
+    const values = measured.map(pick);
+    return Math.max(...values) - Math.min(...values);
+  };
+
+  // Two conditions must BOTH hold. Flat medians alone are ambiguous: they mean
+  // either "the ruler stops here" or "these layers genuinely cost the same". It
+  // is only a cap if some other metric was still free to move — so require the
+  // tail to have real spread before claiming the median was pinned. Without
+  // this, a sweep where nothing mattered would be reported as "frame rate is
+  // capped", which is a different and unsupported claim.
+  return spreadOf((r) => r.medianMs) < 1 && spreadOf((r) => r.p95Ms) > 2;
 }
 
 /**
@@ -139,7 +170,9 @@ export function summarize(
   samplesByCondition: ReadonlyMap<ConditionId, readonly number[]>,
   conditions: readonly Condition[] = CONDITIONS,
 ): ConditionResult[] {
-  const baselineMs = median(samplesByCondition.get("baseline") ?? []);
+  const baselineSamples = samplesByCondition.get("baseline") ?? [];
+  const baselineMs = median(baselineSamples);
+  const baselineP95 = percentile(baselineSamples, 95);
 
   const results = conditions.map((condition) => {
     const samples = samplesByCondition.get(condition.id) ?? [];
@@ -159,17 +192,30 @@ export function summarize(
       samples: samples.length,
       deltaVsBaselineMs: measured ? medianMs - baselineMs : 0,
       recoveredPct: measured && baselineMs > 0 ? ((baselineMs - medianMs) / baselineMs) * 100 : 0,
+      recoveredTailPct:
+        measured && baselineP95 > 0 ? ((baselineP95 - percentile(samples, 95)) / baselineP95) * 100 : 0,
     };
   });
 
   // Biggest saving first, but unmeasured conditions sort last regardless — they
   // have no claim on the ranking. Baseline recovers nothing against itself and
   // settles near the bottom by construction.
+  //
+  // 2026-08-02: rank on whichever metric is actually free to move. On Andrew's
+  // iPhone every condition returned a median of exactly 17.0ms — vsync at 60Hz —
+  // because the device was hitting the frame cap with everything on. A median
+  // that 100% of conditions saturate is not a measurement, it is a constant
+  // (lessons.md entry K, in its original form about a clamp). Ranking on it
+  // reported "no single layer dominates" while the p95 column showed two
+  // conditions taking the tail from 40.0ms to 17.0ms. The tail is also the
+  // better match for the complaint: "frame drop city" is about hitches, and a
+  // change can flatten the tail without touching the median at all.
+  const key = medianIsSaturated(results) ? "recoveredTailPct" : "recoveredPct";
   return results.sort((a, b) => {
     const aMeasured = a.samples > 0;
     const bMeasured = b.samples > 0;
     if (aMeasured !== bMeasured) return aMeasured ? -1 : 1;
-    return b.recoveredPct - a.recoveredPct;
+    return b[key] - a[key];
   });
 }
 
@@ -185,12 +231,24 @@ export function verdict(results: readonly ConditionResult[]): string {
   if (!baseline || baseline.samples === 0) {
     return "Sweep did not complete — baseline was never measured, so nothing is comparable.";
   }
+  const tailMode = medianIsSaturated(results);
+  const score = (r: ConditionResult) => (tailMode ? r.recoveredTailPct : r.recoveredPct);
+
   const real = results.filter(
-    (r) => r.id !== "baseline" && r.samples > 0 && r.recoveredPct >= SIGNIFICANT_RECOVERY_PCT,
+    (r) => r.id !== "baseline" && r.samples > 0 && score(r) >= SIGNIFICANT_RECOVERY_PCT,
   );
+
+  // Naming the metric matters as much as naming the winner. A verdict that says
+  // "recovers 58%" without saying 58% OF WHAT invites the reader to assume the
+  // typical frame improved when only the hitches did.
+  const prefix = tailMode
+    ? "Frame rate is capped (every median identical), so this ranks the hitches. "
+    : "";
+
   if (real.length === 0) {
-    return "No single layer dominates — the cost is spread, or it is not in any ablated layer.";
+    return `${prefix}No single layer dominates — the cost is spread, or it is not in any ablated layer.`;
   }
   const top = real[0];
-  return `${top.label} recovers ${top.recoveredPct.toFixed(0)}% of frame time — ${top.implies}.`;
+  const what = tailMode ? "of the p95 hitch" : "of frame time";
+  return `${prefix}${top.label} recovers ${score(top).toFixed(0)}% ${what} — ${top.implies}.`;
 }

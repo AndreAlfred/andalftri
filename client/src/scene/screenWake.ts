@@ -370,6 +370,12 @@ const DIMMED_GRAIN_HZ = 6;
  */
 let screenWakeFrozen = false;
 
+/**
+ * Texture uploads allowed per frame across all seven screens (2026-08-02).
+ * See the redraw site for the measurement that motivated it.
+ */
+const MAX_UPLOADS_PER_FRAME = 2;
+
 export function setScreenWakeFrozen(frozen: boolean) {
   screenWakeFrozen = frozen;
 }
@@ -378,6 +384,27 @@ export class ScreenWakeManager {
   private sections = new Map<number, SectionWake>();
   private biasOverrides: Record<number, number>;
   private grainHz = 30;
+  /**
+   * Texture uploads still permitted this frame. Refilled at the top of every
+   * `update`; see the note at the redraw site for why a budget and not just a
+   * rate.
+   *
+   * Sizing, at 60fps (120 upload slots/sec): `low` needs 7×10 = 70/s and
+   * `medium` 7×15 = 105/s, both comfortably under. `high` asks for 7×20 = 140/s
+   * and is therefore capped to roughly 17Hz — a ~15% reduction the tier table
+   * already treats as below the perceptual floor ("CRT grain at 20Hz is
+   * indistinguishable from 30Hz"). `high` is also the desktop tier, where the
+   * measured problem does not occur. A budget of 1 would have cut `medium` too,
+   * which is real degradation rather than rounding.
+   */
+  private uploadBudget = 0;
+  /**
+   * Rotates which section gets first claim on the budget each frame. Without
+   * it, iteration order is Map insertion order every frame, so section 1 would
+   * always be served first and section 7 would be the only one ever deferred —
+   * a systematic bias rather than an even spread.
+   */
+  private uploadCursor = 0;
 
   constructor(biasOverrides: Record<number, number> = {}) {
     this.biasOverrides = biasOverrides;
@@ -528,13 +555,20 @@ export class ScreenWakeManager {
     const grainInterval =
       1 / (globalDim < DIMMED_VISIBILITY ? Math.min(DIMMED_GRAIN_HZ, this.grainHz) : this.grainHz);
 
-    this.sections.forEach((s, sec) => {
+    this.uploadBudget = MAX_UPLOADS_PER_FRAME;
+    const order = [...this.sections.keys()].sort((a, b) => a - b);
+    this.uploadCursor = order.length > 0 ? (this.uploadCursor + 1) % order.length : 0;
+
+    for (let i = 0; i < order.length; i += 1) {
+      const sec = order[(i + this.uploadCursor) % order.length];
+      const s = this.sections.get(sec);
+      if (!s) continue;
       s.hoverLevel = THREE.MathUtils.lerp(
         s.hoverLevel, hovered === sec ? 1 : 0, 0.14);
       if (s.phase === "off") {
-        if (s.bootDelay === null) return;
+        if (s.bootDelay === null) continue;
         s.bootDelay -= delta;
-        if (s.bootDelay > 0) return;
+        if (s.bootDelay > 0) continue;
         s.bootDelay = null;
         s.phase = "blink";
         s.t = 0;
@@ -588,8 +622,31 @@ export class ScreenWakeManager {
         // 4) picture fades in, then stays on (grain/flicker at the tier's rate)
         s.redrawAccum += delta;
         const fadeIn = Math.min(s.t / TEXT_FADE_IN, 1);
-        if (s.redrawAccum >= grainInterval || fadeIn < 1) {
-          s.redrawAccum = 0;
+        // 2026-08-02: an upload BUDGET, not just a rate. Measured on Andrew's
+        // iPhone (?diag=1), freezing these redraws took p95 frame time from
+        // 40.0ms to 17.0ms while hiding all 145k triangles of screen geometry
+        // did exactly the same — so the tail was the seven texture uploads, not
+        // the mesh. Seven screens at 10-20Hz average barely over one upload per
+        // frame, which is why the MEDIAN never moved; the damage is done on the
+        // frames where several coincide, because `texImage2D` from a canvas has
+        // to flush that canvas's 2D command queue first, and N coincident
+        // uploads means N stalls in one frame.
+        //
+        // Deferring costs nothing visually: the per-screen redraw rate is
+        // unchanged, the redraws just never land on the same frame. Note the
+        // accumulator is decremented rather than zeroed — zeroing discarded the
+        // remainder, which made the effective period depend on frame timing and
+        // let independently-phased screens drift into lockstep.
+        // The fade-in is EXEMPT from the budget. It redraws every frame by
+        // design and it is the authored boot cascade — throttling it would make
+        // Andrew's opening beat visibly steppy to fix a steady-state problem
+        // that only shows up seconds later. It still CONSUMES budget, so a
+        // section that is fading pushes other sections' grain redraws to a later
+        // frame rather than stacking on top of them.
+        const fadingIn = fadeIn < 1;
+        if (fadingIn || (s.redrawAccum >= grainInterval && this.uploadBudget > 0)) {
+          this.uploadBudget = Math.max(0, this.uploadBudget - 1);
+          s.redrawAccum = Math.min(s.redrawAccum - grainInterval, grainInterval);
           ctx.fillStyle = "#000";
           ctx.fillRect(0, 0, SIZE, SIZE);
           if (fadeIn < 1) {
@@ -626,7 +683,7 @@ export class ScreenWakeManager {
           this.apply(s, 0);
         }
       }
-    });
+    }
   }
 
   private apply(s: SectionWake, intensity: number) {

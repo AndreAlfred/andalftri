@@ -5,6 +5,7 @@ import {
   CONDITIONS,
   MEASURE_MS,
   median,
+  medianIsSaturated,
   percentile,
   ROUNDS,
   SETTLE_MS,
@@ -170,4 +171,95 @@ test("an abandoned sweep never fabricates a winner", () => {
   const lastMeasured = results.map((r) => r.samples > 0).lastIndexOf(true);
   assert.ok(lastMeasured < firstUnmeasured, "an unmeasured condition outranked a measured one");
   assert.ok(verdict(results).startsWith("No single layer dominates"));
+});
+
+// --- Vsync saturation (2026-08-02) -------------------------------------------
+// Andrew's iPhone returned a median of exactly 17.0ms for all eight conditions
+// (60Hz vsync) while p95 ranged 17.0–40.0. Ranking on the median reported "no
+// single layer dominates" and buried a completely unambiguous tail result.
+
+/** The real measurement, verbatim, as [medianMs, p95Ms]. */
+const IPHONE_18_7: Record<string, [number, number]> = {
+  baseline: [17, 40],
+  "aurora-off": [17, 20],
+  "stars-off": [17, 33],
+  "sparks-off": [17, 36],
+  "screens-off": [17, 17],
+  "crt-frozen": [17, 17],
+  "bezels-off": [17, 38],
+  "dpr-down": [17, 40],
+};
+
+/** Synthesize a sample set with the given median and p95. */
+function samplesFor([medianMs, p95Ms]: [number, number]): number[] {
+  // 90/10 rather than 95/5: percentile(95) of 100 samples reads index 94, so a
+  // 95/5 split would put the last low value exactly there and the fixture would
+  // never express its own p95.
+  return Array.from({ length: 100 }, (_, i) => (i < 90 ? medianMs : p95Ms));
+}
+
+function iphoneSamples() {
+  return new Map<ConditionId, number[]>(
+    Object.entries(IPHONE_18_7).map(([id, pair]) => [id as ConditionId, samplesFor(pair)]),
+  );
+}
+
+test("a vsync-pinned median is detected as saturated rather than believed", () => {
+  const results = summarize(iphoneSamples(), CONDITIONS);
+  assert.equal(medianIsSaturated(results), true);
+});
+
+test("a genuinely varying median is NOT treated as saturated", () => {
+  // Guard against the detector firing on real data and silently switching the
+  // ranking metric when the median was informative all along.
+  const varied = new Map<ConditionId, number[]>([
+    ["baseline", samplesFor([40, 60])],
+    ["aurora-off", samplesFor([21, 30])],
+    ["screens-off", samplesFor([38, 55])],
+    ["stars-off", samplesFor([39, 58])],
+  ]);
+  assert.equal(medianIsSaturated(summarize(varied, CONDITIONS)), false);
+});
+
+test("on the real iPhone data the upload conditions win, not the geometry ones", () => {
+  // The question this whole harness was built to answer: is a low-poly Blender
+  // re-export worth paying for? screens-off and crt-frozen scoring identically
+  // is the proof that it is not — one removes 145k triangles and the other does
+  // not, and they recover the same tail.
+  const results = summarize(iphoneSamples(), CONDITIONS);
+  const byId = new Map(results.map((r) => [r.id, r]));
+
+  const screens = byId.get("screens-off");
+  const crt = byId.get("crt-frozen");
+  const bezels = byId.get("bezels-off");
+  const dpr = byId.get("dpr-down");
+  assert.ok(screens && crt && bezels && dpr);
+
+  assert.equal(screens.recoveredTailPct, crt.recoveredTailPct);
+  assert.ok(screens.recoveredTailPct >= 50, "hiding the screens must show a large tail win");
+  // Geometry-only and fill-rate-only ablations must NOT clear the bar, or the
+  // conclusion "it isn't the mesh" would not follow.
+  assert.ok(bezels.recoveredTailPct < SIGNIFICANT_RECOVERY_PCT);
+  assert.ok(dpr.recoveredTailPct < SIGNIFICANT_RECOVERY_PCT);
+
+  assert.equal(results[0].id === "screens-off" || results[0].id === "crt-frozen", true);
+});
+
+test("the verdict names the metric when it falls back to the tail", () => {
+  // "recovers 58%" without saying 58% OF WHAT would read as a claim about the
+  // typical frame, which is exactly what did not improve.
+  const v = verdict(summarize(iphoneSamples(), CONDITIONS));
+  assert.ok(v.includes("capped"), `verdict did not flag the cap: ${v}`);
+  assert.ok(v.includes("Screens hidden") || v.includes("CRT redraw frozen"), v);
+  assert.ok(v.includes("hitch"), `verdict did not name the tail metric: ${v}`);
+  assert.ok(!v.startsWith("No single layer dominates"), "the tail result was real and must be reported");
+});
+
+test("saturation detection needs enough conditions to be a real observation", () => {
+  // Two conditions that happen to match is a coincidence, not a saturated ruler.
+  const twoOnly = new Map<ConditionId, number[]>([
+    ["baseline", samplesFor([17, 40])],
+    ["aurora-off", samplesFor([17, 20])],
+  ]);
+  assert.equal(medianIsSaturated(summarize(twoOnly, CONDITIONS)), false);
 });
