@@ -296,3 +296,19 @@ test("the preview flags stay independent of one another", () => {
   assert.equal(flags.showPerfReadout, true);
   assert.equal(flags.forceLite, false);
 });
+
+test("?grain=shader is opt-in and does not disturb the other flags", () => {
+  // The canvas path stays the default until Andrew has approved the shader
+  // version in a real browser — an unapproved visual change must not ship by
+  // being the fallback.
+  assert.equal(getPreviewFlags("").shaderGrain, false);
+  assert.equal(getPreviewFlags("?grain=canvas").shaderGrain, false);
+  assert.equal(getPreviewFlags("?grain=1").shaderGrain, false);
+  assert.equal(getPreviewFlags("?grain=shader").shaderGrain, true);
+
+  const combined = getPreviewFlags("?grain=shader&quality=low&diag=1&texcap=1024");
+  assert.equal(combined.shaderGrain, true);
+  assert.equal(combined.pinnedTier, "low");
+  assert.equal(combined.runDiagnostics, true);
+  assert.equal(combined.pinnedTextureCap, 1024);
+});

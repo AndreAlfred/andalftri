@@ -1,4 +1,13 @@
 import * as THREE from "three";
+import {
+  createCrtGrainUniforms,
+  grainDensityFor,
+  installCrtGrain,
+  type CrtGrainUniforms,
+// Explicit .ts extension: tests/screenText.test.ts imports this module directly
+// under plain Node, whose ESM resolver does not do extension inference. Vite and
+// tsc both accept it (`allowImportingTsExtensions` is on), Node requires it.
+} from "./crtGrainShader.ts";
 
 // CRT wake states for the medallion screens (master plan Task 29 + 2026-07-11
 // revision). Each section_0N_screen gets a CanvasTexture emissiveMap. On site
@@ -135,6 +144,14 @@ interface SectionWake {
   bootDelay: number | null;
   hoverLevel: number;
   redrawAccum: number;
+  /** Non-null only in ?grain=shader mode. */
+  crtUniforms: CrtGrainUniforms | null;
+  /**
+   * Shader mode only: true once the text has been rasterized and uploaded at
+   * full opacity. From that moment the canvas is never touched again — which is
+   * the entire point of the mode.
+   */
+  textSettled: boolean;
 }
 
 function makeCanvas(): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D } {
@@ -399,6 +416,8 @@ export class ScreenWakeManager {
   private sections = new Map<number, SectionWake>();
   private biasOverrides: Record<number, number>;
   private grainHz = 30;
+  /** ?grain=shader — procedural grain instead of per-frame canvas re-upload. */
+  private shaderGrain = false;
   /**
    * Texture uploads still permitted this frame. Refilled at the top of every
    * `update`; see the note at the redraw site for why a budget and not just a
@@ -426,6 +445,10 @@ export class ScreenWakeManager {
   }
 
   /** Driven by the active quality tier (see lib/qualityTier.ts). */
+  setShaderGrain(enabled: boolean) {
+    this.shaderGrain = enabled;
+  }
+
   setGrainHz(hz: number) {
     this.grainHz = Math.max(1, hz);
   }
@@ -478,6 +501,14 @@ export class ScreenWakeManager {
     texture.magFilter = THREE.LinearFilter;
     texture.anisotropy = 16;
     const materials: THREE.MeshStandardMaterial[] = [];
+    const crtUniforms = this.shaderGrain ? createCrtGrainUniforms() : null;
+    if (crtUniforms) {
+      // Decorrelate the seven screens. The canvas version got this for free
+      // from seven independent Math.random streams; a shared hash would make
+      // every screen show the identical grain field, which reads as one texture
+      // stretched across the artifact rather than seven live tubes.
+      crtUniforms.uCrtSeed.value = section * 131.7;
+    }
     screenMeshes.forEach((mesh) => {
       const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
       mats.forEach((m) => {
@@ -487,6 +518,7 @@ export class ScreenWakeManager {
         std.emissiveMap = texture;
         std.emissiveIntensity = 0;
         std.needsUpdate = true;
+        if (crtUniforms) installCrtGrain(std, crtUniforms);
         materials.push(std);
       });
     });
@@ -497,6 +529,8 @@ export class ScreenWakeManager {
       textCanvas: text.canvas,
       textCtx: text.ctx,
       textDirty: true,
+      crtUniforms,
+      textSettled: false,
       texture,
       materials,
       label,
@@ -663,6 +697,34 @@ export class ScreenWakeManager {
         // section that is fading pushes other sections' grain redraws to a later
         // frame rather than stacking on top of them.
         const fadingIn = fadeIn < 1;
+
+        // Shader mode: the grain and scanlines are per-fragment, so the canvas
+        // holds nothing but the (static) text and there is no reason to touch it
+        // again once that has been rasterized at full opacity. Steady-state
+        // uploads go to ZERO rather than being rescheduled, which is the whole
+        // point — the measurement said texImage2D was the entire remaining tail.
+        if (s.crtUniforms) {
+          s.crtUniforms.uCrtTime.value += delta;
+          s.crtUniforms.uCrtGrainDensity.value = grainDensityFor(s.hoverLevel);
+          s.crtUniforms.uCrtGrainHz.value = 1 / grainInterval;
+
+          if (!s.textSettled || s.textDirty) {
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, SIZE, SIZE);
+            drawText(s, fadeIn);
+            s.texture.needsUpdate = true;
+            // Only settle once the fade has actually finished, or the screen
+            // would freeze mid-fade at whatever opacity the last draw used.
+            s.textSettled = !fadingIn;
+          }
+
+          const flickerShader =
+            1 + Math.sin(s.t * 46) * 0.03 + Math.sin(s.t * 7.3) * 0.02;
+          this.applyIntensity(
+            s, TEXT_INTENSITY * flickerShader * (1 + 0.45 * s.hoverLevel) * globalDim);
+          continue;
+        }
+
         if (fadingIn || (s.redrawAccum >= grainInterval && this.uploadBudget > 0)) {
           this.uploadBudget = Math.max(0, this.uploadBudget - 1);
           s.redrawAccum = Math.min(s.redrawAccum - grainInterval, grainInterval);

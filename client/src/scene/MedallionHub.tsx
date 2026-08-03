@@ -51,6 +51,8 @@ interface MedallionHubProps {
   emblem: EmblemTuning;
   /** CRT grain redraw rate from the active quality tier. */
   grainHz?: number;
+  /** ?grain=shader — procedural grain instead of per-frame canvas re-upload. */
+  shaderGrain?: boolean;
   disabled?: boolean;
   opacity?: number;
 }
@@ -67,6 +69,7 @@ export const MedallionHub = memo(function MedallionHub({
   screensDormant,
   emblem,
   grainHz = 30,
+  shaderGrain = false,
   disabled = false,
   opacity = 1,
 }: MedallionHubProps) {
@@ -196,6 +199,10 @@ export const MedallionHub = memo(function MedallionHub({
     [],
   );
   useEffect(() => {
+    // MUST precede attach(): the shader is installed on the materials during
+    // attach, so flipping the mode afterwards would leave them on the canvas
+    // path. `shaderGrain` is in the deps so toggling the flag re-attaches.
+    wake.setShaderGrain(shaderGrain);
     for (let sec = 1; sec <= 7; sec += 1) {
       const screens = (sectionMeshes[sec] ?? []).filter((m) =>
         m.name.endsWith("_screen"),
@@ -209,7 +216,7 @@ export const MedallionHub = memo(function MedallionHub({
       wake.attach(sec, screens, page?.label ?? "", fontStack);
     }
     return () => wake.dispose();
-  }, [wake, sectionMeshes]);
+  }, [wake, sectionMeshes, shaderGrain]);
 
   useEffect(() => {
     if (!bootSequenceId || screensDormant) return;

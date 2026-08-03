@@ -13,6 +13,8 @@
  *          |medium
  *          |high
  *   ?perf=1        corner readout: fps / dpr / draw calls / tier.
+ *   ?grain=shader  procedural CRT grain in the material shader; the canvas is
+ *                  then uploaded once instead of 7-20 times a second.
  *   ?texcap=1024   pin the texture residency cap (power of two) instead of
  *                  deriving it from the device — puts a desktop on the phone's
  *                  texture path so the resampled artifact can be judged on a
@@ -89,6 +91,12 @@ export interface PreviewFlags {
   /** Run the on-device ablation sweep; see client/src/lib/diagnostics.ts. */
   runDiagnostics: boolean;
   /**
+   * `?grain=shader` computes the CRT grain and scanlines per-fragment instead
+   * of re-rasterizing and re-uploading seven canvases. An A/B while the visual
+   * result is unapproved — the canvas path stays the default.
+   */
+  shaderGrain: boolean;
+  /**
    * Pin the texture residency cap in px; null = derive it from the device.
    * `?texcap=1024` puts a desktop on the phone's texture path, which is the
    * only way to judge the resampled artifact on a large screen — a phone is the
@@ -126,6 +134,7 @@ export function getPreviewFlags(search: string): PreviewFlags {
     pinnedTier: parseTier(params.get("quality")),
     showPerfReadout: params.get("perf") === "1",
     runDiagnostics: params.get("diag") === "1",
+    shaderGrain: params.get("grain") === "shader",
     pinnedTextureCap: parseTextureCap(params.get("texcap")),
   };
 }

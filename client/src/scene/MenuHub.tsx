@@ -20,6 +20,8 @@ interface MenuHubProps {
   screensDormant: boolean;
   emblem: EmblemTuning;
   grainHz: number;
+  /** ?grain=shader — forwarded to the CRT screens. */
+  shaderGrain?: boolean;
 }
 
 export function MenuHub({
@@ -29,6 +31,7 @@ export function MenuHub({
   screensDormant,
   emblem,
   grainHz,
+  shaderGrain = false,
 }: MenuHubProps) {
   const groupRef = useRef<THREE.Group>(null);
   const visualRef = useRef<THREE.Group>(null);
@@ -98,6 +101,7 @@ export function MenuHub({
             screensDormant={screensDormant}
             emblem={emblem}
             grainHz={grainHz}
+            shaderGrain={shaderGrain}
             disabled={!canInteract}
             opacity={hubVisibility}
           />

@@ -37,6 +37,21 @@ refinement below disproves. The context works; the frame loop is what does not.)
   turns "a GLSL typo ships as a black screen" from an unknowable into a checked
   fact. **The do-this-every-time rule was promoted to `CLAUDE.md` required
   workflow step 4 on 2026-07-22; this entry keeps only the why.**
+- **2026-08-03 — `renderer.compile()` is NOT a compile check here, and it fails
+  silently.** For an `onBeforeCompile` injection (grain shader on
+  MeshStandardMaterial) the obvious move is to build a scene and call
+  `renderer.compile(scene, camera)`. It reported success on a fragment shader
+  containing the literal text `notAFunction( uv ) * ;`. three defers shader error
+  checking to the first draw via `KHR_parallel_shader_compile`, and the missing
+  frame loop is exactly what never arrives — so the sandbox's one known
+  limitation reaches further than "you cannot see pixels". **What works:** wrap
+  the context's `shaderSource`/`compileShader` before constructing the renderer,
+  and check `getShaderParameter(sh, COMPILE_STATUS)` yourself right after each
+  `compileShader` returns. That is synchronous and cannot be deferred. **And run
+  a positive control every time** — deliberately break the shader and confirm the
+  harness reports it. The first version of this check passed both the real
+  shader and the broken one, and only the control revealed it was blind. A
+  verification that has never been observed to fail is not evidence.
 
 ### D. detect-gpu mis-tiers Apple Silicon — Andrew got the potato fallback on a MacBook
 - **What happened:** the live site served `StaticFallback` to Andrew's own Mac.

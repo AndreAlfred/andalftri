@@ -269,6 +269,7 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
           screensDormant={lightingSettings.screensDormant}
           emblem={lightingSettings.emblem}
           grainHz={profile.grainHz}
+          shaderGrain={previewFlags.shaderGrain}
         />
         {pagePanels.map(({ page, project, influence, isShowcase, isMusic }) => (
           <ContentPanel
