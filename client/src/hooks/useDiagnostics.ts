@@ -1,5 +1,10 @@
 import { create } from "zustand";
-import { summarize, type ConditionId, type ConditionResult } from "@/lib/diagnostics";
+import {
+  rankingMetric,
+  summarize,
+  type ConditionId,
+  type ConditionResult,
+} from "@/lib/diagnostics";
 
 /**
  * Sweep state for `?diag=1` (2026-08-01).
@@ -38,6 +43,9 @@ export const useDiagnosticsStore = create<DiagnosticsState>((set) => ({
 }));
 
 export function diagnosticsReport(results: readonly ConditionResult[]): string {
+  // Print the metric the table was actually SORTED on. Printing the median
+  // recovery beside a tail-ranked order showed "+0%" against every row.
+  const metric = rankingMetric(results);
   const nav = typeof navigator === "undefined" ? null : navigator;
   const lines = [
     "medallion frame-time ablation",
@@ -47,14 +55,16 @@ export function diagnosticsReport(results: readonly ConditionResult[]): string {
     }`,
     `tier: ${typeof document === "undefined" ? "?" : document.documentElement.dataset.quality}`,
     "",
-    "condition            median   p95    fps   recovered",
+    `condition            median   p95    fps   ${metric.label}`,
   ];
   for (const r of results) {
     lines.push(
       `${r.label.padEnd(20)} ${r.medianMs.toFixed(1).padStart(6)} ${r.p95Ms
         .toFixed(1)
         .padStart(6)} ${r.fps.toFixed(0).padStart(6)} ${
-        r.id === "baseline" ? "     —" : `${r.recoveredPct >= 0 ? "+" : ""}${r.recoveredPct.toFixed(0)}%`.padStart(6)
+        r.id === "baseline"
+          ? "     —"
+          : `${r[metric.key] >= 0 ? "+" : ""}${r[metric.key].toFixed(0)}%`.padStart(6)
       }`,
     );
   }

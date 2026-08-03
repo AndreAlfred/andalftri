@@ -226,13 +226,33 @@ export function summarize(
  */
 export const SIGNIFICANT_RECOVERY_PCT = 8;
 
+/**
+ * Which recovery metric this result set was ranked on, and what to call it.
+ *
+ * 2026-08-02 shipped the tail-ranking fallback but left both display sites
+ * printing `recoveredPct`, so Andrew's second sweep showed a correctly-ordered
+ * table with "+0%" against every row — the sort and the numbers beside it were
+ * answering different questions. Exported so the overlay, the copyable report
+ * and `verdict` all read the ranking from one place instead of each deciding
+ * again.
+ */
+export function rankingMetric(results: readonly ConditionResult[]): {
+  key: "recoveredPct" | "recoveredTailPct";
+  label: string;
+} {
+  return medianIsSaturated(results)
+    ? { key: "recoveredTailPct", label: "p95 saved" }
+    : { key: "recoveredPct", label: "saved" };
+}
+
 export function verdict(results: readonly ConditionResult[]): string {
   const baseline = results.find((r) => r.id === "baseline");
   if (!baseline || baseline.samples === 0) {
     return "Sweep did not complete — baseline was never measured, so nothing is comparable.";
   }
-  const tailMode = medianIsSaturated(results);
-  const score = (r: ConditionResult) => (tailMode ? r.recoveredTailPct : r.recoveredPct);
+  const metric = rankingMetric(results);
+  const tailMode = metric.key === "recoveredTailPct";
+  const score = (r: ConditionResult) => r[metric.key];
 
   const real = results.filter(
     (r) => r.id !== "baseline" && r.samples > 0 && score(r) >= SIGNIFICANT_RECOVERY_PCT,

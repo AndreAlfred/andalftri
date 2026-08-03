@@ -364,3 +364,22 @@ refinement below disproves. The context works; the frame loop is what does not.)
   neighbour every round. This is the measurement analogue of entry E — the metric has
   to match what the visitor actually experiences, and on a phone that includes minute
   two, not just second one.
+
+### U. A ranking and the number printed beside it must come from one decision
+- **What happened:** the 2026-08-02 fix made `summarize` fall back to ranking on p95
+  when the medians saturate. It worked — Andrew's next sweep came back correctly
+  ordered, uploads at the top, geometry at the bottom. Every row also read **"+0%"**,
+  because both display sites (the overlay table and the copyable report) were still
+  printing `recoveredPct`, the median-based metric that was zero for everything. The
+  sort and the numbers next to it were answering different questions, and the table
+  looked broken at exactly the moment it was right.
+- **Root cause:** the ranking decision was made inside `summarize` and then re-derived
+  nowhere — the consumers never asked which metric had been used, they assumed. One
+  producer, three consumers, and the contract between them was implicit.
+- **Lesson:** when a function sorts by a metric it chooses at runtime, it has to
+  EXPORT that choice, not just the sorted list. Anything that renders the result needs
+  to ask "ranked by what?" rather than guess, and the answer should come from a single
+  shared helper (`rankingMetric` here) so a future metric cannot be added to the sort
+  without every display site following it. The general form: derived state computed
+  independently in two places will diverge, and the version that diverges silently is
+  the one being shown to the user.

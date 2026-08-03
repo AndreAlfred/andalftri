@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { diagnosticsReport, useDiagnosticsStore } from "@/hooks/useDiagnostics";
-import { CONDITIONS, SIGNIFICANT_RECOVERY_PCT, verdict } from "@/lib/diagnostics";
+import {
+  CONDITIONS,
+  rankingMetric,
+  SIGNIFICANT_RECOVERY_PCT,
+  verdict,
+} from "@/lib/diagnostics";
 
 /**
  * `?diag=1` readout (2026-08-01). Deliberately plain HTML with inline styles —
@@ -14,6 +19,9 @@ export function DiagnosticOverlay() {
   const [copied, setCopied] = useState(false);
 
   const label = CONDITIONS.find((c) => c.id === active)?.label ?? "starting…";
+  // The displayed saving must be the metric the table was sorted on, or the
+  // column reads "+0%" beside a correctly-ordered ranking.
+  const metric = results ? rankingMetric(results) : null;
 
   const copy = async () => {
     if (!results) return;
@@ -79,13 +87,15 @@ export function DiagnosticOverlay() {
                 <th style={{ fontWeight: 400, textAlign: "right" }}>ms</th>
                 <th style={{ fontWeight: 400, textAlign: "right" }}>p95</th>
                 <th style={{ fontWeight: 400, textAlign: "right" }}>fps</th>
-                <th style={{ fontWeight: 400, textAlign: "right" }}>saved</th>
+                <th style={{ fontWeight: 400, textAlign: "right" }}>{metric?.label ?? "saved"}</th>
               </tr>
             </thead>
             <tbody>
               {results.map((r) => {
                 const significant =
-                  r.id !== "baseline" && r.recoveredPct >= SIGNIFICANT_RECOVERY_PCT;
+                  r.id !== "baseline" &&
+                  metric !== null &&
+                  r[metric.key] >= SIGNIFICANT_RECOVERY_PCT;
                 return (
                   <tr
                     key={r.id}
@@ -99,7 +109,9 @@ export function DiagnosticOverlay() {
                     <td style={{ textAlign: "right" }}>{r.p95Ms.toFixed(1)}</td>
                     <td style={{ textAlign: "right" }}>{r.fps.toFixed(0)}</td>
                     <td style={{ textAlign: "right" }}>
-                      {r.id === "baseline" ? "—" : `${r.recoveredPct.toFixed(0)}%`}
+                      {r.id === "baseline" || metric === null
+                        ? "—"
+                        : `${r[metric.key].toFixed(0)}%`}
                     </td>
                   </tr>
                 );

@@ -371,10 +371,25 @@ const DIMMED_GRAIN_HZ = 6;
 let screenWakeFrozen = false;
 
 /**
- * Texture uploads allowed per frame across all seven screens (2026-08-02).
- * See the redraw site for the measurement that motivated it.
+ * Texture uploads allowed per frame across all seven screens.
+ *
+ * 2026-08-02 shipped a flat budget of 2 and Andrew's phone showed it working:
+ * baseline p95 fell 40.0ms -> 27.0ms. But `crt-frozen` stayed at 17.0ms, so
+ * ~10ms of tail remained, which is almost exactly two uploads at the ~5ms each
+ * the delta implies. 2026-08-03 makes the budget follow the tier: the device
+ * that needs the help is the one running `low`.
+ *
+ * At `low` (grainHz 10) a budget of 1 means 60 upload slots per second against
+ * 7x10 = 70 wanted, so screens redraw at ~8.5Hz instead of 10Hz. That IS a real
+ * rate reduction rather than pure rescheduling — worth stating plainly — but the
+ * tier table already treats grain rate as perceptually flat well below this
+ * ("20Hz is indistinguishable from 30Hz"), the deferral rotates so no screen is
+ * consistently the slow one, and every screen still updates continuously, which
+ * is what entry G actually protects.
  */
-const MAX_UPLOADS_PER_FRAME = 2;
+function uploadBudgetFor(grainHz: number): number {
+  return grainHz <= 10 ? 1 : 2;
+}
 
 export function setScreenWakeFrozen(frozen: boolean) {
   screenWakeFrozen = frozen;
@@ -555,7 +570,11 @@ export class ScreenWakeManager {
     const grainInterval =
       1 / (globalDim < DIMMED_VISIBILITY ? Math.min(DIMMED_GRAIN_HZ, this.grainHz) : this.grainHz);
 
-    this.uploadBudget = MAX_UPLOADS_PER_FRAME;
+    // Derived from the EFFECTIVE rate, not the configured one: when the hub is
+    // dimmed the interval already drops to DIMMED_GRAIN_HZ, and the budget
+    // should follow it down rather than stay sized for a rate nothing is asking
+    // for.
+    this.uploadBudget = uploadBudgetFor(1 / grainInterval);
     const order = [...this.sections.keys()].sort((a, b) => a - b);
     this.uploadCursor = order.length > 0 ? (this.uploadCursor + 1) % order.length : 0;
 

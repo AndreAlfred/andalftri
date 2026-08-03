@@ -7,6 +7,7 @@ import {
   median,
   medianIsSaturated,
   percentile,
+  rankingMetric,
   ROUNDS,
   SETTLE_MS,
   SIGNIFICANT_RECOVERY_PCT,
@@ -262,4 +263,23 @@ test("saturation detection needs enough conditions to be a real observation", ()
     ["aurora-off", samplesFor([17, 20])],
   ]);
   assert.equal(medianIsSaturated(summarize(twoOnly, CONDITIONS)), false);
+});
+
+test("the displayed saving metric matches the one the table was sorted on", () => {
+  // 2026-08-03: the tail-ranking fallback shipped but both display sites still
+  // printed recoveredPct, so a correctly-ordered table showed "+0%" on every
+  // row. The ranking and the number beside it must come from one decision.
+  const saturated = summarize(iphoneSamples(), CONDITIONS);
+  assert.equal(rankingMetric(saturated).key, "recoveredTailPct");
+  assert.equal(rankingMetric(saturated).label, "p95 saved");
+  // The top-ranked row must show a non-zero saving under the reported metric.
+  assert.ok(saturated[0][rankingMetric(saturated).key] > 0);
+
+  const varied = new Map<ConditionId, number[]>([
+    ["baseline", samplesFor([40, 60])],
+    ["aurora-off", samplesFor([21, 30])],
+    ["screens-off", samplesFor([38, 55])],
+    ["stars-off", samplesFor([39, 58])],
+  ]);
+  assert.equal(rankingMetric(summarize(varied, CONDITIONS)).key, "recoveredPct");
 });
