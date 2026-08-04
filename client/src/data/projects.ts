@@ -4,12 +4,28 @@ export interface Project {
   description: string;
   media: {
     screenshots?: string[];
+    /**
+     * Width / height of `screenshots[0]`, used to size the showcase stage.
+     *
+     * Defaults to `SHOWCASE_DEFAULT_ASPECT` (16:10) because the first two
+     * projects were both landscape captures — which is how 1.6 came to be
+     * hard-coded in two files rather than decided. A phone screenshot is ~0.52
+     * and needs its own frame, not a crop of one.
+     */
+    screenshotAspect?: number;
     videoUrl?: string;
     liveUrl?: string;
     repoUrl?: string;
   };
   techStack: string[];
   status: "live" | "in-progress" | "concept";
+}
+
+/** 16:10 — the landscape shape the showcase stage was originally built around. */
+export const SHOWCASE_DEFAULT_ASPECT = 1.6;
+
+export function screenshotAspectOf(project: Project | null): number {
+  return project?.media.screenshotAspect ?? SHOWCASE_DEFAULT_ASPECT;
 }
 
 export const PROJECTS: Project[] = [
@@ -48,6 +64,8 @@ export const PROJECTS: Project[] = [
     media: {
       liveUrl: "https://pgh-bible-plan-public.vercel.app",
       repoUrl: "https://github.com/AndreAlfred/pgh-bible-plan-public",
+      screenshots: ["/images/pgh.jpg"],
+      screenshotAspect: 832 / 1600, // portrait phone capture, 0.52
     },
     techStack: ["Vanilla JS", "localStorage", "IndexedDB", "Web Speech API", "Vercel"],
     status: "live",

@@ -3,7 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { getInfluenceById } from "@/data/influences";
-import { getProjectById } from "@/data/projects";
+import { getProjectById, screenshotAspectOf } from "@/data/projects";
 import { PAGES, type PageConfig } from "@/data/sceneConfig";
 import { Commentary } from "@/hud/Commentary";
 import { HelmetFrame } from "@/hud/HelmetFrame";
@@ -280,6 +280,7 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
             isTransitioning={isTransitioning}
             isClosing={closingPageId === page.id}
             variant={isShowcase ? "showcase" : "card"}
+            showcaseAspect={screenshotAspectOf(project)}
             onClose={handlePanelClose}
           >
             {project ? (

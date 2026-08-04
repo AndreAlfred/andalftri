@@ -1,4 +1,4 @@
-import type { Project } from "@/data/projects";
+import { screenshotAspectOf, type Project } from "@/data/projects";
 
 interface ProjectPanelProps {
   project: Project;
@@ -52,8 +52,15 @@ export function ProjectPanel({ project }: ProjectPanelProps) {
     );
   }
 
+  // The frame takes the screenshot's own shape rather than cropping it into a
+  // fixed 16:10. `object-cover object-top` stays as the safety net for a small
+  // mismatch between the declared aspect and the file, but with a correct
+  // declaration there is nothing left to crop.
   const screenshot = (
-    <div className="relative aspect-[16/10] overflow-hidden rounded-[12px]">
+    <div
+      className="relative overflow-hidden rounded-[12px]"
+      style={{ aspectRatio: String(screenshotAspectOf(project)) }}
+    >
       <img
         src={preview}
         alt={`${project.title} interface preview`}

@@ -426,3 +426,32 @@ home. Copy is scaffold under the publication-copy gate — every claim is drawn
 from the repository's own README rather than written for Andrew.
 
 102 tests pass, check and build clean.
+
+### 2026-08-04 addendum — PGH screenshot wired to the showcase stage
+
+Andrew supplied a portrait phone capture (`client/public/images/pgh.jpg`,
+832×1600 after a resize down from 1179×2267; 202KB, smaller than either
+existing PNG). PGH now takes the showcase path rather than the fallback.
+
+The stage assumed landscape in two places — `aspect-[16/10]` on the frame in
+`ProjectPanel`, and `calc((100vh - 12rem) * 1.6)` on the width cap in
+`ContentPanel`. Neither was a decision; both existing screenshots happened to be
+landscape. Dropped in as-is, the capture would have rendered as a 16:10 slice of
+its own top edge.
+
+Fixed by making the ratio data: `media.screenshotAspect` with
+`screenshotAspectOf()` defaulting to `SHOWCASE_DEFAULT_ASPECT` (1.6), read by
+both call sites. Landscape projects are byte-identical in behaviour.
+
+`tests/screenshotAspect.test.ts` parses PNG IHDR / JPEG SOF headers with no
+image dependency and asserts every declared aspect matches its file, so the
+declaration cannot drift from the asset. Positive control run: it fails with
+`pgh: /images/pgh.jpg is 832x1600 (0.520) but the panel will size it at 1.6`.
+
+Verified visually through a temporary harness that mounts `ProjectPanel` with
+`ContentPanel`'s real width formula (the panel normally mounts on camera
+arrival, which the sandbox's missing frame loop never reaches). PGH renders as a
+narrow phone-shaped stage with the capture uncropped; Heaven & Nature renders
+unchanged beside it. Harness deleted.
+
+104 tests pass, check and build clean.

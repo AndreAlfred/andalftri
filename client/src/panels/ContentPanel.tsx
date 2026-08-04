@@ -1,5 +1,6 @@
 import { Html } from "@react-three/drei";
 import { memo, useEffect, type ReactNode } from "react";
+import { SHOWCASE_DEFAULT_ASPECT } from "@/data/projects";
 
 interface ContentPanelProps {
   position: [number, number, number];
@@ -11,6 +12,12 @@ interface ContentPanelProps {
   // §4) = a wider, chrome-free stage for the standalone project screenshot;
   // the child brings its own minimal frame, so no card, padding, or scroll.
   variant?: "card" | "showcase";
+  /**
+   * Width / height of the showcase screenshot. The stage caps its width against
+   * viewport height through this ratio, so a portrait capture yields a narrow,
+   * phone-shaped stage instead of a letterboxed landscape one.
+   */
+  showcaseAspect?: number;
   children: ReactNode;
   onClose: () => void;
 }
@@ -29,6 +36,7 @@ export const ContentPanel = memo(function ContentPanel({
   isTransitioning,
   isClosing = false,
   variant = "card",
+  showcaseAspect = SHOWCASE_DEFAULT_ASPECT,
   children,
   onClose,
 }: ContentPanelProps) {
@@ -48,10 +56,12 @@ export const ContentPanel = memo(function ContentPanel({
   if (!shouldRender) return null;
 
   const isShowcase = variant === "showcase";
-  // Showcase width also caps against viewport HEIGHT (the 16/10 screenshot at
-  // 70rem is ~700px tall) so the stage never outgrows short desktop windows.
+  // Showcase width also caps against viewport HEIGHT so the stage never
+  // outgrows short desktop windows. The ratio used to be a literal 1.6, which
+  // was correct only for landscape captures — for a portrait screenshot that
+  // formula over-widens by ~3x and the height cap stops binding.
   const panelWidth = isShowcase
-    ? "min(70rem, calc(100vw - 5rem), calc((100vh - 12rem) * 1.6))"
+    ? `min(70rem, calc(100vw - 5rem), calc((100vh - 12rem) * ${showcaseAspect}))`
     : "min(42rem, calc(100vw - 2rem))";
 
   return (

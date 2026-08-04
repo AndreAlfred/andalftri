@@ -425,3 +425,26 @@ refinement below disproves. The context works; the frame loop is what does not.)
   content question. Sharpened form of entry Q: there, correct state never reached the
   renderer; here, it reached a renderer that had no slot for it. Both present as data
   that is right everywhere except on screen.
+
+### W. A constant extracted from a homogeneous sample is not a contract
+- **What happened:** the showcase stage framed screenshots at `aspect-[16/10]` in
+  `ProjectPanel` and capped its width with `calc((100vh - 12rem) * 1.6)` in
+  `ContentPanel`. Andrew supplied a portrait phone capture (832×1600, aspect 0.52) and
+  both numbers were wrong: the frame would have cropped to the top ~15% of the image,
+  and the width formula over-widened by ~3× so the height cap silently stopped binding.
+  Nothing failed — it compiled, the file loaded, and the panel rendered a confidently
+  wrong shape.
+- **Root cause:** the only two screenshots in the repo were landscape (1280×800 and
+  2194×1364). 16:10 was never chosen as a constraint; it was an incidental property of
+  a sample of size two, promoted to a literal in two separate files. The second copy is
+  the tell — a value duplicated across modules is usually a fact about the data
+  masquerading as a fact about the layout.
+- **Lesson:** before hard-coding a dimension, ratio, format or range taken from the
+  data you have, ask whether it is a *rule* or merely *true of everything so far*. If
+  it is the latter, it belongs beside the data as a declared field with a default, not
+  inline in the renderer. The failure mode is silent and shape-shaped: no error, no
+  test, just wrong. Corollary that paid off here — the new declaration is itself
+  checkable, so `tests/screenshotAspect.test.ts` parses the real PNG/JPEG headers and
+  asserts the declared aspect matches the file. Metadata that describes an asset will
+  drift from it unless something reads both. (Positive control run per entry A: the
+  test fails with the exact diagnostic when the aspect is deliberately mis-declared.)
