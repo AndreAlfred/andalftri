@@ -5,7 +5,7 @@ export const SECTION_PAGE_MAP: Record<number, string | null> = {
   1: "reading-list",
   2: "contact",
   4: "inspirations",
-  6: null,
+  6: "pgh",
 };
 
 export function getSectionForPage(pageId: string | null) {

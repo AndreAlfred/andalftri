@@ -398,3 +398,30 @@ refinement below disproves. The context works; the frame loop is what does not.)
   without every display site following it. The general form: derived state computed
   independently in two places will diverge, and the version that diverges silently is
   the one being shown to the user.
+
+## Session 2026-08-04 (PGH on section 6, Claude Code)
+
+### V. A branch selected by the presence of an asset also decides what else is shown
+- **What happened:** adding PGH to the medallion surfaced a latent bug nobody had hit.
+  `ProjectPanel` picks between a showcase layout and a fallback on
+  `project.media.screenshots?.[0]`, and `SceneExperience` computes
+  `isShowcase = Boolean(project && screenshots?.length)` to decide whether the context
+  overlay receives the project at all. So one missing PNG silently routed a project
+  down a path where its `description`, `techStack`, `liveUrl` and `repoUrl` were
+  present in the data and rendered by *nothing* — the fallback drew a title and a "the
+  work is on its way" note, and the overlay was handed `null`. The fallback's own
+  comment says it exists "for a future project that ships before its screenshot does",
+  which is exactly the case it mishandled.
+- **Root cause:** one predicate doing two jobs. "Do we have an image?" was allowed to
+  stand in for "which layout?" *and* for "does this project have context worth
+  showing?", and those questions have different answers. The failure is invisible in
+  review because both branches look complete in isolation; only the *difference*
+  between them is wrong.
+- **Lesson:** when a conditional picks a presentation branch, enumerate what each
+  branch renders and diff the two lists. Any field that appears on one side and not
+  the other is either deliberately withheld or silently dropped, and the code will not
+  tell you which. The smell is a boolean derived from an asset's existence being read
+  by more than one consumer — that is a layout question being asked to answer a
+  content question. Sharpened form of entry Q: there, correct state never reached the
+  renderer; here, it reached a renderer that had no slot for it. Both present as data
+  that is right everywhere except on screen.

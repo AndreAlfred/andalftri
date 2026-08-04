@@ -50,10 +50,13 @@ to stack indiscriminately. Avoid modern corporate minimalism.
   until the website is ready to publish and the parallel projects have matured.
   Existing scaffold copy may remain during construction. Never invent Andrew's taste,
   commentary, project claims, contact details, or launch status.
-- **Cottage:** Medallion section 6 is reserved for **Cottage**, an early-phase
-  project. The current code still maps section 6 to `null`; route/data/interaction
-  behavior must be designed and implemented as a separate task. Do not invent Cottage
-  copy while it is unpublished.
+- **Cottage:** section 6 was reserved for **Cottage**, but on 2026-08-04 Andrew
+  directed PGH onto "the remaining free screen" and section 6 was the last `null` in
+  `SECTION_PAGE_MAP`. His direct instruction outranks this file (source-of-truth order
+  #1), so section 6 is now PGH and **the medallion has no free screen left**. Cottage
+  needs a destination decided by Andrew — a new screen, a shared section, or somewhere
+  off the medallion. Do not invent Cottage copy or reassign an occupied section while
+  it is unpublished.
 - **Contact:** Contact is a dedicated utility destination, not an influence. Its
   current `group: "influences"` value is a legacy data/rendering bucket. Flag it for
   taxonomy cleanup when the navigation/content model is revised; do not describe

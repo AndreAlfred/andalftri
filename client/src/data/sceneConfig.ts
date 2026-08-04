@@ -37,6 +37,19 @@ export const PAGES: PageConfig[] = [
     cameraLookAt: [-10, -8, 0],
   },
   {
+    id: "pgh",
+    label: "PGH",
+    route: "/pgh",
+    group: "oeuvre",
+    buttonOffset: [1.6, 1.2, -0.8],
+    // Up-and-right, a quadrant no other page occupies. The 16:8 ratio is
+    // deliberate: `computeReturnAnchor` positions the return bubble at
+    // 50 + (dy/dx) * 50 along the edge, so a ratio above 0.6 would push it
+    // into ALONG_CLAMP and park the bubble in a corner-adjacent constant.
+    cameraPosition: [16, 8, 8],
+    cameraLookAt: [16, 8, 0],
+  },
+  {
     id: "contact",
     label: "Contact",
     route: "/contact",

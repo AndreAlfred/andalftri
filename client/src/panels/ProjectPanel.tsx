@@ -18,11 +18,29 @@ export function ProjectPanel({ project }: ProjectPanelProps) {
       : "";
 
   if (!preview) {
-    // Fallback for a future project that ships before its screenshot does.
+    // Fallback for a project that ships before its screenshot does.
+    //
+    // 2026-08-04: this branch used to render only the title and the "on its
+    // way" note. The context overlay carries description/stack/links for
+    // SHOWCASE projects only (`isShowcase` requires a screenshot), so a
+    // screenshot-less project had its liveUrl and repoUrl present in the data
+    // and reachable from nowhere in the UI. The gallery-wall note is still the
+    // right voice for a missing image; it is just no longer the only content.
     return (
       <div className="space-y-4 text-white">
         <p className="panel-kicker text-[0.72rem] uppercase text-cyan-200/75">Oeuvre</p>
         <h2 className="panel-title text-3xl text-white sm:text-4xl">{project.title}</h2>
+        <p className="panel-body text-sm leading-relaxed text-white/78">{project.description}</p>
+        {previewHref ? (
+          <a
+            href={previewHref}
+            target="_blank"
+            rel="noreferrer"
+            className="panel-meta inline-flex items-center gap-2 rounded-full border border-cyan-200/35 bg-cyan-200/8 px-4 py-2 text-[0.66rem] uppercase tracking-[0.24em] text-cyan-100/85 transition hover:border-cyan-200/60 hover:bg-cyan-200/14 hover:text-white"
+          >
+            {previewLabel} <span aria-hidden="true">↗</span>
+          </a>
+        ) : null}
         <div className="panel-body rounded-[20px] border border-dashed border-white/12 bg-black/20 px-4 py-5 text-sm text-white/68">
           <p>
             Screenshots, video, and process notes will land here as this

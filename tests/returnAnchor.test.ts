@@ -9,6 +9,7 @@ test("hub direction picks the expected edge for every configured page", () => {
     "see-canto": "left",
     music: "right", // hub is up-right of [-10, -8]
     contact: "left", // hub is up-left of [12, -6]
+    pgh: "left", // hub is down-left of [16, 8]; |dx| dominates, so the edge is left
     "reading-list": "bottom", // hub is below [3, 15]
     inspirations: "top", // hub is above [-5, -15]
   };

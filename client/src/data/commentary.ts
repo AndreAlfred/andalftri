@@ -18,6 +18,12 @@ export const COMMENTARY: CommentaryEntry[] = [
       "Placeholder commentary. This space is reserved for the story behind See Canto: why classical singing became an interface problem worth exploring, what the tool is trying to make visible, and how the concept might evolve from study into software.",
   },
   {
+    pageId: "pgh",
+    title: "PGH commentary",
+    body:
+      "Placeholder commentary. This will eventually hold Andrew's own notes on the reading plan itself, why a discipline tool wanted to be a small offline-first artifact rather than an account-based service, and what the copyright posture of a public Bible app forced him to decide.",
+  },
+  {
     pageId: "music",
     title: "Music commentary",
     body:

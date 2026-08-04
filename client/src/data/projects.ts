@@ -38,6 +38,21 @@ export const PROJECTS: Project[] = [
     status: "concept",
   },
   {
+    id: "pgh",
+    title: "PGH",
+    // Scaffold copy under the publication-copy gate: every claim below is
+    // drawn from the repository's own README rather than written for Andrew.
+    // Replace with his voice before publication.
+    description:
+      "A public tracker for the Professor Grant Horner Bible reading plan — ten independent chapter lists cycling in parallel. Built as a static, dependency-free app: progress lives in the browser rather than an account, the KJV text ships bundled, and readers can import their own translation as JSON that never leaves their device. Unofficial, and deliberately free of copyrighted modern translations.",
+    media: {
+      liveUrl: "https://pgh-bible-plan-public.vercel.app",
+      repoUrl: "https://github.com/AndreAlfred/pgh-bible-plan-public",
+    },
+    techStack: ["Vanilla JS", "localStorage", "IndexedDB", "Web Speech API", "Vercel"],
+    status: "live",
+  },
+  {
     id: "music",
     title: "Music",
     description:

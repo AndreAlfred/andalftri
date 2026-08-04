@@ -365,3 +365,64 @@ per-upload cost and the next lever is texture size at `low` (256→128), which
 needs Andrew's eyes because of the entry-J legibility history.
 
 100 tests pass, check and build clean.
+
+## 2026-08-03 — procedural CRT grain (`?grain=shader`)
+
+The upload budget took baseline p95 from 40.0ms to 27.0ms, against a
+`CRT redraw frozen` floor of 17.0ms. The residue is per-upload cost, so the
+remaining lever is not "upload less often" but "stop uploading".
+
+**Shipped behind `?grain=shader`, not as the default.** The text on the seven
+screens is static; only the grain animation forces re-uploads. So the grain and
+scanlines moved into the material shader (`client/src/scene/crtGrainShader.ts`,
+an `onBeforeCompile` injection replacing `<emissivemap_fragment>`), and the
+canvas is drawn only until `textSettled`. Steady-state uploads go to zero rather
+than down.
+
+The shader deliberately reproduces the canvas version's constants — 1 black row
+in 3 at alpha 0.17, per-kind dot probability `count/65536` on 2×1 texel cells,
+noise re-seeded from `floor(time * grainHz)` so it steps at the same cadence.
+It could animate per-frame for free, but that is a different artistic result,
+not a faster version of this one, and mixing a taste change into an A/B makes
+neither half judgeable. `customProgramCacheKey` is constant so the seven
+materials share one compiled program.
+
+Entry-J proofing: the scanline comb is box-filtered by `fwidth` on the
+*continuous* row coordinate and collapses to its exact 1/3 duty average once a
+pixel spans a period, so the July moiré is structurally impossible rather than
+filtered away.
+
+**Deferred:** Andrew's A/B and visual signoff; a `?diag=1&grain=shader` sweep to
+confirm baseline p95 reaches the 17.0ms floor. Canvas path remains the default
+until both land — an unapproved visual change should not ship by being the
+fallback.
+
+102 tests pass, check and build clean. The mandatory headless shader compile
+check found its own first version to be blind (see `lessons.md` entry A).
+
+## 2026-08-04 — PGH on medallion section 6
+
+Andrew asked for the `pgh-bible-plan-public` repo on the remaining free screen,
+titled "PGH". Four data edits, no logic: `sceneConfig.ts` (page + camera),
+`hubSections.ts` (section 6 was the last `null`), `projects.ts`,
+`commentary.ts`. Verified in-browser — route resolves, camera target reads
+`+16.1 / +8.3`, HUD reports `SECTION 06`, commentary overlay and cyberspace nav
+both carry it, no console errors.
+
+Camera sits at `[16, 8]`, a quadrant no other page uses. The 0.5 ratio is
+deliberate: `computeReturnAnchor` puts the return bubble at `50 + (dy/dx) * 50`
+along the edge, so anything past 0.6 saturates `ALONG_CLAMP` and the bubble
+stops expressing direction (lessons entry K).
+
+**Also fixed en route:** `ProjectPanel`'s no-screenshot fallback rendered only a
+title and a placeholder note. The context overlay carries description, stack and
+links for SHOWCASE projects only, and `isShowcase` requires a screenshot — so a
+screenshot-less project had `liveUrl` and `repoUrl` in the data and reachable
+from nowhere. The fallback now renders the description and an outbound link.
+
+**Conflicts recorded:** `CLAUDE.md` reserved section 6 for Cottage. Andrew's
+direct instruction outranks it (source-of-truth order #1); Cottage now needs a
+home. Copy is scaffold under the publication-copy gate — every claim is drawn
+from the repository's own README rather than written for Andrew.
+
+102 tests pass, check and build clean.
