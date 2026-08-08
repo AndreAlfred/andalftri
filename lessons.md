@@ -448,3 +448,36 @@ refinement below disproves. The context works; the frame loop is what does not.)
   asserts the declared aspect matches the file. Metadata that describes an asset will
   drift from it unless something reads both. (Positive control run per entry A: the
   test fails with the exact diagnostic when the aspect is deliberately mis-declared.)
+
+## Session 2026-08-08 (accessible route design pass, Claude Code)
+
+### X. Fixing the instance is not fixing the class — sweep for siblings before closing
+- **What happened:** the 2026-08-08 accessibility design pass audited `StaticFallback`
+  and found that `?lite=1` drops every project's `description` and `techStack` in
+  production. Root cause is *identical* to entry V: content split across `ProjectPanel`
+  and `Commentary`, with only one route mounting both. Entry V was written on
+  2026-08-04, four days earlier, about the same predicate in the same file — and it
+  fixed the screenshot-*less* branch only. Nobody asked where else the split existed,
+  so the second instance shipped and sat on the live site.
+- **Root cause:** a lessons entry naturally gets written in the voice of the bug that
+  was just fixed, which frames it as an incident. The *class* — "content reachable
+  from one route and not another" — was named correctly in V's lesson and then not
+  acted on as a search. Writing the general rule felt like completing the work.
+- **Lesson:** when a diagnosis names a bug *class*, the fix is not done until you have
+  grepped for the other members. Cheap and mechanical here: every consumer of the
+  predicate, every route that renders the same data, every component mounted by one
+  path and not its sibling. Budget the sweep at the moment of the fix — it is minutes
+  then, and it is a production defect plus an archaeology session later. Corollary for
+  `lessons.md` itself: an entry that describes a class should say whether the sweep
+  was run, so a future reader knows if it is a closed finding or an open one.
+- **Second, smaller finding from the same pass (disproved assumption, recorded so it
+  is not re-guessed):** low-alpha text tokens *look* like a uniform contrast problem
+  and are not. Measured against the fallback's real composited background, 6 of 9
+  tokens pass AA comfortably — `white/68` body copy sits at 8.67:1. All three failures
+  (`white/42` 4.08, `white/38` 3.58, `white/35` 3.23) are small, uppercase, wide-tracked
+  *labels*. The pattern is predictable in hindsight: body copy gets kept legible by
+  instinct, and metadata gets treated as texture. So an accessibility contrast pass
+  should start at the smallest labels, not at the body, and it should composite the
+  actual background stack before computing — the fallback's is three gradients over a
+  base colour, and eyeballing the alpha value alone would have flagged the wrong half
+  of the file.

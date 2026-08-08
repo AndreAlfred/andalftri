@@ -1304,7 +1304,12 @@ Blocker entries sitting uncommitted for weeks is how Andrew loses visibility
 
 Earmarked for future implementation pending direction or dependency completion.
 
-- [ ] **Accessible version of the site** — a parallel, non-WebGL, screen-reader-first route that reuses the same content data (projects, influences, reading list, music). Needs its own design pass; earmarked at Andrew's request 2026-07-18.
+- [ ] **Accessible version of the site** — a parallel, non-WebGL, screen-reader-first route that reuses the same content data (projects, influences, reading list, music). Earmarked at Andrew's request 2026-07-18. **Design pass done 2026-08-08 — the spec and an 8-step implementation plan are in
+      `docs/plans/2026-08-08-accessible-route-spec.md`. Start there, not here.** It records
+      Andrew's five decisions of 2026-08-08, a measured audit of what is already correct
+      (do not "fix" those), and one live production defect it fixes on the way: `?lite=1`
+      currently drops every project's `description` and `techStack`, because
+      `StaticFallback` mounts `ProjectPanel` but never `Commentary`.
 
 - [ ] **Angel nightly Spotify recap cron** — replace the static album list in `client/src/data/music.ts` with data regenerated nightly from Andrew's live Spotify listening by the Angel agent. Do not build until Andrew wires Spotify credentials/API access.
 
