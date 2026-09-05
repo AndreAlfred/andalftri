@@ -6,6 +6,13 @@ Bidirectional communication channel between Andrew and Alfred.
 
 ## Andrew's Notes
 
+### 2026-09-04 — Task 33 is still blocked on page-by-page world-building direction
+
+- `docs/plans/master-build-plan.md` still makes **Task 33: World-building per page** the next unchecked task.
+- The task itself says it needs Andrew's input per page before build, and the current plan/spec still do not provide those decisions.
+- I am stopping instead of skipping ahead because tonight's cron says not to skip tasks and not to start one I can't finish.
+- Please provide the minimal per-page brief for each destination so I can build the world treatment exactly: `page -> object / medium / panel role / palette`.
+
 ### 2026-07-15 — Product hierarchy, publication gate, and medallion destinations
 
 - Defer final website copy until the site is ready to publish and the projects being
