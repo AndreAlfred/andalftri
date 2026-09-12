@@ -455,3 +455,15 @@ narrow phone-shaped stage with the capture uncropped; Heaven & Nature renders
 unchanged beside it. Harness deleted.
 
 104 tests pass, check and build clean.
+
+## 2026-09-11 — Task 30 GLB v2 verification
+
+Completed Task 30 documentation/verification for the GLB v2 swap. Parsed
+`client/public/models/medallion.glb` directly and confirmed the baked v2
+contract: 2.9 MB glTF 2.0, Draco + embedded WebP textures, baked
+baseColor/roughness/normal maps on `EXPORT_body_baked` and `EXPORT_core_baked`,
+clearcoat screen glass intact, and all required medallion/section node names
+present.
+
+`pnpm test`, `pnpm check`, and `pnpm build` all passed. The next unchecked task
+is Task 33, which remains blocked on Andrew's per-page world-building direction.

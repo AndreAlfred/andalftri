@@ -1247,8 +1247,12 @@ mapping Andrew has not blessed; section 6 intentionally unassigned).
         into the grainy bubble-text emissive map for the section's page label.
   - [ ] Bubble text: render each label to an offscreen canvas texture (human-typed
         font, not AI art — check the Hard Constraints in CLAUDE.md).
-- [ ] **Task 30:** GLB v2 swap (when Blender ships baked mineral/chrome textures)
-  - [ ] Drop-in file replacement; node names + UVs are contract-stable. Re-verify
+- [x] **Task 30:** GLB v2 swap (when Blender ships baked mineral/chrome textures) — DONE
+      2026-09-11. Verified `client/public/models/medallion.glb` is the baked v2
+      drop-in: glTF 2.0, 2.9 MB, Draco + WebP, baked baseColor/roughness/normal maps
+      on `EXPORT_body_baked` and `EXPORT_core_baked`, clearcoat black glass intact,
+      and all contract node names present.
+  - [x] Drop-in file replacement; node names + UVs are contract-stable. Re-verify
         materials + memory, nothing else should change.
 
 ---
