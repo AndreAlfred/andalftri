@@ -23,12 +23,16 @@ function ImageCard({ item }: { item: InfluenceItem }) {
       <div className="grid grid-cols-2 gap-3">
         {item.images?.map((image) => (
           <figure key={image.src} className="space-y-1.5">
-            <img
-              src={image.src}
-              alt={image.alt}
-              loading="lazy"
-              className="w-full rounded-[14px] border border-white/10 object-cover"
-            />
+            <picture>
+              <source srcSet={image.optimizedSrc} type="image/avif" />
+              <img
+                src={image.src}
+                alt={image.alt}
+                loading="lazy"
+                decoding="async"
+                className="w-full rounded-[14px] border border-white/10 object-cover"
+              />
+            </picture>
             <figcaption className="panel-meta text-[0.6rem] uppercase tracking-wide text-white/40">
               {image.caption}
             </figcaption>
@@ -60,12 +64,18 @@ function TileGrid({ items }: { items: InfluenceItem[] }) {
         >
           <div className="relative overflow-hidden rounded-[12px] border border-white/10">
             {item.artworkSrc ? (
-              <img
-                src={item.artworkSrc}
-                alt={`${item.name} cover art`}
-                loading="lazy"
-                className="aspect-square w-full object-cover"
-              />
+              <picture>
+                {item.artworkOptimizedSrc ? (
+                  <source srcSet={item.artworkOptimizedSrc} type="image/avif" />
+                ) : null}
+                <img
+                  src={item.artworkSrc}
+                  alt={`${item.name} cover art`}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-square w-full object-cover"
+                />
+              </picture>
             ) : (
               <div className="aspect-square w-full bg-white/[0.05]" />
             )}

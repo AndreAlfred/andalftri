@@ -4,6 +4,8 @@ export interface Project {
   description: string;
   media: {
     screenshots?: string[];
+    /** AVIF alternatives, index-aligned with `screenshots`. */
+    optimizedScreenshots?: string[];
     /**
      * Width / height of `screenshots[0]`, used to size the showcase stage.
      *
@@ -36,7 +38,8 @@ export const PROJECTS: Project[] = [
       "Art-driven ethical streetwear brand website. Built alongside an autonomous AI build agent named Angel, with the site itself treated as an aesthetic object instead of a plain storefront. The visual language pulls from dense 2000s personal-web energy: visible borders, texture, ornament, and intentional friction.",
     media: {
       liveUrl: "https://heaven-and-nature.vercel.app",
-      screenshots: ["/images/heaven-and-nature.png"],
+      screenshots: ["/images/heaven-and-nature.png?v=1"],
+      optimizedScreenshots: ["/images/heaven-and-nature-v1.avif"],
     },
     techStack: ["React", "Vite", "Tailwind CSS", "Vercel", "OpenClaw"],
     status: "live",
@@ -48,7 +51,8 @@ export const PROJECTS: Project[] = [
       "A classical singing visualization and analysis tool focused on making vocal technique legible. The concept blends performance, pedagogy, and interface design, turning subtle musical behavior into something visible, explorable, and emotionally resonant.",
     media: {
       repoUrl: "https://github.com/AndreAlfred/see-canto",
-      screenshots: ["/images/see-canto.png"],
+      screenshots: ["/images/see-canto.png?v=1"],
+      optimizedScreenshots: ["/images/see-canto-v1.avif"],
     },
     techStack: ["Research", "Audio Analysis", "Visualization", "Creative Coding"],
     status: "concept",
@@ -64,7 +68,8 @@ export const PROJECTS: Project[] = [
     media: {
       liveUrl: "https://pgh-bible-plan-public.vercel.app",
       repoUrl: "https://github.com/AndreAlfred/pgh-bible-plan-public",
-      screenshots: ["/images/pgh.jpg"],
+      screenshots: ["/images/pgh.jpg?v=1"],
+      optimizedScreenshots: ["/images/pgh-v1.avif"],
       screenshotAspect: 832 / 1600, // portrait phone capture, 0.52
     },
     techStack: ["Vanilla JS", "localStorage", "IndexedDB", "Web Speech API", "Vercel"],

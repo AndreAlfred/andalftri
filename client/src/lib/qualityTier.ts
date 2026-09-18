@@ -206,11 +206,10 @@ export interface DeviceHints {
  * recoverable within the session. That asymmetry — not accuracy — is the whole
  * argument for a conservative start.
  *
- * Note this deliberately does NOT try to identify the device. detect-gpu already
- * owns "is this thing capable at all", and `deviceCapability.ts` special-cases
- * the obfuscated Apple renderer string (lessons.md entry D) precisely because
- * identification is unreliable. This asks a narrower, answerable question: is
- * there any reason to think the top rung is a bad opening bid?
+ * Note this deliberately does NOT try to identify the device. The synchronous
+ * capability gate answers only whether WebGL2 can start and whether explicit
+ * hardware hints show severe limits. This asks a narrower, answerable question:
+ * is there any reason to think the top rung is a bad opening bid?
  */
 export function startingTierFor(hints: DeviceHints): QualityTier {
   const touch = hints.coarsePointer || hints.maxTouchPoints > 0;
@@ -226,7 +225,7 @@ export function startingTierFor(hints: DeviceHints): QualityTier {
 
   // Desktop with explicitly modest hardware. Both signals are absent on Safari,
   // in which case we do NOT infer weakness — unknown is not weak, the same rule
-  // deviceCapability.ts applies to detect-gpu's FALLBACK type.
+  // used by the synchronous capability gate.
   if (hints.cores > 0 && hints.cores <= 4) return "medium";
   if (hints.memoryGb > 0 && hints.memoryGb <= 4) return "medium";
 

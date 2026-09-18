@@ -12,8 +12,8 @@ import {
  * `qualityTier.ts` owns the policy and is a pure module so the Node tests can
  * sweep it; this file only reads the browser. Everything here is synchronous by
  * requirement, not by preference — the whole point is to have an answer before
- * the first frame, so an async probe (detect-gpu's benchmark fetch, a WebGL
- * timer query) would arrive after the window it exists to cover.
+ * the first frame, so an async network benchmark or WebGL timer query would
+ * arrive after the window it exists to cover.
  */
 export function readDeviceHints(): DeviceHints {
   if (typeof window === "undefined") {

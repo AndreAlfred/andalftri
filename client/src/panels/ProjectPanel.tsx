@@ -10,6 +10,7 @@ interface ProjectPanelProps {
 // (hud/Commentary.tsx), reached via the pulsing "Tap to see context" bubble.
 export function ProjectPanel({ project }: ProjectPanelProps) {
   const preview = project.media.screenshots?.[0] ?? null;
+  const optimizedPreview = project.media.optimizedScreenshots?.[0] ?? null;
   const previewHref = project.media.liveUrl ?? project.media.repoUrl ?? null;
   const previewLabel = project.media.liveUrl
     ? "Open live site"
@@ -61,12 +62,19 @@ export function ProjectPanel({ project }: ProjectPanelProps) {
       className="relative overflow-hidden rounded-[12px]"
       style={{ aspectRatio: String(screenshotAspectOf(project)) }}
     >
-      <img
-        src={preview}
-        alt={`${project.title} interface preview`}
-        loading="lazy"
-        className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-[1.015]"
-      />
+      <picture className="block h-full w-full">
+        {optimizedPreview ? (
+          <source srcSet={optimizedPreview} type="image/avif" />
+        ) : null}
+        <img
+          src={preview}
+          alt={`${project.title} interface preview`}
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
+          className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-[1.015]"
+        />
+      </picture>
     </div>
   );
 

@@ -1,4 +1,4 @@
-import { Environment as DreiEnvironment } from "@react-three/drei";
+import { Environment as DreiEnvironment, useProgress } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
@@ -12,6 +12,7 @@ import { useCameraStore } from "@/hooks/useCamera";
 import { useQualityStore } from "@/hooks/useQuality";
 import { readStartingTier } from "@/lib/deviceHints";
 import { getPreviewFlags, profileFor } from "@/lib/qualityTier";
+import type { SceneLoadState } from "@/lib/sceneLoadState";
 import { AdaptiveQuality } from "@/scene/AdaptiveQuality";
 import { PerfOverlay, PerfProbe } from "@/scene/PerfReadout";
 import { DiagnosticProbe } from "@/scene/DiagnosticProbe";
@@ -42,9 +43,34 @@ function findPageByPath(pathname: string) {
 
 interface SceneExperienceProps {
   bootSequenceId: number;
+  onLoadStateChange: (state: SceneLoadState) => void;
 }
 
-export default function SceneExperience({ bootSequenceId }: SceneExperienceProps) {
+function SceneProgressReporter({
+  onChange,
+}: {
+  onChange: (state: SceneLoadState) => void;
+}) {
+  const { active, progress, item, loaded, total } = useProgress();
+
+  useEffect(() => {
+    onChange({
+      reported: true,
+      active,
+      progress,
+      item,
+      loaded,
+      total,
+    });
+  }, [active, item, loaded, onChange, progress, total]);
+
+  return null;
+}
+
+export default function SceneExperience({
+  bootSequenceId,
+  onLoadStateChange,
+}: SceneExperienceProps) {
   const currentPage = useCameraStore((state) => state.currentPage);
   const isTransitioning = useCameraStore((state) => state.isTransitioning);
   const flyTo = useCameraStore((state) => state.flyTo);
@@ -227,6 +253,7 @@ export default function SceneExperience({ bootSequenceId }: SceneExperienceProps
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-[#1a1a1a]">
+      <SceneProgressReporter onChange={onLoadStateChange} />
       <Canvas
         camera={{ position: [0, 0, 8], fov: 60 }}
         // Initial only — AdaptiveQuality drives DPR through `setDpr` from here

@@ -7,7 +7,8 @@ export interface InfluenceItem {
   meta?: string;
   /** Square cover art for tile items (podcast/show artwork). */
   artworkSrc?: string;
-  images?: { src: string; alt: string; caption: string }[];
+  artworkOptimizedSrc?: string;
+  images?: { src: string; optimizedSrc: string; alt: string; caption: string }[];
 }
 
 export interface Influence {
@@ -152,12 +153,14 @@ export const INFLUENCES: Influence[] = [
         category: "Painters",
         images: [
           {
-            src: "/images/inspirations/seurat-grande-jatte.jpg",
+            src: "/images/inspirations/seurat-grande-jatte.jpg?v=1",
+            optimizedSrc: "/images/inspirations/seurat-grande-jatte-v1.avif",
             alt: "Georges Seurat, A Sunday on La Grande Jatte, pointillist park scene",
             caption: "A Sunday on La Grande Jatte (1884–1886) — public domain",
           },
           {
-            src: "/images/inspirations/seurat-bathers-asnieres.jpg",
+            src: "/images/inspirations/seurat-bathers-asnieres.jpg?v=1",
+            optimizedSrc: "/images/inspirations/seurat-bathers-asnieres-v1.avif",
             alt: "Georges Seurat, Bathers at Asnières, figures resting by the Seine",
             caption: "Bathers at Asnières (1884) — public domain",
           },
@@ -169,12 +172,14 @@ export const INFLUENCES: Influence[] = [
         category: "Painters",
         images: [
           {
-            src: "/images/inspirations/mondrian-composition-ii.jpg",
+            src: "/images/inspirations/mondrian-composition-ii.jpg?v=1",
+            optimizedSrc: "/images/inspirations/mondrian-composition-ii-v1.avif",
             alt: "Piet Mondrian, Composition II in Red, Blue and Yellow, primary-color grid",
             caption: "Composition II in Red, Blue and Yellow (1930) — public domain",
           },
           {
-            src: "/images/inspirations/mondrian-tableau-i.jpg",
+            src: "/images/inspirations/mondrian-tableau-i.jpg?v=1",
+            optimizedSrc: "/images/inspirations/mondrian-tableau-i-v1.avif",
             alt: "Piet Mondrian, Tableau I, black-line grid with primary color planes",
             caption: "Tableau I (1921) — public domain",
           },
@@ -182,7 +187,8 @@ export const INFLUENCES: Influence[] = [
       },
       {
         name: "Cortex",
-        artworkSrc: "/images/inspirations/podcasts/cortex.jpg",
+        artworkSrc: "/images/inspirations/podcasts/cortex.jpg?v=1",
+        artworkOptimizedSrc: "/images/inspirations/podcasts/cortex-v1.avif",
         meta: "Relay FM",
         url: "https://www.relay.fm/cortex",
         note: "CGP Grey and Myke Hurley on the operating systems behind two self-employed creators.",
@@ -191,7 +197,8 @@ export const INFLUENCES: Influence[] = [
       },
       {
         name: "Double Tap",
-        artworkSrc: "/images/inspirations/podcasts/double-tap.jpg",
+        artworkSrc: "/images/inspirations/podcasts/double-tap.jpg?v=1",
+        artworkOptimizedSrc: "/images/inspirations/podcasts/double-tap-v1.avif",
         meta: "Double Tap Productions",
         url: "https://www.doubletaponair.com",
         note: "Steven Scott and Shaun Preece's daily, candid show about accessible technology.",
@@ -200,7 +207,8 @@ export const INFLUENCES: Influence[] = [
       },
       {
         name: "Reply All",
-        artworkSrc: "/images/inspirations/podcasts/reply-all.jpg",
+        artworkSrc: "/images/inspirations/podcasts/reply-all.jpg?v=1",
+        artworkOptimizedSrc: "/images/inspirations/podcasts/reply-all-v1.avif",
         meta: "Gimlet — ended 2022",
         url: "https://gimletmedia.com/shows/reply-all",
         note: "Gimlet's show about the internet and the strange things people do on it.",
@@ -209,7 +217,8 @@ export const INFLUENCES: Influence[] = [
       },
       {
         name: "Spotless",
-        artworkSrc: "/images/inspirations/podcasts/spotless.jpg",
+        artworkSrc: "/images/inspirations/podcasts/spotless.jpg?v=1",
+        artworkOptimizedSrc: "/images/inspirations/podcasts/spotless-v1.avif",
         meta: "Independent",
         url: "https://spotlesspod.com",
         note: "Andrew Walsh and Hanna Brooks Olsen's friendly show about cleaning, ADHD, and keeping a life together.",
@@ -218,7 +227,8 @@ export const INFLUENCES: Influence[] = [
       },
       {
         name: "White Horse Inn",
-        artworkSrc: "/images/inspirations/podcasts/white-horse-inn.jpg",
+        artworkSrc: "/images/inspirations/podcasts/white-horse-inn.jpg?v=1",
+        artworkOptimizedSrc: "/images/inspirations/podcasts/white-horse-inn-v1.avif",
         meta: "Sola Media",
         url: "https://www.whitehorseinn.org",
         note: "A Reformed theology roundtable on Scripture, culture, and the church, running since 1990.",
@@ -227,7 +237,8 @@ export const INFLUENCES: Influence[] = [
       },
       {
         name: "Connected",
-        artworkSrc: "/images/inspirations/podcasts/connected.jpg",
+        artworkSrc: "/images/inspirations/podcasts/connected.jpg?v=1",
+        artworkOptimizedSrc: "/images/inspirations/podcasts/connected-v1.avif",
         meta: "Relay FM",
         url: "https://www.relay.fm/connected",
         note: "Stephen Hackett, Myke Hurley, and Federico Viticci's weekly Apple roundtable.",

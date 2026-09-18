@@ -40,12 +40,16 @@ export function MusicPanel({ project }: MusicPanelProps) {
         <div className="mt-6 grid grid-cols-2 gap-8 sm:grid-cols-3 sm:gap-10">
           {ALBUMS.map((album) => (
             <div key={album.id} className="space-y-2">
-              <img
-                src={album.artworkSrc}
-                alt={`${album.title} — ${album.artist} album art`}
-                loading="lazy"
-                className="aspect-square w-full rounded-[18px] border border-white/12 object-cover"
-              />
+              <picture>
+                <source srcSet={album.optimizedArtworkSrc} type="image/avif" />
+                <img
+                  src={album.artworkSrc}
+                  alt={`${album.title} — ${album.artist} album art`}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-square w-full rounded-[18px] border border-white/12 object-cover"
+                />
+              </picture>
               <p className="label-long text-sm text-white/90">{album.title}</p>
               <p className="panel-meta text-[0.62rem] uppercase text-white/50">{album.artist}</p>
               <div className="flex gap-3">

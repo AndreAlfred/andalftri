@@ -1,14 +1,19 @@
-import { useProgress } from "@react-three/drei";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFireOnceGuard } from "@/hud/bootLifecycle";
 import { VisorChrome } from "@/hud/VisorChrome";
+import {
+  isSceneLoadComplete,
+  shouldShowSceneLoader,
+  type SceneLoadState,
+} from "@/lib/sceneLoadState";
 
 interface LoadingScreenProps {
+  loadState: SceneLoadState;
   onReady?: () => void;
 }
 
-export function LoadingScreen({ onReady }: LoadingScreenProps) {
-  const { active, progress, item, loaded, total } = useProgress();
+export function LoadingScreen({ loadState, onReady }: LoadingScreenProps) {
+  const { reported, active, progress, item, loaded, total } = loadState;
   const [isVisible, setIsVisible] = useState(true);
   const [hasSettled, setHasSettled] = useState(false);
   // Defense in depth alongside App's useCallback (RC-5): LoadingScreen stays
@@ -18,7 +23,7 @@ export function LoadingScreen({ onReady }: LoadingScreenProps) {
   const attemptReady = useRef(createFireOnceGuard());
 
   const displayProgress = useMemo(() => {
-    if (!hasSettled && !active && total === 0) {
+    if (!reported || (!hasSettled && !active && total === 0)) {
       return 12;
     }
 
@@ -27,7 +32,7 @@ export function LoadingScreen({ onReady }: LoadingScreenProps) {
     }
 
     return Math.max(8, Math.min(100, Math.round(progress)));
-  }, [active, hasSettled, loaded, progress, total]);
+  }, [active, hasSettled, loaded, progress, reported, total]);
 
   useEffect(() => {
     const settleTimer = window.setTimeout(() => {
@@ -39,7 +44,7 @@ export function LoadingScreen({ onReady }: LoadingScreenProps) {
 
   useEffect(() => {
     if (!hasSettled) return;
-    if (active) return;
+    if (!isSceneLoadComplete(loadState)) return;
 
     const readyTimer = window.setTimeout(() => {
       setIsVisible(false);
@@ -49,13 +54,15 @@ export function LoadingScreen({ onReady }: LoadingScreenProps) {
     }, 420);
 
     return () => window.clearTimeout(readyTimer);
-  }, [active, hasSettled, onReady]);
+  }, [hasSettled, loadState, onReady]);
 
   if (!isVisible) {
     return null;
   }
 
-  const statusLabel = active
+  const statusLabel = !reported
+    ? "Preparing scene bundle"
+    : active
     ? item
       ? `Streaming ${item.split("/").pop() ?? "scene asset"}`
       : "Streaming chrome, type, and sky"
@@ -64,7 +71,7 @@ export function LoadingScreen({ onReady }: LoadingScreenProps) {
   return (
     <div
       className={`pointer-events-none absolute inset-0 z-50 flex items-center justify-center bg-[#070b10] px-6 transition-opacity duration-700 ${
-        active ? "opacity-100" : "opacity-0"
+        shouldShowSceneLoader(loadState) ? "opacity-100" : "opacity-0"
       }`}
       aria-live="polite"
     >

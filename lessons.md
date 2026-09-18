@@ -53,20 +53,6 @@ refinement below disproves. The context works; the frame loop is what does not.)
   shader and the broken one, and only the control revealed it was blind. A
   verification that has never been observed to fail is not evidence.
 
-### D. detect-gpu mis-tiers Apple Silicon — Andrew got the potato fallback on a MacBook
-- **What happened:** the live site served `StaticFallback` to Andrew's own Mac.
-  Safari/Apple Silicon reports the WebGL renderer as an obfuscated "Apple GPU"
-  string, which detect-gpu tiers at 1 (below the capable threshold). Separately,
-  `type: "FALLBACK"` (benchmark CDN fetch failed) was also treated as weak,
-  while App.tsx's own catch path treats the same failure as capable.
-- **Fix:** `deviceCapability.ts` — any GPU whose name contains "apple" is
-  capable regardless of tier; FALLBACK type is capable (unknown ≠ weak); only
-  WEBGL_UNSUPPORTED and genuinely low-tier non-Apple GPUs get the fallback.
-- **Lesson:** GPU-tier libraries are benchmark-table lookups, not measurements —
-  always special-case the known obfuscated renderer strings ("Apple GPU",
-  SwiftShader) and decide explicitly what "unknown" should mean. `?force-3d=1`
-  exists as the user-facing escape hatch either way.
-
 ## Session 2026-07-21 (latency pass + magic space background, Claude Code)
 
 ### E. Measure where the cost actually is before accepting a visual sacrifice
@@ -481,3 +467,30 @@ refinement below disproves. The context works; the frame loop is what does not.)
   actual background stack before computing — the fallback's is three gradients over a
   base colour, and eyeballing the alpha value alone would have flagged the wrong half
   of the file.
+
+## Session 2026-09-17 (loading critical-path rebuild, Codex)
+
+### Y. A lazy import is only an intention until the production waterfall proves it
+- **What happened:** `SceneExperience` had been wrapped in `React.lazy` since April,
+  yet the production HTML module-preloaded Three.js and R3F/Drei before the app could
+  choose the 2D fallback. `LoadingScreen` imported Drei for progress, and the manual
+  chunk graph also placed Vite's dynamic-import helper inside `vendor-scene`, so the
+  entry imported the scene chunk merely to invoke the helper. Browser inspection then
+  found three more invisible edges: detect-gpu fetched its benchmark from UNPKG before
+  routing, Drei's GLTF loader fetched Draco from gstatic, and Troika's otherwise-local
+  3D text could discover a default font resolver on jsDelivr at first interaction.
+  Source structure looked lazy and self-contained; the network was not.
+- **Root cause:** performance was reasoned about at component boundaries, while the
+  costs lived at build, loader-default, and hosting boundaries. A code review can see
+  `lazy(() => import(...))` and still miss what Rollup emits, what a library fetches at
+  runtime (including interaction-only paths), and whether the CDN makes every cached
+  asset revalidate.
+- **Lesson:** treat the built HTML and a browser-observed resource inventory as the
+  source of truth for startup. Assert a gzip budget for the complete initial module
+  graph, not a filename or a source-level `lazy`; inspect loader defaults for external
+  URLs; and verify response cache headers separately from Vercel edge hits. "Chunked",
+  "compressed", and "cached" describe mechanisms, not outcomes, until the visitor's
+  waterfall shows the intended bytes starting at the intended time. Exercise deferred
+  and interaction-only paths as part of that inventory. The sibling sweep was completed
+  here across JavaScript, fonts, model discovery, decoder delivery, raster formats, and
+  browser caching.

@@ -166,7 +166,7 @@ test("a capable desktop still starts at high — the change must not tax the goo
 test("unknown hardware is not treated as weak", () => {
   // Safari reports neither hardwareConcurrency nor deviceMemory in some
   // configurations. Absent signals must not infer weakness — the same rule
-  // deviceCapability.ts applies to detect-gpu's FALLBACK type (lessons.md D).
+  // used by the synchronous capability gate.
   assert.equal(
     startingTierFor({ ...DESKTOP, cores: 0, memoryGb: 0 }),
     "high",

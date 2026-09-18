@@ -10,6 +10,11 @@ import {
 } from "@/hud/helmetBoot";
 import { useLemniscate } from "@/hooks/useLemniscate";
 import { useProximityTilt } from "@/hooks/useProximityTilt";
+import {
+  DRACO_DECODER_PATH,
+  MEDALLION_URL,
+  SCENE_LABEL_FONT_URL,
+} from "@/lib/assetUrls";
 import { readTextureEdgeCap } from "@/lib/deviceHints";
 import { capSceneTextures } from "./textureBudget";
 import type { EmblemTuning, LightingMode } from "./lightingConfig";
@@ -35,7 +40,6 @@ import {
 // 2026-07-11). Big sections carry the oeuvre, smaller ones the influences;
 // section 6 is intentionally unassigned (spare / future page). Remap freely —
 // it's just this table.
-const MEDALLION_URL = "/models/medallion.glb";
 const TARGET_RADIUS = 4.4; // world units; buttons used to span ~±3.5
 const SECTION_RE = /^section_0(\d)_(?:screen|bezel)$/;
 
@@ -80,7 +84,7 @@ export const MedallionHub = memo(function MedallionHub({
   const hoverLevels = useRef<Record<number, number>>({});
   const labelOpacityRef = useRef(0);
 
-  const { scene } = useGLTF(MEDALLION_URL);
+  const { scene } = useGLTF(MEDALLION_URL, DRACO_DECODER_PATH);
 
   const { clonedScene, sectionMeshes, normalization } = useMemo(() => {
     // Cap texture residency BEFORE the clone is handed to the renderer
@@ -323,6 +327,7 @@ export const MedallionHub = memo(function MedallionHub({
         </group>
         <Text
           ref={labelRef}
+          font={SCENE_LABEL_FONT_URL}
           position={[0, -5.4, 0.5]}
           fontSize={0.24}
           color="#dffaff"
@@ -342,4 +347,4 @@ export const MedallionHub = memo(function MedallionHub({
   );
 });
 
-useGLTF.preload(MEDALLION_URL);
+useGLTF.preload(MEDALLION_URL, DRACO_DECODER_PATH);

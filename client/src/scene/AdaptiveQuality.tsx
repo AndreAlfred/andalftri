@@ -17,12 +17,11 @@ interface AdaptiveQualityProps {
 /**
  * Silent runtime adaptation (2026-07-21).
  *
- * The problem this solves is NOT weak hardware — detect-gpu already routes weak
- * devices to StaticFallback. It is the case Andrew described: a capable machine
- * that is *contended right now*. A GPU tier is measured once at load and never
- * revisited; a contended machine looks capable to it and then stutters anyway.
- * drei's PerformanceMonitor watches the actual frame budget instead, so the
- * site responds to the machine's current state rather than its spec sheet.
+ * The synchronous capability gate already routes devices without WebGL2 or with
+ * severe known limits to StaticFallback. This handles the case Andrew described:
+ * a capable machine that is *contended right now*. Static hints cannot see that;
+ * drei's PerformanceMonitor watches the actual frame budget instead, so the site
+ * responds to the machine's current state rather than its spec sheet.
  *
  * DPR is the lever because it is quadratic — dropping 1.5 -> 1.0 removes ~55%
  * of the fragments for a change most visitors read as "slightly softer", if

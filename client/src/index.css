@@ -1,8 +1,32 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap");
 @import "tailwindcss";
 
-/* Self-hosted display/label faces (2026-07-18 typography spec). All three are
-   licensed under SIL OFL 1.1 — see client/public/fonts/licenses/. */
+/* Self-hosted typography. Keeping every face on-origin removes the remote CSS
+   request that used to block stylesheet evaluation before first paint. All
+   faces are licensed under SIL OFL 1.1; see client/public/fonts/licenses/. */
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-Latin-v20.woff2") format("woff2");
+  font-weight: 400 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Space Mono";
+  src: url("/fonts/SpaceMono-Regular-Latin-v17.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Space Mono";
+  src: url("/fonts/SpaceMono-Bold-Latin-v17.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @font-face {
   font-family: "Bruno Ace";
   src: url("/fonts/BrunoAce-Regular.ttf") format("truetype");
@@ -35,18 +59,6 @@
   font-display: swap;
 }
 
-/* Kingthings Spikeless: file supplied by Andrew later (see 2026-07-18 spec
-   §1) — not yet present in client/public/fonts/. Declared ahead of time so
-   the stack falls through to Zen Dots until the TTF lands; --font-at-glyph
-   below already carries that fallback order. */
-@font-face {
-  font-family: "Kingthings Spikeless";
-  src: url("/fonts/KingthingsSpikeless.ttf") format("truetype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
 /*
  * Typography role system (2026-07-18 spec):
  *   Bruno Ace     -> oeuvre (project) screen-title display face
@@ -63,9 +75,10 @@
   --font-panel-meta: "Space Mono", "SFMono-Regular", "Consolas", monospace;
   --font-display-influence: "Zen Dots", sans-serif;
   --font-mono-long: "Chivo Mono", "Space Mono", "SFMono-Regular", monospace;
-  /* Kingthings Spikeless has no bundled file yet (Andrew supplies the TTF —
-     see 2026-07-18 spec §1); until then the stack falls through to Zen Dots. */
-  --font-at-glyph: "Kingthings Spikeless", "Zen Dots", var(--font-panel-meta);
+  /* Kingthings Spikeless remains an unshipped future asset. Do not declare a
+     URL until the file exists: the former declaration requested the SPA HTML
+     rewrite as a bogus TTF on every load before falling through. */
+  --font-at-glyph: "Zen Dots", var(--font-panel-meta);
 }
 
 html,

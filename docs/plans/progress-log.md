@@ -467,3 +467,45 @@ present.
 
 `pnpm test`, `pnpm check`, and `pnpm build` all passed. The next unchecked task
 is Task 33, which remains blocked on Andrew's per-page world-building direction.
+
+## 2026-09-17 — Loading critical-path rebuild
+
+Andrew reported that the whole site, including ordinary images, loaded
+incredibly slowly on every device. The production waterfall confirmed this was
+not one slow asset but a chain of discovery and delivery mistakes:
+
+- The source used `React.lazy`, but the initial HTML still module-preloaded
+  Three.js plus R3F/Drei because `LoadingScreen` imported Drei and the manual
+  chunk graph placed Vite's preload helper inside `vendor-scene`. The initial JS
+  graph was about 408 KB gzip before the GLB.
+- The app blocked its first routing decision on detect-gpu's UNPKG benchmark
+  fetch even though network failure already defaulted to the full scene.
+- Drei's default Draco configuration fetched its decoder from gstatic, while
+  Troika's 3D text retained a jsDelivr font resolver for first interaction.
+- Google Fonts was a render-blocking third-party stylesheet, and the declared
+  but absent Kingthings font was rewritten to `index.html` with HTTP 200 before
+  the browser rejected it as a TTF.
+- Vercel served static bundles, images, fonts, and the GLB with
+  `max-age=0, must-revalidate`; the largest project image was 1.47 MB PNG.
+
+Rebuilt the path from those facts. The loading UI now receives progress through
+a callback from inside the lazy scene and has no 3D import of its own. Capability
+selection is synchronous: required WebGL2 plus known severe CPU/memory limits,
+with the existing quality system handling the rest. The medallion starts in
+parallel with the lazy scene chunk, uses a versioned URL, and its Draco decoder
+and label font are self-hosted. Manual package chunks were removed so the dynamic scene
+boundary is the actual network boundary. The production entry is now 70.46 KB
+gzip (about 83% smaller than the old initial graph); the 358.67 KB gzip scene
+chunk stays behind the lazy boundary.
+
+All 18 authored rasters now have AVIF-first `<picture>` delivery with untouched
+PNG/JPEG fallbacks. Their combined optimized transfer is 1,449,254 bytes versus
+4,561,474 original bytes (68% smaller); the three project screenshots drop from
+2,041,274 to 278,183 bytes (86% smaller). Inter and Space Mono are self-hosted,
+and versioned/static assets receive immutable one-year browser caching.
+
+Browser verification covered the full 3D boot, `?lite=1`, a project route, AVIF
+selection, and local medallion/Draco requests with no gstatic dependency. The
+automated suite, TypeScript check, and production build pass. Pixel-level 3D and
+compressed-art approval still belongs to Andrew's real devices; delivery is
+verified, visual signoff is not inferred.

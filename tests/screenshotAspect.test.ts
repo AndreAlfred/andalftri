@@ -17,6 +17,10 @@ import {
 
 const publicDir = fileURLToPath(new URL("../client/public", import.meta.url));
 
+function assetPath(url: string) {
+  return `${publicDir}${new URL(url, "https://portfolio.invalid").pathname}`;
+}
+
 /** Minimal PNG IHDR / JPEG SOFn dimension reader — no image dependency. */
 function readImageSize(bytes: Buffer): { width: number; height: number } {
   const isPng =
@@ -52,7 +56,7 @@ test("every declared screenshot aspect matches the file on disk", () => {
 
   for (const project of withShots) {
     const relative = project.media.screenshots![0];
-    const bytes = readFileSync(`${publicDir}${relative}`);
+    const bytes = readFileSync(assetPath(relative));
     const { width, height } = readImageSize(bytes);
     const actual = width / height;
     const declared = screenshotAspectOf(project);
