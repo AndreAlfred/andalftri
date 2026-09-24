@@ -1,5 +1,5 @@
 import { useFrame } from "@react-three/fiber";
-import { useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { PAGES, type PageConfig } from "@/data/sceneConfig";
 import { useCameraStore } from "@/hooks/useCamera";
@@ -22,6 +22,8 @@ interface MenuHubProps {
   grainHz: number;
   /** ?grain=shader — forwarded to the CRT screens. */
   shaderGrain?: boolean;
+  departing?: boolean;
+  onDeparted?: () => void;
 }
 
 export function MenuHub({
@@ -32,12 +34,14 @@ export function MenuHub({
   emblem,
   grainHz,
   shaderGrain = false,
+  departing = false,
+  onDeparted,
 }: MenuHubProps) {
   const groupRef = useRef<THREE.Group>(null);
   const visualRef = useRef<THREE.Group>(null);
   const idleRotationRef = useRef(0);
-  const hubVisibilityRef = useRef(1);
-  const [hubVisibility, setHubVisibility] = useState(1);
+  const exitProgressRef = useRef(0);
+  const departureNotifiedRef = useRef(false);
   const currentPage = useCameraStore((state) => state.currentPage);
   const isTransitioning = useCameraStore((state) => state.isTransitioning);
   const assetSwapDemoEnabled =
@@ -49,7 +53,11 @@ export function MenuHub({
   const medallionEnabled =
     typeof window === "undefined" ||
     new URLSearchParams(window.location.search).get("classic") !== "1";
-  const canInteract = !currentPage && !isTransitioning;
+  const canInteract = !currentPage && !isTransitioning && !departing;
+  const reducedMotion = useMemo(
+    () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
+    [],
+  );
 
   useMouseParallax(groupRef, {
     intensity: 0.4,
@@ -62,7 +70,7 @@ export function MenuHub({
     onCommit: onPageSelect,
   });
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (!groupRef.current || !visualRef.current) return;
 
     const { phaseNudge } = useScrollInteractionStore.getState();
@@ -73,21 +81,25 @@ export function MenuHub({
     );
     groupRef.current.rotation.z = idleRotationRef.current;
 
-    const targetVisibility = currentPage ? 0.12 : 1;
-    hubVisibilityRef.current = THREE.MathUtils.lerp(
-      hubVisibilityRef.current,
-      targetVisibility,
-      currentPage ? 0.12 : 0.08,
-    );
+    const leaving = departing || Boolean(currentPage);
+    const duration = leaving ? 0.42 : 0.55;
+    exitProgressRef.current = reducedMotion
+      ? (leaving ? 1 : 0)
+      : THREE.MathUtils.clamp(
+          exitProgressRef.current + (leaving ? 1 : -1) * Math.min(delta, 0.1) / duration,
+          0,
+          1,
+        );
+    const eased = 1 - Math.pow(1 - exitProgressRef.current, 3);
+    visualRef.current.scale.setScalar(1 - eased * 0.98);
+    visualRef.current.visible = exitProgressRef.current < 1;
 
-    const scale = THREE.MathUtils.lerp(0.82, 1, hubVisibilityRef.current);
-    visualRef.current.scale.setScalar(scale);
-
-    setHubVisibility((current) =>
-      Math.abs(current - hubVisibilityRef.current) > 0.01
-        ? hubVisibilityRef.current
-        : current,
-    );
+    if (leaving && exitProgressRef.current === 1 && !departureNotifiedRef.current) {
+      departureNotifiedRef.current = true;
+      onDeparted?.();
+    } else if (!leaving) {
+      departureNotifiedRef.current = false;
+    }
   });
 
   return (
@@ -103,13 +115,11 @@ export function MenuHub({
             grainHz={grainHz}
             shaderGrain={shaderGrain}
             disabled={!canInteract}
-            opacity={hubVisibility}
           />
         ) : (
           <>
             <LogoModel
               modelPath={assetSwapDemoEnabled ? "/models/task-21-sample-box.glb" : undefined}
-              opacity={hubVisibility}
             />
             {PAGES.map((page, index) => (
               <MenuButton
@@ -118,7 +128,6 @@ export function MenuHub({
                 index={index}
                 onClick={onPageSelect}
                 disabled={!canInteract}
-                opacity={hubVisibility}
                 modelPath={assetSwapDemoEnabled && index === 0 ? "/models/task-21-sample-box.glb" : undefined}
               />
             ))}

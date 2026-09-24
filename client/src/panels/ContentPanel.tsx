@@ -6,6 +6,7 @@ interface ContentPanelProps {
   position: [number, number, number];
   pageId: string;
   activePageId: string | null;
+  preparingPageId?: string | null;
   isTransitioning: boolean;
   isClosing?: boolean;
   // "card" = the classic scrolling panel shell. "showcase" (2026-07-18 spec
@@ -33,6 +34,7 @@ export const ContentPanel = memo(function ContentPanel({
   position,
   pageId,
   activePageId,
+  preparingPageId = null,
   isTransitioning,
   isClosing = false,
   variant = "card",
@@ -41,7 +43,7 @@ export const ContentPanel = memo(function ContentPanel({
   onClose,
 }: ContentPanelProps) {
   const isActivePage = activePageId === pageId;
-  const shouldRender = isActivePage || isClosing;
+  const shouldRender = isActivePage || isClosing || preparingPageId === pageId;
   const isVisible = isActivePage && !isTransitioning && !isClosing;
 
   useEffect(() => {
@@ -82,6 +84,7 @@ export const ContentPanel = memo(function ContentPanel({
           element's own style, so it never clobbers drei's `center` transform
           (translate3d(-50%,-50%,0)) applied to the Html element itself. */}
       <div
+        aria-hidden={!isVisible}
         className={
           isShowcase
             ? "panel-shell relative text-white"

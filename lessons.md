@@ -508,3 +508,18 @@ refinement below disproves. The context works; the frame loop is what does not.)
   activity cue and factual stage labels; keep readiness gated on actual completion.
   Start the outgoing and incoming fades together so the handoff does not expose a
   blank frame.
+
+### AA. Navigation work can land on the frame that starts the camera
+- **What happened:** selecting a destination set `currentPage` immediately, so
+  the destination panel and its eager screenshot mounted as the camera began to
+  move. At the same time, the medallion's fade pushed React state every frame,
+  traversed its materials, and switched them into the transparent render pass;
+  the CRT screens kept uploading canvas textures during the departure. Andrew
+  saw a brief stutter at the start of the flight. The available preview cannot
+  time WebGL frames, so those are code-path findings, not a measured attribution
+  of his exact dropped frame.
+- **Lesson:** when a transition crosses a heavy content boundary, schedule
+  preparation in a visually quiet beat before continuous camera motion, and
+  avoid React commits, shader changes, and texture uploads in the departure
+  animation itself. Keep the wait bounded so a failed asset cannot strand the
+  visitor between destinations. Verify the perceived result in a real browser.
