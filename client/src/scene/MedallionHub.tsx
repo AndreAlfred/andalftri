@@ -58,7 +58,6 @@ interface MedallionHubProps {
   /** ?grain=shader — procedural grain instead of per-frame canvas re-upload. */
   shaderGrain?: boolean;
   disabled?: boolean;
-  opacity?: number;
 }
 
 function sectionOf(object: THREE.Object3D): number | null {
@@ -75,7 +74,6 @@ export const MedallionHub = memo(function MedallionHub({
   grainHz = 30,
   shaderGrain = false,
   disabled = false,
-  opacity = 1,
 }: MedallionHubProps) {
   const groupRef = useRef<THREE.Group>(null);
   const tiltRef = useRef<THREE.Group>(null);
@@ -138,51 +136,6 @@ export const MedallionHub = memo(function MedallionHub({
     };
   }, [scene, lightingMode, emblem]);
 
-  /**
-   * Above this the medallion goes back in the OPAQUE render pass.
-   *
-   * 2026-07-22, fixing Andrew's "sparks clip behind the screens but in front of
-   * the artifact". This effect used to force `transparent = true` on all 17
-   * meshes unconditionally, even at full opacity. three.js draws opaque first,
-   * then transparent, so the entire artifact sat in the transparent pass and
-   * NOTHING populated the depth buffer before the additive sparks drew. Within
-   * that pass items sort by their geometry bounding-sphere centre, so the
-   * meshes that happened to sort after the sparks painted straight over sparks
-   * that were genuinely in front of them, while the ones that sorted before
-   * occluded them correctly — hence the same object behaving both ways.
-   *
-   * The threshold is not 1 because MenuHub's visibility lerp is asymptotic and
-   * only commits to React state when it moves more than 0.01, so the prop
-   * settles somewhere in [0.99, 1) and a strict `=== 1` test would leave the
-   * medallion permanently transparent after the first panel visit.
-   */
-  const HUB_OPAQUE_EPSILON = 0.985;
-
-  useEffect(() => {
-    const isOpaque = opacity >= HUB_OPAQUE_EPSILON;
-    clonedScene.traverse((child) => {
-      if (!(child instanceof THREE.Mesh)) return;
-      const mats = Array.isArray(child.material) ? child.material : [child.material];
-      mats.forEach((material) => {
-        // Read the authored value once so a future alpha-blended material is
-        // never forced opaque. Every material in medallion.glb is authored
-        // OPAQUE with alpha-free webp maps, so today this is always false.
-        material.userData.authoredTransparent ??= material.transparent;
-        const nextTransparent = Boolean(material.userData.authoredTransparent) || !isOpaque;
-        if (material.transparent !== nextTransparent) {
-          material.transparent = nextTransparent;
-          // `transparent` feeds the `opaque` program flag, which compiles
-          // `diffuseColor.a = 1.0` into the shader. setProgram's fast path only
-          // recompiles when the material VERSION changes, and assigning
-          // `transparent` does not bump it — without this the faded state would
-          // keep an opaque program and the medallion would never fade at all.
-          material.needsUpdate = true;
-        }
-        material.opacity = isOpaque ? 1 : opacity;
-      });
-    });
-  }, [clonedScene, opacity]);
-
   useEffect(() => {
     if (!disabled) return;
     setHoveredSection(null);
@@ -235,11 +188,16 @@ export const MedallionHub = memo(function MedallionHub({
   useProximityTilt(tiltRef, { maxTilt: 8, range: 0.85, smoothing: 0.08 });
 
   useFrame((_, delta) => {
+    // MenuHub hides the entire visual group once it has receded. Do not keep
+    // rasterizing and uploading seven CRT textures while it cannot be seen.
+    if (groupRef.current?.parent?.visible === false) return;
     let labelLevel = 0;
 
     // screens are owned by the wake manager (emissiveMap content + intensity);
     // this loop only drives the BEZEL hover glow.
-    wake.update(delta, disabled ? null : hoveredSection, opacity);
+    // Freeze CRT canvas uploads during departure/return, when smooth camera
+    // motion matters more than grain that the visitor cannot inspect.
+    if (!disabled) wake.update(delta, hoveredSection, 1);
 
     for (let sec = 1; sec <= 7; sec += 1) {
       const target = !disabled && hoveredSection === sec ? 1 : 0;
@@ -271,7 +229,7 @@ export const MedallionHub = memo(function MedallionHub({
         0.14,
       );
       const textMaterial = labelRef.current.material as THREE.MeshBasicMaterial;
-      textMaterial.opacity = labelOpacityRef.current * opacity;
+      textMaterial.opacity = labelOpacityRef.current;
     }
   });
 

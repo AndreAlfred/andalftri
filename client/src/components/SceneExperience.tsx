@@ -1,6 +1,6 @@
 import { Environment as DreiEnvironment, useProgress } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import * as THREE from "three";
 import { getInfluenceById } from "@/data/influences";
 import { getProjectById, screenshotAspectOf } from "@/data/projects";
@@ -11,6 +11,7 @@ import { HudOverlay } from "@/hud/HudOverlay";
 import { useCameraStore } from "@/hooks/useCamera";
 import { useQualityStore } from "@/hooks/useQuality";
 import { readStartingTier } from "@/lib/deviceHints";
+import { pageDepartureReducer } from "@/lib/pageDeparture";
 import { getPreviewFlags, profileFor } from "@/lib/qualityTier";
 import type { SceneLoadState } from "@/lib/sceneLoadState";
 import { AdaptiveQuality } from "@/scene/AdaptiveQuality";
@@ -32,6 +33,34 @@ import { MenuHub } from "@/scene/MenuHub";
 
 const PANEL_CLOSE_DELAY_MS = 320;
 const HUB_ROUTE = "/";
+
+function preparePagePreview(pageId: string): Promise<void> {
+  const project = getProjectById(pageId);
+  const preview = project?.media.optimizedScreenshots?.[0] ?? project?.media.screenshots?.[0];
+  if (!preview) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    const image = new Image();
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeout);
+      resolve();
+    };
+    // A failed or stalled image must never trap navigation in empty space.
+    const timeout = window.setTimeout(finish, 2500);
+    image.onload = () => {
+      if (typeof image.decode === "function") {
+        void image.decode().then(finish, finish);
+      } else {
+        finish();
+      }
+    };
+    image.onerror = finish;
+    image.src = preview;
+  });
+}
 
 function getInitialPathname() {
   return window.location.pathname || HUB_ROUTE;
@@ -130,6 +159,7 @@ export default function SceneExperience({
   const [pathname, setPathname] = useState(getInitialPathname);
   const [closingPageId, setClosingPageId] = useState<string | null>(null);
   const [isHudOpen, setIsHudOpen] = useState(false);
+  const [departure, dispatchDeparture] = useReducer(pageDepartureReducer, null);
   const closeTimeoutRef = useRef<number | null>(null);
 
   const clearCloseTimeout = useCallback(() => {
@@ -164,6 +194,7 @@ export default function SceneExperience({
     const matchingPage = findPageByPath(pathname);
 
     if (!matchingPage) {
+      if (departure) dispatchDeparture({ type: "cancel" });
       if (pathname !== HUB_ROUTE) {
         window.history.replaceState({}, "", HUB_ROUTE);
         setPathname(HUB_ROUTE);
@@ -189,10 +220,46 @@ export default function SceneExperience({
       setClosingPageId(null);
     }
 
+    if (departure?.pageId === matchingPage.id && departure.stage !== "ready") {
+      return;
+    }
+
     if (currentPage !== matchingPage.id) {
       flyTo(matchingPage.cameraPosition, matchingPage.cameraLookAt, matchingPage.id);
     }
-  }, [pathname, currentPage, closingPageId, flyTo, returnToHub, clearCloseTimeout]);
+    if (departure) dispatchDeparture({ type: "cancel" });
+  }, [pathname, currentPage, closingPageId, departure, flyTo, returnToHub, clearCloseTimeout]);
+
+  useEffect(() => {
+    if (!departure || departure.stage !== "preparing") return;
+    let cancelled = false;
+    const pageId = departure.pageId;
+
+    void preparePagePreview(pageId).then(() => {
+      if (!cancelled) dispatchDeparture({ type: "page-prepared", pageId });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [departure]);
+
+  useEffect(() => {
+    if (!departure || departure.stage !== "staging") return;
+    const pageId = departure.pageId;
+    // The hidden Drei Html panel mounts in this render. Let it paint before
+    // starting camera movement so its DOM/layout cost lands in the quiet beat.
+    let paintFrame = 0;
+    const layoutFrame = window.requestAnimationFrame(() => {
+      paintFrame = window.requestAnimationFrame(() => {
+        dispatchDeparture({ type: "panel-staged", pageId });
+      });
+    });
+    return () => {
+      window.cancelAnimationFrame(layoutFrame);
+      window.cancelAnimationFrame(paintFrame);
+    };
+  }, [departure]);
 
   const currentPageLabel = useMemo(
     () => PAGES.find((page) => page.id === currentPage)?.label ?? null,
@@ -226,6 +293,7 @@ export default function SceneExperience({
       clearCloseTimeout();
       setClosingPageId(null);
       setIsHudOpen(false);
+      dispatchDeparture({ type: "select", pageId: page.id });
       navigateTo(page.route);
     },
     [clearCloseTimeout, navigateTo],
@@ -246,10 +314,17 @@ export default function SceneExperience({
       setIsHudOpen(false);
       clearCloseTimeout();
       setClosingPageId(null);
-      navigateTo(targetPage.route);
+      if (currentPage) navigateTo(targetPage.route);
+      else handlePageSelect(targetPage);
     },
-    [clearCloseTimeout, navigateTo],
+    [clearCloseTimeout, currentPage, handlePageSelect, navigateTo],
   );
+
+  const handleHubDeparted = useCallback(() => {
+    if (departure) {
+      dispatchDeparture({ type: "hub-exited", pageId: departure.pageId });
+    }
+  }, [departure]);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-[#1a1a1a]">
@@ -291,6 +366,8 @@ export default function SceneExperience({
         <CameraController />
         <MenuHub
           onPageSelect={handlePageSelect}
+          departing={departure !== null}
+          onDeparted={handleHubDeparted}
           bootSequenceId={bootSequenceId}
           lightingMode={lightingSettings.mode}
           screensDormant={lightingSettings.screensDormant}
@@ -304,6 +381,7 @@ export default function SceneExperience({
             position={page.cameraLookAt}
             pageId={page.id}
             activePageId={currentPage}
+            preparingPageId={departure?.stage === "staging" || departure?.stage === "ready" ? departure.pageId : null}
             isTransitioning={isTransitioning}
             isClosing={closingPageId === page.id}
             variant={isShowcase ? "showcase" : "card"}
