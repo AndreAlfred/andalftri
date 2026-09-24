@@ -19,3 +19,11 @@ export function isSceneLoadComplete(state: SceneLoadState): boolean {
 export function shouldShowSceneLoader(state: SceneLoadState): boolean {
   return !isSceneLoadComplete(state);
 }
+
+export function getSceneLoadPhase(
+  state: SceneLoadState,
+): "preparing" | "streaming" | "complete" {
+  if (isSceneLoadComplete(state)) return "complete";
+  if (state.reported && state.total > 0) return "streaming";
+  return "preparing";
+}

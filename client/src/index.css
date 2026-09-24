@@ -758,6 +758,34 @@ select {
     0 16px 40px rgba(0, 0, 0, 0.18);
 }
 
+@keyframes loader-sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(400%); }
+}
+
+@keyframes loader-ring {
+  to { transform: rotate(360deg); }
+}
+
+.loader-sweep {
+  animation: loader-sweep 1.8s ease-in-out infinite;
+}
+
+.loader-ring {
+  animation: loader-ring 2.4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader-sweep {
+    animation: none;
+    left: 33%;
+  }
+
+  .loader-ring {
+    animation: none;
+  }
+}
+
 /*
  * ?diag=1 ablation: hide the screen-space helmet blur layers so the sweep can
  * price them. Diagnostic only — nothing outside DiagnosticProbe ever sets this

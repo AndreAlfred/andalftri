@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFireOnceGuard } from "@/hud/bootLifecycle";
 import { VisorChrome } from "@/hud/VisorChrome";
 import {
+  getSceneLoadPhase,
   isSceneLoadComplete,
-  shouldShowSceneLoader,
   type SceneLoadState,
 } from "@/lib/sceneLoadState";
 
@@ -13,26 +13,16 @@ interface LoadingScreenProps {
 }
 
 export function LoadingScreen({ loadState, onReady }: LoadingScreenProps) {
-  const { reported, active, progress, item, loaded, total } = loadState;
+  const { item } = loadState;
+  const phase = getSceneLoadPhase(loadState);
   const [isVisible, setIsVisible] = useState(true);
+  const [isLeaving, setIsLeaving] = useState(false);
   const [hasSettled, setHasSettled] = useState(false);
   // Defense in depth alongside App's useCallback (RC-5): LoadingScreen stays
   // mounted after fade (it returns null but keeps its hooks), so this guard
   // ensures onReady cannot fire twice even if the ready effect re-runs later
   // or a future caller passes an unstable onReady identity.
   const attemptReady = useRef(createFireOnceGuard());
-
-  const displayProgress = useMemo(() => {
-    if (!reported || (!hasSettled && !active && total === 0)) {
-      return 12;
-    }
-
-    if (!active && loaded === total) {
-      return 100;
-    }
-
-    return Math.max(8, Math.min(100, Math.round(progress)));
-  }, [active, hasSettled, loaded, progress, reported, total]);
 
   useEffect(() => {
     const settleTimer = window.setTimeout(() => {
@@ -47,22 +37,26 @@ export function LoadingScreen({ loadState, onReady }: LoadingScreenProps) {
     if (!isSceneLoadComplete(loadState)) return;
 
     const readyTimer = window.setTimeout(() => {
-      setIsVisible(false);
+      setIsLeaving(true);
       if (attemptReady.current()) {
         onReady?.();
       }
     }, 420);
+    const removalTimer = window.setTimeout(() => setIsVisible(false), 1120);
 
-    return () => window.clearTimeout(readyTimer);
+    return () => {
+      window.clearTimeout(readyTimer);
+      window.clearTimeout(removalTimer);
+    };
   }, [hasSettled, loadState, onReady]);
 
   if (!isVisible) {
     return null;
   }
 
-  const statusLabel = !reported
+  const statusLabel = phase === "preparing"
     ? "Preparing scene bundle"
-    : active
+    : phase === "streaming"
     ? item
       ? `Streaming ${item.split("/").pop() ?? "scene asset"}`
       : "Streaming chrome, type, and sky"
@@ -71,7 +65,7 @@ export function LoadingScreen({ loadState, onReady }: LoadingScreenProps) {
   return (
     <div
       className={`pointer-events-none absolute inset-0 z-50 flex items-center justify-center bg-[#070b10] px-6 transition-opacity duration-700 ${
-        shouldShowSceneLoader(loadState) ? "opacity-100" : "opacity-0"
+        isLeaving ? "opacity-0" : "opacity-100"
       }`}
       aria-live="polite"
     >
@@ -99,20 +93,15 @@ export function LoadingScreen({ loadState, onReady }: LoadingScreenProps) {
               </p>
             </div>
 
-            {/* Kept as a circular gauge, not converted to hud-frame: this is
-                a rotating percentage dial, not a rectangular chip, so the
-                chamfer/bracket language doesn't apply the same way -- flagged
-                for Andrew's review rather than assumed. Still uses the
-                legacy .helmet-chip fill/blur since it's the only remaining
-                consumer (see index.css). */}
+            {/* Circular visor activity indicator. Asset-count percentages jump
+                because one large GLB dominates startup, so avoid a false scale. */}
             <div className="helmet-chip hidden h-28 w-28 shrink-0 rounded-full sm:grid place-items-center">
               <div className="relative h-20 w-20 rounded-full border border-white/10">
                 <div
-                  className="absolute inset-2 rounded-full border border-cyan-200/30"
-                  style={{ transform: `rotate(${displayProgress * 3.6}deg)` }}
+                  className={`absolute inset-2 rounded-full border-2 border-cyan-200/15 ${phase === "complete" ? "border-cyan-200/70" : "loader-ring border-t-cyan-200/80"}`}
                 />
                 <div className="panel-meta tabular-nums absolute inset-0 grid place-items-center text-[0.68rem] text-white/64">
-                  {displayProgress}%
+                  {phase === "complete" ? "✓" : "@"}
                 </div>
               </div>
             </div>
@@ -121,21 +110,25 @@ export function LoadingScreen({ loadState, onReady }: LoadingScreenProps) {
           <div className="mt-8 space-y-3">
             <div className="flex items-center justify-between gap-4 text-xs uppercase tracking-[0.24em] text-white/46">
               <span className="panel-meta">Scene transfer</span>
-              <span className="panel-meta tabular-nums text-cyan-200/74">{displayProgress}%</span>
+              <span className="panel-meta text-cyan-200/74">{phase === "complete" ? "Ready" : "In progress"}</span>
             </div>
-            <div className="h-3 overflow-hidden rounded-full border border-white/10 bg-white/[0.04]">
+            <div
+              className="relative h-3 overflow-hidden rounded-full border border-white/10 bg-white/[0.04]"
+              role="progressbar"
+              aria-label="Scene transfer"
+              aria-valuenow={phase === "complete" ? 100 : undefined}
+              aria-valuemin={phase === "complete" ? 0 : undefined}
+              aria-valuemax={phase === "complete" ? 100 : undefined}
+            >
               <div
-                className="h-full rounded-full bg-[linear-gradient(90deg,rgba(137,241,255,0.18),rgba(137,241,255,0.95),rgba(255,255,255,0.9))] shadow-[0_0_22px_rgba(137,241,255,0.45)] transition-[width] duration-300 ease-out"
-                style={{ width: `${displayProgress}%` }}
+                className={`absolute inset-y-0 left-0 rounded-full bg-cyan-200/20 transition-[width] duration-500 ease-out ${phase === "complete" ? "w-full" : "w-1/4"}`}
               />
+              {phase !== "complete" ? <div className="loader-sweep absolute inset-y-0 w-1/3 rounded-full bg-gradient-to-r from-transparent via-cyan-200/90 to-transparent shadow-[0_0_22px_rgba(137,241,255,0.45)]" /> : null}
             </div>
           </div>
 
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-sm text-white/52">
             <p className="panel-body">{statusLabel}</p>
-            <p className="panel-meta text-[0.64rem] uppercase text-white/36">
-              {total > 0 ? `${loaded}/${total} assets` : "Preparing scene bundle"}
-            </p>
           </div>
         </div>
       </div>

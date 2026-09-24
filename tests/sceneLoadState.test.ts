@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  getSceneLoadPhase,
   isSceneLoadComplete,
   shouldShowSceneLoader,
   type SceneLoadState,
@@ -35,4 +36,22 @@ test("the loader can fade only after at least one asset finishes", () => {
   const state = { ...BASE, reported: true, progress: 100, loaded: 1, total: 1 };
   assert.equal(isSceneLoadComplete(state), true);
   assert.equal(shouldShowSceneLoader(state), false);
+});
+
+test("the loader changes phase only when there is real loading evidence", () => {
+  assert.equal(getSceneLoadPhase(BASE), "preparing");
+  assert.equal(getSceneLoadPhase({ ...BASE, reported: true }), "preparing");
+  assert.equal(
+    getSceneLoadPhase({ ...BASE, reported: true, active: true, total: 1 }),
+    "streaming",
+  );
+  assert.equal(
+    getSceneLoadPhase({ ...BASE, reported: true, progress: 100, active: true, total: 1 }),
+    "streaming",
+    "a reported 100% cannot complete while an asset remains active",
+  );
+  assert.equal(
+    getSceneLoadPhase({ ...BASE, reported: true, progress: 100, loaded: 1, total: 1 }),
+    "complete",
+  );
 });

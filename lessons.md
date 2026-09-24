@@ -494,3 +494,17 @@ refinement below disproves. The context works; the frame loop is what does not.)
   and interaction-only paths as part of that inventory. The sibling sweep was completed
   here across JavaScript, fonts, model discovery, decoder delivery, raster formats, and
   browser caching.
+
+## Session 2026-09-24 (loader feedback, Codex)
+
+### Z. An asset count is not a transfer percentage
+- **What happened:** the loading display sat near its initial 12% and then jumped to
+  complete, even after the network critical path and image payloads were optimized.
+  Drei's progress counts finished assets; it cannot represent the bytes, decode work,
+  or time inside the single dominant GLB. The overlay also began fading before the
+  scene reveal timer fired, leaving a dark interval between them.
+- **Lesson:** only show a numerical loading percentage when its denominator measures
+  the work users are waiting for. For coarse asset counters, show an indeterminate
+  activity cue and factual stage labels; keep readiness gated on actual completion.
+  Start the outgoing and incoming fades together so the handoff does not expose a
+  blank frame.
