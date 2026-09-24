@@ -151,7 +151,6 @@ export function HelmetFrame({
   }, [bootActive, currentPage, isHudOpen, isTransitioning]);
 
   const bootLine = HELMET_BOOT_LINE.slice(0, visibleChars);
-  const cursorVisible = bootActive || visibleChars < HELMET_BOOT_LINE.length;
   const returnAnchor = useMemo(
     () => (currentPage ? computeReturnAnchor(currentPage.cameraLookAt) : null),
     [currentPage],
@@ -163,19 +162,19 @@ export function HelmetFrame({
       {/* hud-frame-sm chamfer 0.6rem -> .helmet-ornament's padding (index.css)
           must stay >= 0.85rem on every side; see the coupling note on
           .hud-frame there before changing either. */}
-      <div className="hud-frame hud-frame-sm helmet-ornament absolute left-4 top-24 w-[min(11rem,32vw)] sm:left-6 sm:top-28">
+      <div className="hud-frame hud-frame-sm helmet-ornament absolute left-4 top-24 hidden w-[min(11rem,32vw)] sm:left-6 sm:top-28 sm:block">
         <p className="helmet-ornament-label">Vector drift</p>
         <p className="helmet-ornament-value">
           {formatSigned(ornaments.drift[0])} / {formatSigned(ornaments.drift[1])} / {formatSigned(ornaments.drift[2])}
         </p>
       </div>
-      <div className="hud-frame hud-frame-sm helmet-ornament absolute right-4 top-28 w-[min(10rem,30vw)] text-right sm:right-6 sm:top-32">
+      <div className="hud-frame hud-frame-sm helmet-ornament absolute right-4 top-28 hidden w-[min(10rem,30vw)] text-right sm:right-6 sm:top-32 sm:block">
         <p className="helmet-ornament-label">Section / signal</p>
         <p className="helmet-ornament-value">
           {String(activeSection ?? 0).padStart(2, "0")} // {String(ornaments.signal).padStart(2, "0")}%
         </p>
       </div>
-      <div className="hud-frame hud-frame-sm helmet-ornament absolute bottom-28 left-4 w-[min(12rem,38vw)] sm:bottom-32 sm:left-6">
+      <div className="hud-frame hud-frame-sm helmet-ornament absolute bottom-28 left-4 hidden w-[min(12rem,38vw)] sm:bottom-32 sm:left-6 sm:block">
         <p className="helmet-ornament-label">Heading / noise</p>
         <p className="helmet-ornament-value">
           {ornaments.heading.toFixed(0).padStart(3, "0")} deg // {String(ornaments.noise).padStart(2, "0")} db
@@ -195,9 +194,6 @@ export function HelmetFrame({
           </p>
           <p className="label-long mt-2 break-words text-[0.7rem] uppercase tracking-[0.12em] text-white/82 sm:text-[0.8rem]">
             {bootLine}
-            <span className={`ml-1 inline-block text-[#9ef6ff] ${cursorVisible ? "animate-pulse" : "opacity-0"}`}>
-              _
-            </span>
           </p>
         </div>
       </div>
