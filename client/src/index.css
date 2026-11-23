@@ -795,3 +795,59 @@ select {
 :root[data-diag="aurora-off"] .helmet-peripheral-blur {
   display: none !important;
 }
+
+/* Contact is a directory printed on a single dark surface. */
+.contact-shell {
+  background: #0b1012;
+  border-block: 1px solid #47595b;
+}
+.contact-scroll {
+  max-height: min(72dvh, calc(100dvh - 8rem));
+  overflow-y: auto;
+  padding: clamp(1.25rem, 4vw, 3rem);
+}
+.contact-heading {
+  margin-right: 3rem;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+}
+.contact-directory {
+  font-style: normal;
+  color: #eff1eb;
+}
+.contact-email {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding-block: 0.75rem 1.5rem;
+  font-size: clamp(1rem, 4.7vw, 1.75rem);
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.24em;
+}
+.contact-destination {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  min-height: 3rem;
+  padding-block: 0.5rem;
+  border-top: 1px solid #343f41;
+}
+.contact-destination small, .contact-arrow { color: #aabbbb; }
+.contact-arrow { margin-left: auto; }
+.contact-close, .contact-return {
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 1.5rem;
+  color: #c0d9d9;
+  cursor: pointer;
+}
+.contact-close { position: absolute; top: 0.5rem; right: 0.5rem; background: #0b1012; }
+.contact-return { pointer-events: auto; }
+[data-contact] .helmet-ornament { display: none; }
+.contact-directory a:hover, .contact-close:hover, .contact-return:hover { color: #a7eeef; }
+.contact-directory a:focus-visible, .contact-close:focus-visible, .contact-return:focus-visible {
+  outline: 2px solid #a7eeef;
+  outline-offset: -2px;
+}

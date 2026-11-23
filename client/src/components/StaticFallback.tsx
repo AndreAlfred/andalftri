@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { getInfluenceById } from "@/data/influences";
 import { getProjectById } from "@/data/projects";
 import { PAGES } from "@/data/sceneConfig";
+import { ContactDirectory } from "@/panels/ContactDirectory";
 import { InfluencePanel } from "@/panels/InfluencePanel";
 import { ProjectPanel } from "@/panels/ProjectPanel";
 import type { DeviceCapability } from "@/lib/deviceCapability";
@@ -95,7 +96,7 @@ export function StaticFallback({ capability }: StaticFallbackProps) {
                   >
                     <span>
                       <span className="panel-title block text-2xl leading-none">{page.label}</span>
-                      <span className="panel-meta mt-2 block text-[0.64rem] uppercase text-white/42">{page.group}</span>
+                      {page.id !== "contact" && <span className="panel-meta mt-2 block text-[0.64rem] uppercase text-white/42">{page.group}</span>}
                     </span>
                     <span aria-hidden="true" className="panel-meta text-white/38 transition group-hover:text-white/58">
                       ↗
@@ -111,7 +112,7 @@ export function StaticFallback({ capability }: StaticFallbackProps) {
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4">
                   <div>
-                    <p className="panel-meta text-[0.72rem] uppercase text-cyan-200/72">{activePage.group}</p>
+                    {activePage.id !== "contact" && <p className="panel-meta text-[0.72rem] uppercase text-cyan-200/72">{activePage.group}</p>}
                     <h2 className="panel-title mt-2 text-3xl text-white sm:text-4xl">{activePage.label}</h2>
                   </div>
                   <button
@@ -125,7 +126,9 @@ export function StaticFallback({ capability }: StaticFallbackProps) {
 
                 <div className="max-h-[70vh] overflow-y-auto pr-1">
                   {activeProject ? <ProjectPanel project={activeProject} /> : null}
-                  {activeInfluence ? <InfluencePanel influence={activeInfluence} /> : null}
+                  {activeInfluence && (activeInfluence.id === "contact"
+                    ? <ContactDirectory contact={activeInfluence} />
+                    : <InfluencePanel influence={activeInfluence} />)}
                 </div>
               </div>
             ) : (

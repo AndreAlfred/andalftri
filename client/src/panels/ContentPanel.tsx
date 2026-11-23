@@ -12,7 +12,7 @@ interface ContentPanelProps {
   // "card" = the classic scrolling panel shell. "showcase" (2026-07-18 spec
   // §4) = a wider, chrome-free stage for the standalone project screenshot;
   // the child brings its own minimal frame, so no card, padding, or scroll.
-  variant?: "card" | "showcase";
+  variant?: "card" | "showcase" | "directory";
   /**
    * Width / height of the showcase screenshot. The stage caps its width against
    * viewport height through this ratio, so a portrait capture yields a narrow,
@@ -86,7 +86,7 @@ export const ContentPanel = memo(function ContentPanel({
       <div
         aria-hidden={!isVisible}
         className={
-          isShowcase
+          variant === "directory" ? "panel-shell contact-shell relative text-white" : isShowcase
             ? "panel-shell relative text-white"
             : "panel-shell relative overflow-hidden rounded-[28px] border border-white/18 bg-black/70 text-white shadow-[0_28px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl"
         }
@@ -99,12 +99,14 @@ export const ContentPanel = memo(function ContentPanel({
         <button
           type="button"
           onClick={onClose}
-          className="panel-meta absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/8 text-lg text-white/72 transition hover:border-white/25 hover:bg-white/14 hover:text-white"
+          className={variant === "directory" ? "contact-close" : "panel-meta absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/8 text-lg text-white/72 transition hover:border-white/25 hover:bg-white/14 hover:text-white"}
           aria-label="Close panel"
         >
           ×
         </button>
-        {isShowcase ? (
+        {variant === "directory" ? (
+          <div className="contact-scroll">{children}</div>
+        ) : isShowcase ? (
           // The showcase child carries its own minimal frame; no card chrome,
           // no scroll viewport — the stage is sized to fit the screenshot.
           children

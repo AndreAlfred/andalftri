@@ -20,6 +20,7 @@ import { DiagnosticProbe } from "@/scene/DiagnosticProbe";
 import { DiagnosticOverlay } from "@/hud/DiagnosticOverlay";
 import { VisorStreaks } from "@/hud/VisorStreaks";
 import { ContentPanel } from "@/panels/ContentPanel";
+import { ContactDirectory } from "@/panels/ContactDirectory";
 import { InfluencePanel } from "@/panels/InfluencePanel";
 import { MusicPanel } from "@/panels/MusicPanel";
 import { ProjectPanel } from "@/panels/ProjectPanel";
@@ -384,7 +385,7 @@ export default function SceneExperience({
             preparingPageId={departure?.stage === "staging" || departure?.stage === "ready" ? departure.pageId : null}
             isTransitioning={isTransitioning}
             isClosing={closingPageId === page.id}
-            variant={isShowcase ? "showcase" : "card"}
+            variant={page.id === "contact" ? "directory" : isShowcase ? "showcase" : "card"}
             showcaseAspect={screenshotAspectOf(project)}
             onClose={handlePanelClose}
           >
@@ -395,7 +396,12 @@ export default function SceneExperience({
                 <ProjectPanel project={project} />
               )
             ) : null}
-            {influence ? <InfluencePanel influence={influence} /> : null}
+            {influence && (page.id === "contact" ? (
+              <>
+                <h2 className="panel-title contact-heading">{influence.title}</h2>
+                <ContactDirectory contact={influence} />
+              </>
+            ) : <InfluencePanel influence={influence} />)}
           </ContentPanel>
         ))}
       </Canvas>

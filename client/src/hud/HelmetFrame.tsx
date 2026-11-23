@@ -150,6 +150,7 @@ export function HelmetFrame({
     return () => window.clearInterval(interval);
   }, [bootActive, currentPage, isHudOpen, isTransitioning]);
 
+  const isContact = currentPage?.id === "contact";
   const bootLine = HELMET_BOOT_LINE.slice(0, visibleChars);
   const returnAnchor = useMemo(
     () => (currentPage ? computeReturnAnchor(currentPage.cameraLookAt) : null),
@@ -157,8 +158,8 @@ export function HelmetFrame({
   );
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-30 overflow-hidden">
-      <VisorChrome noiseOpacity={0.45} />
+    <div data-contact={isContact || undefined} className="pointer-events-none absolute inset-0 z-30 overflow-hidden">
+      <VisorChrome noise={!isContact} noiseOpacity={0.45} />
       {/* hud-frame-sm chamfer 0.6rem -> .helmet-ornament's padding (index.css)
           must stay >= 0.85rem on every side; see the coupling note on
           .hud-frame there before changing either. */}
@@ -203,7 +204,7 @@ export function HelmetFrame({
           Opens the context overlay (title / copy / tech stack / commentary).
           hud-frame-md chamfer 0.75rem -> px-5/py-4 (20px/16px) clear the
           >= 1rem padding-coupling minimum. */}
-      {currentPage && !isHudOpen ? (
+      {currentPage && !isContact && !isHudOpen ? (
         <div className="absolute right-4 top-6 sm:right-6">
           <button
             type="button"
@@ -222,12 +223,12 @@ export function HelmetFrame({
           0.6rem: fixed h-16 w-16 with one centered glyph clears the corner
           cut without an explicit padding utility. */}
       {currentPage && returnAnchor ? (
-        <div className="absolute" style={returnWrapperStyle(returnAnchor)}>
+        <div className={isContact ? "absolute top-2 left-4" : "absolute"} style={isContact ? undefined : returnWrapperStyle(returnAnchor)}>
           <button
             type="button"
             onClick={onBack}
             disabled={isTransitioning || isClosing}
-            className="hud-frame hud-frame-sm helmet-action pointer-events-auto flex h-16 w-16 items-center justify-center text-3xl text-white/88 disabled:cursor-not-allowed disabled:opacity-45"
+            className={isContact ? "contact-return" : "hud-frame hud-frame-sm helmet-action pointer-events-auto flex h-16 w-16 items-center justify-center text-3xl text-white/88 disabled:cursor-not-allowed disabled:opacity-45"}
             style={{ fontFamily: "var(--font-at-glyph)" }}
             aria-label="Return to the main artifact"
           >
@@ -235,7 +236,7 @@ export function HelmetFrame({
           </button>
           {/* Aim, then push past the bubble; the inner span only bobs along
               the rotated axis so the transforms never fight. */}
-          <span
+          {!isContact && <span
             aria-hidden="true"
             className="pointer-events-none absolute left-1/2 top-1/2"
             style={{
@@ -245,7 +246,7 @@ export function HelmetFrame({
             <span className="hud-return-caret block panel-meta text-lg leading-none text-[#9ef6ff]/90">
               ^
             </span>
-          </span>
+          </span>}
         </div>
       ) : null}
     </div>
