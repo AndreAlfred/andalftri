@@ -33,7 +33,7 @@ export const INFLUENCES: Influence[] = [
       },
       {
         name: "LinkedIn",
-        url: "https://www.linkedin.com/in/andrew-trimble-610128345/",
+        url: "https://www.linkedin.com/in/andrew-alfred-trimble/",
         note: "Professional profile and work history.",
         category: "Direct",
       },
@@ -55,19 +55,11 @@ export const INFLUENCES: Influence[] = [
         note: "Public surface for code and active project links.",
         category: "Public",
       },
-      {
-        name: "Portfolio",
-        url: "https://andalftri.vercel.app",
-        note: "The canonical home for this work as it develops.",
-        category: "Public",
-      },
     ],
   },
   {
     id: "reading-list",
     title: "Reading List",
-    intro:
-      "Read during and after Lent 2026 — podcasts went on the shelf for the season, and these took their place.",
     items: [
       {
         name: "The Word for World is Forest",
@@ -144,8 +136,6 @@ export const INFLUENCES: Influence[] = [
   {
     id: "inspirations",
     title: "Inspirations",
-    intro:
-      "The references that shaped Andrew's taste — two painters first, then the shows in regular rotation, then the interface eras this site draws from.",
     items: [
       {
         name: "Georges Seurat",

@@ -30,7 +30,7 @@ export function ProjectPanel({ project }: ProjectPanelProps) {
     return (
       <div className="space-y-4 text-white">
         <h2 className="panel-title text-3xl text-white sm:text-4xl">{project.title}</h2>
-        <p className="panel-body text-sm leading-relaxed text-white/78">{project.description}</p>
+        {project.description && (<p className="panel-body text-sm leading-relaxed text-white/78">{project.description}</p>)}
         {previewHref ? (
           <a
             href={previewHref}

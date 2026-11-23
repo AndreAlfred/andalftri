@@ -1,7 +1,7 @@
 export interface Project {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   media: {
     screenshots?: string[];
     /** AVIF alternatives, index-aligned with `screenshots`. */
@@ -78,8 +78,6 @@ export const PROJECTS: Project[] = [
   {
     id: "music",
     title: "Music",
-    description:
-      "A home for Andrew's music work, listening practice, and sonic interests. This page will eventually gather releases, sketches, references, and process notes into a single panel that treats music as both craft and atmosphere.",
     media: {},
     techStack: ["Composition", "Production", "Curation"],
     status: "in-progress",

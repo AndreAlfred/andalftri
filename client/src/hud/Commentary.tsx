@@ -31,9 +31,9 @@ export function Commentary({ pageId, project = null }: CommentaryProps) {
           <div className="space-y-2">
             <h2 className="panel-title text-3xl text-white sm:text-4xl">{project.title}</h2>
           </div>
-          <p className="panel-body text-sm leading-7 text-white/80 sm:text-base">
+          {project.description && (<p className="panel-body text-sm leading-7 text-white/80 sm:text-base">
             {project.description}
-          </p>
+          </p>)}
 
           <div className="space-y-3">
             <p className="panel-meta text-[0.72rem] uppercase text-white/45">Tech stack</p>

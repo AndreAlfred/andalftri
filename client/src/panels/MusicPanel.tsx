@@ -23,7 +23,7 @@ export function MusicPanel({ project }: MusicPanelProps) {
             {STATUS_LABELS[project.status]}
           </span>
         </div>
-        <p className="panel-body max-w-3xl text-sm text-white/78 sm:text-base">{project.description}</p>
+        {project.description && (<p className="panel-body max-w-3xl text-sm text-white/78 sm:text-base">{project.description}</p>)}
       </header>
 
       <section>
