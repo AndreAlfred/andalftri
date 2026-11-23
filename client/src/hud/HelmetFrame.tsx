@@ -158,24 +158,21 @@ export function HelmetFrame({
   );
 
   return (
-    <div data-contact={isContact || undefined} className="pointer-events-none absolute inset-0 z-30 overflow-hidden">
-      <VisorChrome noise={!isContact} noiseOpacity={0.45} />
-      {/* hud-frame-sm chamfer 0.6rem -> .helmet-ornament's padding (index.css)
-          must stay >= 0.85rem on every side; see the coupling note on
-          .hud-frame there before changing either. */}
-      <div className="hud-frame hud-frame-sm helmet-ornament absolute left-4 top-24 hidden w-[min(11rem,32vw)] sm:left-6 sm:top-28 sm:block">
+    <div data-reading={currentPage ? true : undefined} className="pointer-events-none absolute inset-0 z-30 overflow-hidden">
+      <VisorChrome noise={!currentPage} noiseOpacity={0.45} />
+      <div className="helmet-ornament absolute left-4 top-24 hidden w-[min(11rem,32vw)] sm:left-6 sm:top-28 sm:block">
         <p className="helmet-ornament-label">Vector drift</p>
         <p className="helmet-ornament-value">
           {formatSigned(ornaments.drift[0])} / {formatSigned(ornaments.drift[1])} / {formatSigned(ornaments.drift[2])}
         </p>
       </div>
-      <div className="hud-frame hud-frame-sm helmet-ornament absolute right-4 top-28 hidden w-[min(10rem,30vw)] text-right sm:right-6 sm:top-32 sm:block">
+      <div className="helmet-ornament absolute right-4 top-28 hidden w-[min(10rem,30vw)] text-right sm:right-6 sm:top-32 sm:block">
         <p className="helmet-ornament-label">Section / signal</p>
         <p className="helmet-ornament-value">
           {String(activeSection ?? 0).padStart(2, "0")} // {String(ornaments.signal).padStart(2, "0")}%
         </p>
       </div>
-      <div className="hud-frame hud-frame-sm helmet-ornament absolute bottom-28 left-4 hidden w-[min(12rem,38vw)] sm:bottom-32 sm:left-6 sm:block">
+      <div className="helmet-ornament absolute bottom-28 left-4 hidden w-[min(12rem,38vw)] sm:bottom-32 sm:left-6 sm:block">
         <p className="helmet-ornament-label">Heading / noise</p>
         <p className="helmet-ornament-value">
           {ornaments.heading.toFixed(0).padStart(3, "0")} deg // {String(ornaments.noise).padStart(2, "0")} db
@@ -183,10 +180,8 @@ export function HelmetFrame({
       </div>
 
       <div className="absolute inset-x-0 top-0 flex justify-center px-4 pt-4">
-        {/* hud-frame-md chamfer 0.75rem -> padding here must stay >= 1rem on
-            every side; px-5 (20px) / py-5 (20px) clear it with margin. */}
         <div
-          className={`hud-frame hud-frame-md max-w-[min(92vw,42rem)] px-5 py-5 text-center transition-all duration-700 ${
+          className={`max-w-[min(92vw,42rem)] px-5 py-5 text-center transition-all duration-700 ${
             bootActive ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
           }`}
         >
@@ -199,36 +194,26 @@ export function HelmetFrame({
         </div>
       </div>
 
-      {/* Context bubble (2026-07-18 spec §4): the old bottom-pill `@` toggle,
-          promoted to its own larger upper-right bubble with a slow blink.
-          Opens the context overlay (title / copy / tech stack / commentary).
-          hud-frame-md chamfer 0.75rem -> px-5/py-4 (20px/16px) clear the
-          >= 1rem padding-coupling minimum. */}
       {currentPage && !isContact && !isHudOpen ? (
-        <div className="absolute right-4 top-6 sm:right-6">
+        <div className="absolute right-4 top-2 sm:right-6">
           <button
             type="button"
             onClick={onToggleHud}
-            className="hud-frame hud-frame-md hud-context-pulse helmet-action label-long pointer-events-auto px-5 py-4 text-[0.66rem] uppercase tracking-[0.14em] text-[#cdfaff]/92"
+            className="panel-meta pointer-events-auto min-h-11 px-2 text-sm text-cyan-100 underline underline-offset-4"
             aria-label={`Open context for ${currentPage.label}`}
           >
-            Tap to see context
+            Context
           </button>
         </div>
       ) : null}
 
-      {/* `@` return bubble: the @ is now the way BACK to the artifact. It sits
-          on the edge facing the hub, with a free caret floating outside the
-          bubble, pointing at where the artifact is. hud-frame-sm chamfer
-          0.6rem: fixed h-16 w-16 with one centered glyph clears the corner
-          cut without an explicit padding utility. */}
       {currentPage && returnAnchor ? (
-        <div className={isContact ? "absolute top-2 left-4" : "absolute"} style={isContact ? undefined : returnWrapperStyle(returnAnchor)}>
+        <div className={isContact ? "absolute top-2 left-4" : "return-anchor absolute"} style={isContact ? undefined : returnWrapperStyle(returnAnchor)}>
           <button
             type="button"
             onClick={onBack}
             disabled={isTransitioning || isClosing}
-            className={isContact ? "contact-return" : "hud-frame hud-frame-sm helmet-action pointer-events-auto flex h-16 w-16 items-center justify-center text-3xl text-white/88 disabled:cursor-not-allowed disabled:opacity-45"}
+            className="visor-return"
             style={{ fontFamily: "var(--font-at-glyph)" }}
             aria-label="Return to the main artifact"
           >
@@ -238,7 +223,7 @@ export function HelmetFrame({
               the rotated axis so the transforms never fight. */}
           {!isContact && <span
             aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-1/2"
+            className="return-direction pointer-events-none absolute left-1/2 top-1/2"
             style={{
               transform: `translate(-50%, -50%) rotate(${returnAnchor.angleDeg}deg) translateY(-3.6rem)`,
             }}

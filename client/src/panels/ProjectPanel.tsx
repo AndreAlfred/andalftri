@@ -29,7 +29,6 @@ export function ProjectPanel({ project }: ProjectPanelProps) {
     // right voice for a missing image; it is just no longer the only content.
     return (
       <div className="space-y-4 text-white">
-        <p className="panel-kicker text-[0.72rem] uppercase text-cyan-200/75">Oeuvre</p>
         <h2 className="panel-title text-3xl text-white sm:text-4xl">{project.title}</h2>
         <p className="panel-body text-sm leading-relaxed text-white/78">{project.description}</p>
         {previewHref ? (
@@ -37,12 +36,12 @@ export function ProjectPanel({ project }: ProjectPanelProps) {
             href={previewHref}
             target="_blank"
             rel="noreferrer"
-            className="panel-meta inline-flex items-center gap-2 rounded-full border border-cyan-200/35 bg-cyan-200/8 px-4 py-2 text-[0.66rem] uppercase tracking-[0.24em] text-cyan-100/85 transition hover:border-cyan-200/60 hover:bg-cyan-200/14 hover:text-white"
+            className="inline-flex min-h-11 items-center gap-2 text-cyan-100 underline underline-offset-4"
           >
             {previewLabel} <span aria-hidden="true">↗</span>
           </a>
         ) : null}
-        <div className="panel-body rounded-[20px] border border-dashed border-white/12 bg-black/20 px-4 py-5 text-sm text-white/68">
+        <div className="panel-body text-sm text-white/68">
           <p>
             Screenshots, video, and process notes will land here as this
             project surfaces. Consider it a darkened gallery wall — the work
@@ -59,7 +58,7 @@ export function ProjectPanel({ project }: ProjectPanelProps) {
   // declaration there is nothing left to crop.
   const screenshot = (
     <div
-      className="relative overflow-hidden rounded-[12px]"
+      className="relative overflow-hidden"
       style={{ aspectRatio: String(screenshotAspectOf(project)) }}
     >
       <picture className="block h-full w-full">
@@ -72,16 +71,14 @@ export function ProjectPanel({ project }: ProjectPanelProps) {
           loading="eager"
           decoding="async"
           fetchPriority="high"
-          className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-[1.015]"
+          className="h-full w-full object-cover object-top"
         />
       </picture>
     </div>
   );
 
   return (
-    // hud-frame-lg chamfer 1.25rem -> the p-6 (24px) padding on this frame
-    // clears the >= 1.5rem coupling minimum documented on .hud-frame.
-    <div className="hud-frame hud-frame-lg p-6 text-white">
+    <div className="text-white">
       {previewHref ? (
         <a
           href={previewHref}
@@ -100,9 +97,9 @@ export function ProjectPanel({ project }: ProjectPanelProps) {
           {project.title}
         </span>
         {previewHref ? (
-          <span className="panel-meta text-[0.66rem] uppercase tracking-[0.24em] text-cyan-100/80">
+          <a href={previewHref} target="_blank" rel="noreferrer" className="panel-meta text-xs text-cyan-100 underline underline-offset-4">
             {previewLabel} <span aria-hidden="true">↗</span>
-          </span>
+          </a>
         ) : null}
       </div>
     </div>

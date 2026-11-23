@@ -464,9 +464,9 @@ refinement below disproves. The context works; the frame loop is what does not.)
   *labels*. The pattern is predictable in hindsight: body copy gets kept legible by
   instinct, and metadata gets treated as texture. So an accessibility contrast pass
   should start at the smallest labels, not at the body, and it should composite the
-  actual background stack before computing — the fallback's is three gradients over a
-  base colour, and eyeballing the alpha value alone would have flagged the wrong half
-  of the file.
+  actual background stack before computing. The measurements above used the earlier
+  three-gradient fallback. The 2026-11-22 revision uses an opaque background, so
+  measure against that surface for future changes.
 
 ## Session 2026-09-17 (loading critical-path rebuild, Codex)
 
@@ -523,3 +523,12 @@ refinement below disproves. The context works; the frame loop is what does not.)
   avoid React commits, shader changes, and texture uploads in the departure
   animation itself. Keep the wait bounded so a failed asset cannot strand the
   visitor between destinations. Verify the perceived result in a real browser.
+
+## Session 2026-11-22 (mobile content layout)
+
+A 390 × 844 direct visit to the lightweight Reading List rendered the books below
+the navigation, outside the first viewport. The scene locks scrolling on the
+document and the fallback also clipped its outer container. An inner list can
+scroll only once the visitor can reach it. When a document view shares a root
+with a fullscreen canvas, give the document view its own viewport scroll area
+and check a deep link at phone height, including the last item.

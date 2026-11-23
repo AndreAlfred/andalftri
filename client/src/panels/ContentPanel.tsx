@@ -9,10 +9,7 @@ interface ContentPanelProps {
   preparingPageId?: string | null;
   isTransitioning: boolean;
   isClosing?: boolean;
-  // "card" = the classic scrolling panel shell. "showcase" (2026-07-18 spec
-  // §4) = a wider, chrome-free stage for the standalone project screenshot;
-  // the child brings its own minimal frame, so no card, padding, or scroll.
-  variant?: "card" | "showcase" | "directory";
+  variant?: "reading" | "showcase";
   /**
    * Width / height of the showcase screenshot. The stage caps its width against
    * viewport height through this ratio, so a portrait capture yields a narrow,
@@ -37,7 +34,7 @@ export const ContentPanel = memo(function ContentPanel({
   preparingPageId = null,
   isTransitioning,
   isClosing = false,
-  variant = "card",
+  variant = "reading",
   showcaseAspect = SHOWCASE_DEFAULT_ASPECT,
   children,
   onClose,
@@ -85,11 +82,8 @@ export const ContentPanel = memo(function ContentPanel({
           (translate3d(-50%,-50%,0)) applied to the Html element itself. */}
       <div
         aria-hidden={!isVisible}
-        className={
-          variant === "directory" ? "panel-shell contact-shell relative text-white" : isShowcase
-            ? "panel-shell relative text-white"
-            : "panel-shell relative overflow-hidden rounded-[28px] border border-white/18 bg-black/70 text-white shadow-[0_28px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl"
-        }
+        inert={!isVisible}
+        className={isShowcase ? "panel-shell relative text-white" : "panel-shell reading-surface relative text-white"}
         style={{
           opacity: isVisible ? 1 : 0,
           transform: isVisible ? "translateY(0)" : "translateY(14px)",
@@ -99,34 +93,12 @@ export const ContentPanel = memo(function ContentPanel({
         <button
           type="button"
           onClick={onClose}
-          className={variant === "directory" ? "contact-close" : "panel-meta absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/8 text-lg text-white/72 transition hover:border-white/25 hover:bg-white/14 hover:text-white"}
+          className={isShowcase ? "reading-close showcase-close" : "reading-close"}
           aria-label="Close panel"
         >
           ×
         </button>
-        {variant === "directory" ? (
-          <div className="contact-scroll">{children}</div>
-        ) : isShowcase ? (
-          // The showcase child carries its own minimal frame; no card chrome,
-          // no scroll viewport — the stage is sized to fit the screenshot.
-          children
-        ) : (
-          /* Padding frame: fixed dead-space buffer between the shell's
-              rounded-[28px] clip region and the scroll viewport. Padding lives
-              here, NOT on the scroll element below, so scrolled content is
-              always inset from the corner curves and never guillotines against
-              them (RC-2). max-h caps total panel height; flex + min-h-0 on the
-              scroll child lets it shrink and scroll instead of growing the
-              frame past the cap. */
-          <div className="flex max-h-[72vh] flex-col px-6 py-7 pr-16 sm:px-8 sm:py-8 sm:pr-18">
-            <div className="scroll-fade-y min-h-0 flex-1 overflow-y-auto">
-              {children}
-              <p className="panel-meta mt-6 border-t border-white/8 pt-4 text-right text-[0.62rem] uppercase tracking-[0.24em] text-white/35">
-                esc / × — back to the hub
-              </p>
-            </div>
-          </div>
-        )}
+        {isShowcase ? children : <div className="reading-scroll">{children}</div>}
       </div>
     </Html>
   );

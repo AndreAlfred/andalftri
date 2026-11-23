@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getInfluenceById } from "@/data/influences";
 import { getProjectById } from "@/data/projects";
 import { PAGES } from "@/data/sceneConfig";
 import { ContactDirectory } from "@/panels/ContactDirectory";
 import { InfluencePanel } from "@/panels/InfluencePanel";
+import { MusicPanel } from "@/panels/MusicPanel";
 import { ProjectPanel } from "@/panels/ProjectPanel";
 import type { DeviceCapability } from "@/lib/deviceCapability";
 
@@ -23,6 +24,9 @@ interface StaticFallbackProps {
 
 export function StaticFallback({ capability }: StaticFallbackProps) {
   const [pathname, setPathname] = useState(getInitialPathname);
+
+  const viewport = useRef<HTMLDivElement>(null);
+  useEffect(() => { viewport.current?.scrollTo(0, 0); }, [pathname]);
 
   const navigateTo = useCallback((nextPath: string) => {
     if (window.location.pathname !== nextPath) {
@@ -55,92 +59,46 @@ export function StaticFallback({ capability }: StaticFallbackProps) {
   const activeInfluence = activePage?.group === "influences" ? getInfluenceById(activePage.id) : null;
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#101214] text-white">
-      <div className="absolute inset-0 opacity-80">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(137,241,255,0.14),transparent_38%),radial-gradient(circle_at_bottom,rgba(255,255,255,0.08),transparent_30%),linear-gradient(180deg,#161a1f_0%,#0a0d10_100%)]" />
-        <div className="fallback-grid absolute inset-0" />
-        <div className="absolute left-1/2 top-[18%] h-56 w-56 -translate-x-1/2 rounded-full border border-white/12 bg-white/[0.03] blur-3xl" />
-      </div>
-
-      <div className="relative z-10 flex min-h-screen flex-col px-5 py-6 sm:px-8">
-        <header className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-3">
-            <p className="panel-meta text-[0.72rem] uppercase text-cyan-200/70">Static fallback mode</p>
-            <h1 className="text-5xl text-white sm:text-6xl" style={{ fontFamily: "var(--font-at-glyph)" }}>@</h1>
-            <p className="max-w-xl text-sm text-white/68 sm:text-base">
-              This device gets the lighter 2D build so the site still feels intentional without asking weak hardware to render the full 3D scene.
-            </p>
-          </div>
-          <div className="rounded-3xl border border-white/12 bg-black/30 px-4 py-3 text-right shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-md">
-            <p className="panel-meta text-[0.66rem] uppercase text-white/42">Capability</p>
-            <p className="mt-1 text-sm text-white/78">{capability.summary}</p>
-          </div>
+    <div ref={viewport} className="h-full overflow-y-auto bg-[#0b1012] text-white">
+      <div className="mx-auto max-w-6xl px-5 py-5 sm:px-10">
+        <header className="flex items-baseline justify-between gap-4 border-b border-white/20 pb-4">
+          <h1 className="text-3xl" style={{ fontFamily: "var(--font-at-glyph)" }}>@</h1>
+          <details className="text-right text-xs text-white/65">
+            <summary className="cursor-pointer">Static fallback mode</summary>
+            <p className="mt-2">{capability.summary}</p>
+          </details>
         </header>
-
-        <main className="mt-8 grid flex-1 gap-6 lg:grid-cols-[minmax(18rem,20rem)_minmax(0,1fr)]">
-          <aside className="rounded-[28px] border border-white/12 bg-black/28 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur-md sm:p-5">
-            <p className="panel-meta text-[0.72rem] uppercase text-white/42">Navigation</p>
-            <div className="mt-4 space-y-3">
-              {PAGES.map((page) => {
-                const isActive = activePage?.id === page.id;
-                return (
-                  <button
-                    key={page.id}
-                    type="button"
-                    onClick={() => navigateTo(page.route)}
-                    className={`fallback-link group flex w-full items-center justify-between rounded-[22px] border px-4 py-4 text-left transition ${
-                      isActive
-                        ? "border-cyan-200/35 bg-cyan-200/10 text-white"
-                        : "border-white/10 bg-white/[0.03] text-white/78 hover:border-white/18 hover:bg-white/[0.06] hover:text-white"
-                    }`}
-                  >
-                    <span>
-                      <span className="panel-title block text-2xl leading-none">{page.label}</span>
-                      {page.id !== "contact" && <span className="panel-meta mt-2 block text-[0.64rem] uppercase text-white/42">{page.group}</span>}
-                    </span>
-                    <span aria-hidden="true" className="panel-meta text-white/38 transition group-hover:text-white/58">
-                      ↗
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </aside>
-
-          <section className="min-h-[24rem] rounded-[32px] border border-white/12 bg-black/36 p-4 shadow-[0_28px_100px_rgba(0,0,0,0.38)] backdrop-blur-xl sm:p-6">
-            {activePage ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4">
-                  <div>
-                    {activePage.id !== "contact" && <p className="panel-meta text-[0.72rem] uppercase text-cyan-200/72">{activePage.group}</p>}
-                    <h2 className="panel-title mt-2 text-3xl text-white sm:text-4xl">{activePage.label}</h2>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => navigateTo(HUB_ROUTE)}
-                    className="panel-meta rounded-full border border-white/14 bg-white/8 px-4 py-2 text-xs uppercase text-white/72 transition hover:border-white/24 hover:bg-white/14 hover:text-white"
-                  >
-                    Back
-                  </button>
-                </div>
-
-                <div className="max-h-[70vh] overflow-y-auto pr-1">
-                  {activeProject ? <ProjectPanel project={activeProject} /> : null}
-                  {activeInfluence && (activeInfluence.id === "contact"
-                    ? <ContactDirectory contact={activeInfluence} />
-                    : <InfluencePanel influence={activeInfluence} />)}
-                </div>
-              </div>
-            ) : (
-              <div className="flex h-full min-h-[20rem] flex-col items-center justify-center rounded-[26px] border border-dashed border-white/10 bg-white/[0.03] px-6 text-center">
-                <p className="panel-meta text-[0.72rem] uppercase text-cyan-200/70">Wireframe poster mode</p>
-                <h2 className="panel-title mt-4 text-3xl text-white sm:text-4xl">Pick a page</h2>
-                <p className="mt-4 max-w-lg text-sm text-white/68 sm:text-base">
-                  The full 3D hub is swapped for a lighter poster-like menu here, but the portfolio content and routes still work the same.
-                </p>
-              </div>
-            )}
-          </section>
+        <main className="grid items-start gap-10 py-7 lg:grid-cols-[15rem_minmax(0,1fr)]">
+          <nav aria-label="Navigation" className="lg:col-start-1 lg:row-start-1">
+            <h2 className="panel-meta mb-2 text-xs uppercase text-cyan-100/75">Navigation</h2>
+            {PAGES.map((page) => (
+              <button
+                key={page.id}
+                type="button"
+                onClick={() => navigateTo(page.route)}
+                aria-current={page.id === activePage?.id ? "page" : undefined}
+                className="index-link"
+              >
+                {page.label}
+              </button>
+            ))}
+          </nav>
+          {activePage && (
+            <section key={activePage.id} className="row-start-1 min-w-0 lg:col-start-2">
+              <button type="button" onClick={() => navigateTo(HUB_ROUTE)} className="mb-3 min-h-11 text-sm text-cyan-100 underline underline-offset-4">
+                Back
+              </button>
+              {activeProject && (activePage.id === "music"
+                ? <MusicPanel project={activeProject} />
+                : <ProjectPanel project={activeProject} />)}
+              {activeInfluence && (activePage.id === "contact" ? (
+                <>
+                  <h2 className="panel-title contact-heading">{activePage.label}</h2>
+                  <ContactDirectory contact={activeInfluence} />
+                </>
+              ) : <InfluencePanel influence={activeInfluence} />)}
+            </section>
+          )}
         </main>
       </div>
     </div>

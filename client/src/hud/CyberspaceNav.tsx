@@ -7,45 +7,22 @@ interface CyberspaceNavProps {
 
 export function CyberspaceNav({ currentPageId, onNavigate }: CyberspaceNavProps) {
   return (
-    // p-6 (24px) clears .cyberspace-panel's 1.25rem (20px) chamfer + 4px
-    // safety margin (RC-2 padding rule, routed from Task 3.5 review) -- do
-    // not shrink back to p-4 (16px), which sat inside the notch.
-    <nav className="cyberspace-panel relative overflow-hidden p-6 text-white">
-      <div className="cyberspace-sheen pointer-events-none absolute inset-0 opacity-70" />
-      <div className="relative space-y-4">
-        <div className="space-y-1">
-          <p className="panel-kicker text-[11px] uppercase text-[#00e5ff]/82">Cyberspace nav</p>
-          <h3 className="panel-meta text-sm uppercase text-white/72">Jump links</h3>
-        </div>
-
-        <ul className="space-y-2">
-          {PAGES.map((page, index) => {
-            const isActive = page.id === currentPageId;
-
-            return (
-              <li key={page.id}>
-                {/* pl-4/pr-5 clear the .cyberspace-link clip-path notches (index.css) — do not collapse back to px-4 */}
-                <button
-                  type="button"
-                  onClick={() => onNavigate(page.id)}
-                  aria-current={isActive ? "page" : undefined}
-                  className={`cyberspace-link group relative flex w-full items-center justify-between gap-3 overflow-hidden py-3 pl-4 pr-5 text-left transition ${
-                    isActive
-                      ? "border-[#00e5ff]/55 bg-[#00e5ff]/16 text-white shadow-[0_0_32px_rgba(0,229,255,0.14)]"
-                      : "border-white/10 bg-white/[0.03] text-white/80 hover:border-[#00e5ff]/35 hover:bg-[#00e5ff]/10 hover:text-white"
-                  }`}
-                >
-                  <span className="panel-meta text-[11px] uppercase text-[#00e5ff]/80">{String(index + 1).padStart(2, "0")}</span>
-                  <span className="min-w-0 flex-1 truncate label-long text-sm uppercase">
-                    {page.label}
-                  </span>
-                  <span className="panel-meta text-[10px] uppercase text-white/45">{isActive ? "Live" : "Jump"}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+    <nav aria-label="Jump links">
+      <h3 className="panel-meta mb-3 text-xs uppercase text-cyan-100/75">Jump links</h3>
+      <ul>
+        {PAGES.map((page) => (
+          <li key={page.id}>
+            <button
+              type="button"
+              onClick={() => onNavigate(page.id)}
+              aria-current={page.id === currentPageId ? "page" : undefined}
+              className="index-link"
+            >
+              {page.label}
+            </button>
+          </li>
+        ))}
+      </ul>
     </nav>
   );
 }

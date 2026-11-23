@@ -11,24 +11,15 @@ const STATUS_LABELS: Record<Project["status"], string> = {
   concept: "Concept",
 };
 
-const STATUS_STYLES: Record<Project["status"], string> = {
-  live: "border-emerald-400/25 bg-emerald-400/12 text-emerald-100",
-  "in-progress": "border-cyan-300/25 bg-cyan-300/12 text-cyan-100",
-  concept: "border-fuchsia-300/25 bg-fuchsia-300/12 text-fuchsia-100",
-};
-
 export function MusicPanel({ project }: MusicPanelProps) {
   return (
     <div className="space-y-6 text-white">
       <header className="space-y-4 border-b border-white/10 pb-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-2">
-            <p className="panel-kicker text-[0.72rem] uppercase text-cyan-200/75">Oeuvre</p>
             <h2 className="panel-title text-3xl text-white sm:text-4xl">{project.title}</h2>
           </div>
-          <span
-            className={`panel-meta inline-flex rounded-full border px-3 py-1 text-[0.68rem] uppercase ${STATUS_STYLES[project.status]}`}
-          >
+          <span className="panel-meta text-xs text-white/60">
             {STATUS_LABELS[project.status]}
           </span>
         </div>
@@ -47,17 +38,17 @@ export function MusicPanel({ project }: MusicPanelProps) {
                   alt={`${album.title} — ${album.artist} album art`}
                   loading="lazy"
                   decoding="async"
-                  className="aspect-square w-full rounded-[18px] border border-white/12 object-cover"
+                  className="aspect-square w-full object-cover"
                 />
               </picture>
               <p className="label-long text-sm text-white/90">{album.title}</p>
               <p className="panel-meta text-[0.62rem] uppercase text-white/50">{album.artist}</p>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-x-3">
                 <a
                   href={album.spotifyUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="panel-meta text-[0.6rem] uppercase text-cyan-100/70 transition hover:text-white"
+                  className="panel-meta inline-flex min-h-11 items-center text-xs text-cyan-100/80 transition hover:text-white"
                 >
                   Spotify ↗
                 </a>
@@ -65,7 +56,7 @@ export function MusicPanel({ project }: MusicPanelProps) {
                   href={album.appleMusicUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="panel-meta text-[0.6rem] uppercase text-cyan-100/70 transition hover:text-white"
+                  className="panel-meta inline-flex min-h-11 items-center text-xs text-cyan-100/80 transition hover:text-white"
                 >
                   Apple Music ↗
                 </a>

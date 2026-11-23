@@ -17,9 +17,9 @@ function groupItemsByCategory(influence: Influence) {
   return Array.from(groups.entries());
 }
 
-function ImageCard({ item }: { item: InfluenceItem }) {
+function ImageStudy({ item }: { item: InfluenceItem }) {
   return (
-    <div className="rounded-[20px] border border-white/8 bg-black/20 px-4 py-4">
+    <div className="py-4">
       <div className="grid grid-cols-2 gap-3">
         {item.images?.map((image) => (
           <figure key={image.src} className="space-y-1.5">
@@ -30,7 +30,7 @@ function ImageCard({ item }: { item: InfluenceItem }) {
                 alt={image.alt}
                 loading="lazy"
                 decoding="async"
-                className="w-full rounded-[14px] border border-white/10 object-cover"
+                className="w-full object-cover"
               />
             </picture>
             <figcaption className="panel-meta text-[0.6rem] uppercase tracking-wide text-white/40">
@@ -60,9 +60,9 @@ function TileGrid({ items }: { items: InfluenceItem[] }) {
           href={item.url}
           target="_blank"
           rel="noreferrer"
-          className="group block rounded-[16px] border border-white/10 bg-black/25 p-3 transition hover:border-cyan-200/35"
+          className="group block"
         >
-          <div className="relative overflow-hidden rounded-[12px] border border-white/10">
+          <div className="relative overflow-hidden">
             {item.artworkSrc ? (
               <picture>
                 {item.artworkOptimizedSrc ? (
@@ -79,7 +79,7 @@ function TileGrid({ items }: { items: InfluenceItem[] }) {
             ) : (
               <div className="aspect-square w-full bg-white/[0.05]" />
             )}
-            <div className="absolute inset-0 flex items-center bg-black/88 p-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+            <div className="podcast-note absolute inset-0 flex items-center bg-black/88 p-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
               <p className="panel-body text-xs leading-5 text-white/85">{item.note}</p>
             </div>
           </div>
@@ -106,29 +106,26 @@ export function InfluencePanel({ influence }: InfluencePanelProps) {
   return (
     <div className="space-y-6 text-white">
       <header className="space-y-4 border-b border-white/10 pb-5">
-        <div className="space-y-2">
-          <p className="panel-kicker text-[0.72rem] uppercase text-cyan-200/75">Influences</p>
-          <h2 className="panel-title panel-title-influence text-3xl text-white sm:text-4xl">{influence.title}</h2>
-        </div>
+        <h2 className="panel-title panel-title-influence text-3xl text-white sm:text-4xl">{influence.title}</h2>
         {influence.intro ? (
           <p className="panel-body max-w-3xl text-sm text-white/78 sm:text-base">{influence.intro}</p>
         ) : null}
       </header>
 
-      <section className="space-y-4">
+      <section className="space-y-8">
         {groupedItems.map(([category, items]) => (
           <div
             key={category}
-            className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+            className="pt-3"
           >
-            <p className="panel-meta text-[0.72rem] uppercase text-white/45">{category}</p>
-            <div className="mt-4 space-y-3">
+            <h3 className="panel-meta text-xs uppercase text-cyan-100/75">{category}</h3>
+            <div className="mt-3">
               {items.every((item) => item.display === "tile") ? (
                 <TileGrid items={items} />
               ) : (
                 items.map((item) => {
                   if (item.images && item.images.length > 0) {
-                    return <ImageCard key={`${category}-${item.name}`} item={item} />;
+                    return <ImageStudy key={`${category}-${item.name}`} item={item} />;
                   }
 
                   const Wrapper = item.url ? "a" : "div";
@@ -144,20 +141,11 @@ export function InfluencePanel({ influence }: InfluencePanelProps) {
                     <Wrapper
                       key={`${category}-${item.name}`}
                       {...wrapperProps}
-                      className={`block rounded-[20px] border px-4 py-4 transition ${
-                        item.url
-                          ? "border-white/10 bg-black/20 hover:border-cyan-200/30 hover:bg-cyan-200/8"
-                          : "border-white/8 bg-black/20"
-                      }`}
+                      className="catalog-row"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="space-y-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="label-long text-base text-white sm:text-lg">{item.name}</h3>
-                            {item.url ? (
-                              <span className="panel-meta text-xs uppercase text-cyan-100/70">Link</span>
-                            ) : null}
-                          </div>
+                          <h4 className="label-long text-base text-white sm:text-lg">{item.name}</h4>
                           <p className="panel-body text-sm text-white/72">{item.note}</p>
                         </div>
                         {item.url ? (

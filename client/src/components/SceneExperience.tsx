@@ -385,7 +385,7 @@ export default function SceneExperience({
             preparingPageId={departure?.stage === "staging" || departure?.stage === "ready" ? departure.pageId : null}
             isTransitioning={isTransitioning}
             isClosing={closingPageId === page.id}
-            variant={page.id === "contact" ? "directory" : isShowcase ? "showcase" : "card"}
+            variant={isShowcase ? "showcase" : "reading"}
             showcaseAspect={screenshotAspectOf(project)}
             onClose={handlePanelClose}
           >

@@ -29,7 +29,6 @@ export function Commentary({ pageId, project = null }: CommentaryProps) {
       {project ? (
         <section className="space-y-4">
           <div className="space-y-2">
-            <p className="panel-kicker text-xs uppercase text-[#89f1ff]/80">Oeuvre</p>
             <h2 className="panel-title text-3xl text-white sm:text-4xl">{project.title}</h2>
           </div>
           <p className="panel-body text-sm leading-7 text-white/80 sm:text-base">
@@ -38,16 +37,7 @@ export function Commentary({ pageId, project = null }: CommentaryProps) {
 
           <div className="space-y-3">
             <p className="panel-meta text-[0.72rem] uppercase text-white/45">Tech stack</p>
-            <div className="flex flex-wrap gap-2">
-              {project.techStack.map((item) => (
-                <span
-                  key={item}
-                  className="panel-chip rounded-full border border-white/12 bg-white/[0.06] px-3 py-1.5 text-xs uppercase text-white/78"
-                >
-                  {item}
-                </span>
-              ))}
-            </div>
+            <p className="panel-body text-sm text-white/80">{project.techStack.join(", ")}</p>
           </div>
 
           {projectLinks.length ? (
@@ -60,7 +50,7 @@ export function Commentary({ pageId, project = null }: CommentaryProps) {
                     href={link.href}
                     target="_blank"
                     rel="noreferrer"
-                    className="panel-meta rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-xs uppercase text-white/78 transition hover:border-cyan-200/30 hover:bg-cyan-200/8 hover:text-white"
+                    className="inline-flex min-h-11 items-center gap-1 pr-4 text-cyan-100 underline underline-offset-4"
                   >
                     {link.label} <span aria-hidden="true">↗</span>
                   </a>
@@ -83,13 +73,11 @@ export function Commentary({ pageId, project = null }: CommentaryProps) {
               {entry?.title ?? `${page?.label ?? "Current page"} commentary`}
             </h2>
           )}
-          {page && !project ? (
-            <p className="panel-meta text-xs uppercase text-white/55">Page: {page.label}</p>
-          ) : null}
+
         </div>
       </div>
 
-      <div className="rounded-[28px] border border-[#89f1ff]/18 bg-black/25 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-6">
+      <div className="max-w-prose">
         <p className="panel-body text-[15px] leading-8 text-white/84 sm:text-base">
           {entry?.body ?? "Commentary for this page has not been written yet."}
         </p>

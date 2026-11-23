@@ -71,40 +71,21 @@ export function LoadingScreen({ loadState, onReady }: LoadingScreenProps) {
     >
       <VisorChrome noiseOpacity={0.55} />
 
-      {/* hud-frame-lg chamfer 1.25rem -> padding must stay >= 1.5rem on
-          every side; p-7/sm:p-9 (28px/36px) already clear it, so no padding
-          change was needed here, only the shape. clip-path clips descendant
-          painting the same way overflow-hidden did, so the two overlay divs
-          below stay corner-safe without it. */}
-      <div className="hud-frame hud-frame-lg relative w-full max-w-xl p-7 text-white sm:p-9">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(137,241,255,0.15),transparent_34%),radial-gradient(circle_at_bottom,rgba(255,255,255,0.04),transparent_42%)]" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-200/55 to-transparent" />
-
+      <div className="relative w-full max-w-xl px-4 text-white">
         <div className="relative">
           <p className="panel-meta text-[0.72rem] uppercase text-cyan-200/78">Helmet link</p>
 
           <div className="mt-6 flex items-center justify-between gap-6">
             <div>
               <div className="panel-title text-6xl leading-none text-white drop-shadow-[0_0_28px_rgba(137,241,255,0.18)] sm:text-7xl">
-                <span className="inline-block animate-pulse">@</span>
+                <span className="inline-block">@</span>
               </div>
               <p className="panel-body mt-4 max-w-sm text-sm text-white/70 sm:text-base">
                 Establishing visor sync, warming the tube screens, and clearing the wireframe dark.
               </p>
             </div>
 
-            {/* Circular visor activity indicator. Asset-count percentages jump
-                because one large GLB dominates startup, so avoid a false scale. */}
-            <div className="helmet-chip hidden h-28 w-28 shrink-0 rounded-full sm:grid place-items-center">
-              <div className="relative h-20 w-20 rounded-full border border-white/10">
-                <div
-                  className={`absolute inset-2 rounded-full border-2 border-cyan-200/15 ${phase === "complete" ? "border-cyan-200/70" : "loader-ring border-t-cyan-200/80"}`}
-                />
-                <div className="panel-meta tabular-nums absolute inset-0 grid place-items-center text-[0.68rem] text-white/64">
-                  {phase === "complete" ? "✓" : "@"}
-                </div>
-              </div>
-            </div>
+
           </div>
 
           <div className="mt-8 space-y-3">
@@ -113,7 +94,7 @@ export function LoadingScreen({ loadState, onReady }: LoadingScreenProps) {
               <span className="panel-meta text-cyan-200/74">{phase === "complete" ? "Ready" : "In progress"}</span>
             </div>
             <div
-              className="relative h-3 overflow-hidden rounded-full border border-white/10 bg-white/[0.04]"
+              className="relative h-px overflow-hidden bg-white/25"
               role="progressbar"
               aria-label="Scene transfer"
               aria-valuenow={phase === "complete" ? 100 : undefined}
@@ -121,9 +102,9 @@ export function LoadingScreen({ loadState, onReady }: LoadingScreenProps) {
               aria-valuemax={phase === "complete" ? 100 : undefined}
             >
               <div
-                className={`absolute inset-y-0 left-0 rounded-full bg-cyan-200/20 transition-[width] duration-500 ease-out ${phase === "complete" ? "w-full" : "w-1/4"}`}
+                className={`absolute inset-y-0 left-0 bg-cyan-200 transition-[width] duration-500 ease-out ${phase === "complete" ? "w-full" : "w-1/4"}`}
               />
-              {phase !== "complete" ? <div className="loader-sweep absolute inset-y-0 w-1/3 rounded-full bg-gradient-to-r from-transparent via-cyan-200/90 to-transparent shadow-[0_0_22px_rgba(137,241,255,0.45)]" /> : null}
+              {phase !== "complete" ? <div className="loader-sweep absolute inset-y-0 w-1/3 bg-cyan-200" /> : null}
             </div>
           </div>
 
